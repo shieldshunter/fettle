@@ -1,0 +1,30 @@
+{
+  "scripts": {
+    "dev": "vite --host --https",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.10",
+    "@types/react-dom": "^19.0.4",
+    "prettier": "^2.6.0",
+    "typescript": "^4.9.5",
+    "vite": "^6.1.1"
+  },
+  "name": "trebro_parts_authtest",
+  "version": "1.0.0",
+  "description": "This is a minimal sample application built using Vite, TypeScript, HTML, and\r WebComponents. It is a simple sample that shows how to load\r and render various file formats, while providing a simple tree view to explore\r the model structure.",
+  "main": "vite.config.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "npx": "^3.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "yarn": "^1.22.22"
+  }
+}
