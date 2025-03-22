@@ -26,7 +26,7 @@ class LoginDialog extends HTMLElement {
     this.content.innerHTML = `
       <div class="container">
         <div class="imgcontainer">
-          <img src="data/TrebroLogo2025Resized.png" alt="Logo" class="logo">
+          <img src="data/Crescent1.png" alt="Logo" class="logo">
         </div>
         <label for="uname"><b>Email</b></label>
         <input id="uname" type="text" placeholder="Enter Email" name="uname" required>
@@ -104,7 +104,7 @@ class LoginDialog extends HTMLElement {
           loginBtn.style.display = 'block';
         } else {
           // Valid email format but not in auth data: show “Request Access” + form
-          msForm.src = "https://forms.office.com/Pages/ResponsePage.aspx?id=J-soOqbWJUmXJZuWlVm4i-iWZheT5UVMtvugZuufuFtUQjI1TExGSjhGTFdRTlMxRlBXTFVPV1NLMy4u&embed=true";
+          msForm.src = "";
 
           msFormContainer.style.display = 'block';
         }
@@ -179,7 +179,7 @@ class LoginDialog extends HTMLElement {
           height: 100%; /* Full height */
           overflow: auto; /* Enable scroll if needed */
           background-color: rgb(0,0,0); /* Fallback color */
-          background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+          background-color: rgba(0,0,0,0.5); /* Black w/ opacity */
         }
 
         /* Modal Content/Box */
@@ -226,10 +226,11 @@ class LoginDialog extends HTMLElement {
         input[type=text], input[type=password] {
           width: 100%;
           padding: 12px 20px;
-          margin: 8px 0;
+          margin: 12px 0;
           display: inline-block;
           border: 1px solid #ccc;
           box-sizing: border-box;
+          border-radius: 12px;
         }
 
         /* Set a style for all buttons */

@@ -13,7 +13,7 @@ async function init() {
   // Check if user is already authenticated
   if (await auth.isAuthenticated()) {
     // If authenticated, show the main content
-    iframe.src = 'https://app.zea.live/parts/9Zux5BOyy4ccTlCeoMxk'
+    iframe.src = ''
     logoutButton.style.display = 'block'
   } else {
     // If not authenticated, clear the content
