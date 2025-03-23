@@ -1,69 +1,46 @@
 :root {
-  --wave-color-1: #EA3546; /* Example red */
-  --wave-color-2: #F36F21; /* Example orange */
-  --wave-color-3: #FABF35; /* Example gold */
-  --wave-color-4: #345995; /* Example blue */
+  --wave1-clip: polygon(0 65%, 50% 75%, 100% 60%, 100% 100%, 0 100%);
+  --wave2-clip: polygon(0 70%, 50% 85%, 100% 70%, 100% 100%, 0 100%);
+  /*--wave2-clip: polygon(0 45%, 35% 25%, 100% 50%, 100% 100%, 0 100%);*/
+  --wave-color-1: #EA3546;
+  --wave-color-2: #F36F21;
+  --wave-color-3: #FABF35;
+  --wave-color-4: #345995;
 }
 
 body {
   margin: 0;
-  /* Give yourself space for the waves to animate in */
   min-height: 100vh;
-  /* Position relative to layer pseudo-elements behind it */
   position: relative;
-  /* Default fallback background if waves fail to load */
   background: #345995;
-  overflow: hidden; /* Hide wave overflow if desired */
+  overflow: hidden;
 }
 
 /* Wave Layer 1 (Behind) */
 body::before {
   content: "";
   position: absolute;
-  z-index: -2; /* Behind content */
+  z-index: -2;
   top: 0; left: 0; right: 0; bottom: 0;
   background: var(--wave-color-1);
-  
-  /* A rough wave shape using clip-path. 
-   * You can tweak these polygon points or generate them via “SVG wave generator.” */
-  clip-path: polygon(0 65%, 50% 75%, 100% 60%, 100% 100%, 0 100%);
-  
-  /* Animate up and down. The wave “moves” by shifting the polygon. */
-  animation: wave1 6s ease-in-out infinite alternate;
+
+  /* Use CSS variable for the clip-path: */
+  clip-path: var(--wave1-clip);
+
+  /* Optional: smooth transitions if you update the variable: */
+  transition: clip-path 1.5s;
 }
 
 /* Wave Layer 2 (Front) */
 body::after {
   content: "";
   position: absolute;
-  z-index: -1; /* In front of the first wave, but still behind main content */
+  z-index: -1;
   top: 0; left: 0; right: 0; bottom: 0;
   background: var(--wave-color-3);
-  
-  /* Different wave shape for variety */
-  clip-path: polygon(0 70%, 50% 85%, 100% 70%, 100% 100%, 0 100%);
-  
-  animation: wave2 8s ease-in-out infinite alternate;
-}
 
-/* Keyframes for wave1 */
-@keyframes wave1 {
-  0% {
-    clip-path: polygon(0 50%, 50% 65%, 100% 50%, 100% 100%, 0 100%);
-  }
-  100% {
-    clip-path: polygon(0 65%, 50% 75%, 100% 60%, 100% 100%, 0 100%);
-  }
-}
-
-/* Keyframes for wave2 */
-@keyframes wave2 {
-  0% {
-    clip-path: polygon(0 60%, 50% 75%, 100% 60%, 100% 100%, 0 100%);
-  }
-  100% {
-    clip-path: polygon(0 70%, 50% 85%, 100% 70%, 100% 100%, 0 100%);
-  }
+  clip-path: var(--wave2-clip);
+  transition: clip-path 1s;
 }
 
 header {

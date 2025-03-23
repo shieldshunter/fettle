@@ -5,6 +5,11 @@ import { LoginDialog } from './login-dialog'
 import './drop-zone'
 import './login-dialog'
 import auth from './auth'
+import { initWaves } from './wave'; // or correct path
+
+window.addEventListener('DOMContentLoaded', () => {
+  initWaves();
+});
 
 async function init() {
   const iframe = document.getElementById('catalog') as HTMLIFrameElement
