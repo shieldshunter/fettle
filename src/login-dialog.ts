@@ -1,6 +1,8 @@
 //@ts-ignore
-import { auth, shouldAuthenticate, getCachedAuthData} from './auth.js'
+import { auth, shouldAuthenticate } from './auth.js'
+import { fetchAuthData } from './fetchAuthData.js'; // Make sure path is correct
 
+let cachedWhitelist: Set<string> | null = null;
 function isValidEmail(email: string): boolean {
   const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return EMAIL_REGEX.test(email);
@@ -31,83 +33,55 @@ class LoginDialog extends HTMLElement {
         <label for="uname"><b>Email</b></label>
         <input id="uname" type="text" placeholder="Enter Email" name="uname" required>
 
-        <!-- Password Container (initially hidden) -->
-        <div id="passwordContainer" style="display: none;">
-          <label for="psw" id="pswLabel"><b>Password</b></label>
-          <input id="psw" type="password" placeholder="Enter Password" name="psw" required>
-        </div>
+        <!-- CHANGED: remove password container entirely -->
+        <button type="submit" id="sendLinkBtn" style="display: none;">Send Magic Link</button>
 
-        <!-- Login button (initially hidden) -->
-        <button type="submit" id="login" style="display: none;">Login</button>
-
-        <!-- Microsoft Form container (initially hidden) -->
+        <!-- Microsoft Form container (unchanged) -->
         <div id="msFormContainer" style="display: none; margin-top: 1rem;">
           <p>If you don’t have an account, please fill out the form below:</p>
-            <iframe id="msForm"
-              width="640px"
-              height="480px"
-              frameborder="0"
-              marginwidth="0"
-              marginheight="0"
-              style="border: none; max-width: 100%; max-height: 100vh;"
-              allowfullscreen
-              webkitallowfullscreen
-              mozallowfullscreen
-              msallowfullscreen
-            >
-            </iframe>
+          <iframe id="msForm"
+            width="640px"
+            height="480px"
+            frameborder="0"
+            marginwidth="0"
+            marginheight="0"
+            style="border: none; max-width: 100%; max-height: 100vh;"
+            allowfullscreen
+            webkitallowfullscreen
+            mozallowfullscreen
+            msallowfullscreen
+          ></iframe>
         </div>
+      </div>
     `;
 
-    const uname = this.shadowRoot!.getElementById('uname') as HTMLInputElement
-    const passwordContainer = this.shadowRoot!.getElementById('passwordContainer') as HTMLDivElement
-    const loginBtn = this.shadowRoot!.getElementById('login') as HTMLButtonElement
-    const msFormContainer = this.shadowRoot!.getElementById('msFormContainer') as HTMLDivElement
-    const msForm = this.shadowRoot!.getElementById('msForm') as HTMLIFrameElement
-    let psw: HTMLInputElement | null = null
-
-
-    if (shouldAuthenticate) {
-      psw = this.shadowRoot!.getElementById('psw') as HTMLInputElement
-      psw.addEventListener('input', () => {
-        psw!.style.border = ''
-      })
-    }
-
-    auth.getUserData().then((result: any) => {
-      if (result && psw) {
-        psw.value = result.password
-        uname.value = result.firstName
-      }
-    })
+    const uname = this.shadowRoot!.getElementById('uname') as HTMLInputElement;
+    const sendLinkBtn = this.shadowRoot!.getElementById('sendLinkBtn') as HTMLButtonElement;
+    const msFormContainer = this.shadowRoot!.getElementById('msFormContainer') as HTMLDivElement;
 
     /*
      * Show/Hide Password + Buttons On Email Input
      */
     uname.addEventListener('input', async () => {
       const typedEmail = uname.value.trim().toLowerCase();
-
-      // Always hide everything first
-      passwordContainer.style.display = 'none';
-      loginBtn.style.display = 'none';
-      msFormContainer.style.display = 'none';
-
-      // If typed text *looks* like an email, check if it’s known
+    
+      // Only fetch once
+      if (!cachedWhitelist) {
+        cachedWhitelist = await fetchAuthData();
+      }
+    
       if (isValidEmail(typedEmail)) {
-        // Fetch the latest credentials
-        const emailPasswordMap = await getCachedAuthData();
-        const partialMatchExists = Object.keys(emailPasswordMap).some(authEmail => authEmail.startsWith(typedEmail));
-
-        if (partialMatchExists) {
-          // Known/authorized email: Show password container & login
-          passwordContainer.style.display = 'block';
-          loginBtn.style.display = 'block';
+        if (cachedWhitelist.has(typedEmail)) {
+          sendLinkBtn.style.display = 'block';
+          msFormContainer.style.display = 'none';
         } else {
-          // Valid email format but not in auth data: show “Request Access” + form
-          msForm.src = "";
-
+          sendLinkBtn.style.display = 'none';
           msFormContainer.style.display = 'block';
         }
+      } else {
+        // hide both if not a valid email pattern
+        sendLinkBtn.style.display = 'none';
+        msFormContainer.style.display = 'none';
       }
     });
 
@@ -122,25 +96,28 @@ class LoginDialog extends HTMLElement {
     /*
      * Login Button Click - Validate Before Login
      */
-    loginBtn.onclick = async () => {
-      const email = uname.value.trim().toLowerCase()
-      const password = psw?.value.trim()
+    sendLinkBtn.onclick = async () => {
+      const email = uname.value.trim().toLowerCase();
+
+      // (Optional) store user’s email in localStorage so we remember it
+      await auth.setUserData({ email });
 
       try {
-        await auth.setUserData({ email, password })
-        this.close() // Close dialog on successful login
-      } catch (error) {
-        console.warn('Authentication failed:', error)
-        if (error instanceof Error) {
-          alert(error.message)
-        } else {
-          alert('An unknown error occurred')
+        // Call your new Azure Function
+        const response = await fetch("http://localhost:5236/api/send_magic_link_function", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email })
+        });
+        if (!response.ok) {
+          throw new Error(`Failed to send magic link: ${response.statusText}`);
         }
-        if (psw) {
-          psw.style.border = '2px solid red'
-        }
+        alert("Magic link sent! Check your email.");
+        this.close(); // close dialog
+      } catch (err) {
+        alert(`Error: ${err}`);
       }
-    }
+    };
     /*
      * Inject stylesheet
      */
