@@ -10,15 +10,10 @@ let whitelistedEmails: string[] = [];
  * Adjust as needed for your actual blob structure.
  */
 (async () => {
-  // If your blob returns valid JSON like:
-  // [
-  //   { "Email": "someone@example.com" },
-  //   { "Email": "another@example.com" }
-  // ]
-  // Then fetchAuthData() might build a map { "someone@example.com": "..." }
-  // or a set. Here we assume it’s a map of email->anyValue.
-  const emailPasswordMap = await fetchAuthData();
-  whitelistedEmails = Object.keys(emailPasswordMap); 
+  const emailSet = await fetchAuthData();
+  // Option 1: keep it as a set
+  whitelistedEmails = Array.from(emailSet); // if you want an array
+  // or if you want to keep it as a set, rename it to "whitelistedSet" 
 })();
 
 const shouldAuthenticate = true;
