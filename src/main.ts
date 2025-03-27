@@ -1,6 +1,7 @@
 /*********************************
  * main.ts
  *********************************/
+import './pages/treeBOM/treeBOM-page';
 import { LoginDialog } from './pages/login/login-dialog';
 import './pages/treeBOM/drop-zone';
 import './pages/login/login-dialog';

@@ -279,7 +279,7 @@ class LoginDialog extends HTMLElement {
 
         /* When modal-content is minimized, the logo scales down */
         .modal-content.minimized .logo {
-          transform: scale(0.5);
+          transform: scale(0.5) rotate(-90deg);
           /* Alternatively, you can set a new width:
             width: 100px; 
           */

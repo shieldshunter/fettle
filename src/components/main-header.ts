@@ -24,7 +24,7 @@ class MainHeader extends HTMLElement {
             
             @keyframes slideRight {
             to {
-                transform: translateX(0);
+                transform: translateX(0) rotate(90);
                 opacity: 1;
             }
             }
@@ -32,7 +32,7 @@ class MainHeader extends HTMLElement {
             .logo {
             height: 40px;
             margin-right: 10px;
-            transform: scale(0.5);
+            transform: scale(0.5) rotate(-90deg);
             opacity: 0;
             animation: logoScaleIn 1.4s ease forwards;
             }
@@ -59,14 +59,20 @@ class MainHeader extends HTMLElement {
             padding: 10px 16px;
             transition: background-color 0.25s ease;
           }
+
           .header-btn:hover {
             background-color: #e36a1e;
+            transform: scale(1.1);
+            transition: transform 0.1s ease;
             color: white;
           }
           /* Initially hide the logout button; you'll show it when needed */
           .header-btn#logoutButton {
             background-color: red
             color: white;
+          }
+          .logoutButton:hover {
+            background-color: red;
           }
         </style>
         <header>
@@ -77,13 +83,30 @@ class MainHeader extends HTMLElement {
           <div class="header-buttons">
             <button class="header-btn" id="homeButton">Home</button>
             <button class="header-btn" id="featuresButton">Features</button>
-            <button class="header-btn" id="aboutButton">About</button>
+            <button class="header-btn" id="aboutButton">TreeBOM</button>
             <button class="header-btn" id="logoutButton">Logout</button>
           </div>
         </header>
       `;
     }
-  }
+
   
-  customElements.define('main-header', MainHeader);
-  export default MainHeader;
+  connectedCallback() {
+    const shadow = this.shadowRoot!;
+    
+    shadow.getElementById('homeButton')!.onclick = () => 
+      document.dispatchEvent(new CustomEvent('navigate', { detail: 'home' }));
+
+    shadow.getElementById('featuresButton')!.onclick = () => 
+      document.dispatchEvent(new CustomEvent('navigate', { detail: 'features' }));
+
+    shadow.getElementById('aboutButton')!.onclick = () => 
+      document.dispatchEvent(new CustomEvent('navigate', { detail: 'treebom' }));
+
+    shadow.getElementById('logoutButton')!.onclick = () => 
+      document.dispatchEvent(new CustomEvent('navigate', { detail: 'logout' }));
+  }
+}
+
+customElements.define('main-header', MainHeader);
+export default MainHeader;

@@ -33,7 +33,7 @@ export class TreeBOMPage extends HTMLElement {
         #chart {
           width: 100%;
           height: 600px; /* or whatever fixed height you prefer */
-          overflow: auto; /* add scrollbars if content overflows */
+          overflow: disable; /* add scrollbars if content overflows */
           border: 1px solid #ccc;
         }
 
