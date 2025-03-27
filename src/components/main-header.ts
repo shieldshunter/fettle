@@ -15,15 +15,34 @@ class MainHeader extends HTMLElement {
             font-family: sans-serif;
             font-size: 20px;
             font-weight: bold;
+            box-shadow: 0 5px 10px black (0, 0, 0, 0.2);
           }
-          .logo-container {
+            .logo-container {
             display: flex;
             align-items: center;
-          }
-          .logo {
+            }
+            
+            @keyframes slideRight {
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            }
+
+            .logo {
             height: 40px;
             margin-right: 10px;
-          }
+            transform: scale(0.5);
+            opacity: 0;
+            animation: logoScaleIn 1.4s ease forwards;
+            }
+
+            @keyframes logoScaleIn {
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+            }
           .header-buttons {
             display: flex;
             gap: 10px;
@@ -45,7 +64,7 @@ class MainHeader extends HTMLElement {
             color: white;
           }
           /* Initially hide the logout button; you'll show it when needed */
-          #logoutButton:hover {
+          .header-btn#logoutButton {
             background-color: red
             color: white;
           }

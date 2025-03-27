@@ -160,10 +160,8 @@ class LoginDialog extends HTMLElement {
 
     const originalClickHandler = async () => {
       const email = uname.value.trim().toLowerCase();
-      
       await auth.setUserData({ email });
     
-      // Enter loading animation state
       sendLinkBtn.disabled = true;
       sendLinkBtn.classList.add("loading");
     
@@ -179,35 +177,31 @@ class LoginDialog extends HTMLElement {
           
           // Instead of a second timeout, trigger the minimize transition.
 
-          sendLinkBtn.innerHTML = initialBtnHTML;
-          sendLinkBtn.classList.add("success");
-          sendLinkBtn.onclick = originalClickHandler;
-          this.minimizeAndClose();
-          document.dispatchEvent(new CustomEvent('login-success'));
-          this.minimizeAndClose();
+            sendLinkBtn.innerHTML = initialBtnHTML;
+            sendLinkBtn.classList.add("success");
+            sendLinkBtn.textContent = "Success! Check your email";
+            this.content.classList.add("minimized");
+            sendLinkBtn.onclick = originalClickHandler;
+
+            setTimeout(() => {
+            document.dispatchEvent(new CustomEvent('login-success'));
+            }, 1000); // Delay of 1.5 seconds
         }, 1500);
       } else {
-        // Normal fetch logic...
         try {
           await fetch("https://trebrosinglesignon.azurewebsites.net/api/send_magic_link_function", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email })
           });
-      
+    
           sendLinkBtn.classList.remove("loading");
           sendLinkBtn.classList.add("success");
           sendLinkBtn.textContent = "Success! Check your email";
-      
-          setTimeout(() => {
-            sendLinkBtn.disabled = false;
-            sendLinkBtn.textContent = "Click to try again";
-            sendLinkBtn.onclick = () => {
-              sendLinkBtn.classList.remove("success");
-              sendLinkBtn.innerHTML = initialBtnHTML;
-            };
-          }, 10000);
-          
+    
+          // Trigger minimize animation here too if needed
+          this.content.classList.add("minimized");
+    
         } catch (err) {
           console.error(`Error: ${err}`);
           sendLinkBtn.disabled = false;
@@ -262,26 +256,20 @@ class LoginDialog extends HTMLElement {
 
         /* Modal Content initial state */
         .modal-content {
-          background-color: rgb(255, 255, 255);
-          margin: 15% auto; /* centered on screen */
-          padding: 20px;
-          border-radius: 10px;
-          border: 1px solid #888;
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          transition: transform 1.5s ease-in-out, top 1.5s ease-in-out, left 1.5s ease-in-out, width 1.5s ease-in-out, height 1.5s ease-in-out, opacity 1.5s ease-in-out;
           width: 80%;
           max-width: 600px;
-          /* Add transition for smooth transformation */
-          transition: transform 1.5s ease-in-out, 
-            top 1.5s ease-in-out, 
-            left 1.5s ease-in-out, 
-            width 1.5s ease-in-out;
+          border-radius: 10px;
+          z-index: 1000;
+          background-color: #fefefe;
         }
 
-        /* Minimized state for modal-content (adjust top/left as needed to match your header) */
         .modal-content.minimized {
-          top: 10px;       /* Position it near the top */
-          left: 10px;      /* Position it near the left */
-          transform: translate(0, 0) scale(0.5); /* Scale down to half size */
-          width: 300px;    /* Optionally adjust the width */
+          opacity: 0;
         }
 
         /* Transition for the logo image */
@@ -539,6 +527,7 @@ class LoginDialog extends HTMLElement {
       .btn.success {
         animation: successTransition 0.7s ease forwards;
         background-color: #28a745;  /* Green */
+        border: none;
         color: #fff;
       }
       `)
@@ -546,13 +535,18 @@ class LoginDialog extends HTMLElement {
     shadowRoot.appendChild(styleTag)
   }
 
-  minimizeAndClose(callback?: () => void) {
-    this.content.classList.add('minimized');
-    // Force-close after 1s, ignoring transitionend
+  minimizeAndClose() {
+    const modalContent = document.querySelector('.modal-content');
+    if (modalContent) {
+      modalContent.classList.add('minimized');
+    }
+  
     setTimeout(() => {
-      this.close();
-      if (callback) callback();
-    }, 1500);
+      if (modalContent) {
+        (modalContent as HTMLElement).style.display = 'none';
+      }
+      document.dispatchEvent(new CustomEvent('login-success'));
+    }, 1500); // Matches your CSS transition time
   }
 
   resetSendLinkButton() {

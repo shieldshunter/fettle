@@ -17,6 +17,8 @@ body {
   position: relative;
   background: #345995;
   z-index: 0;
+  overflow: hidden;
+  padding-bottom: 10px;
 }
 
 /* Wave Layer 1 (Behind) */
@@ -32,7 +34,7 @@ body::before {
   clip-path: var(--wave1-clip);
 
   /* Optional: smooth transitions if you update the variable: */
-  transition: clip-path 1.5s;
+  transition: clip-path 3s;
 }
 
 /* Wave Layer 2 (Front) */
@@ -44,7 +46,7 @@ body::after {
   background: var(--wave-color-3);
 
   clip-path: var(--wave2-clip);
-  transition: clip-path 1s;
+  transition: clip-path 2.5s;
 }
 
 /* Animate the header */
@@ -61,6 +63,7 @@ main-header.visible {
   transform: translateY(0);
 }
 
+
 /* Animate the main container */
 #mainContainer {
   opacity: 0;
@@ -71,12 +74,17 @@ main-header.visible {
   align-items: center;
 }
 #mainContainer.visible {
+  align-self: center;
+  z-index: 1;
   opacity: 1;
   padding: 20px;
-  margin: 80px auto 20px auto;
+  margin-top: 80px;
   min-width: 500px;
-  max-width: 1200px;
-  background-color: aliceblue;
+  margin-left:10px;
+  margin-right:10px;
+  width: 90%;
+  height: 90%;
+  background-color: white;
   transform: scale(1);
 }
 header {
