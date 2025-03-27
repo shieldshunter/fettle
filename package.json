@@ -8,8 +8,11 @@
     "@types/d3": "^7.4.3",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
-    "@types/xlsx": "^0.0.36",
+    "@types/xlsx": "^0.0.35",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.3",
     "prettier": "^2.6.0",
+    "tailwindcss": "^4.0.17",
     "typescript": "^4.9.5",
     "vite": "^6.1.1"
   },
@@ -24,6 +27,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@heroicons/react": "^2.2.0",
+    "@tailwindcss/vite": "^4.0.17",
     "d3": "^7.9.0",
     "npx": "^3.0.0",
     "react": "^19.0.0",

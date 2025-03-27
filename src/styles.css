@@ -1,4 +1,4 @@
-
+@import "tailwindcss";
 
 :root {
   --wave1-clip: polygon(0 65%, 50% 75%, 100% 60%, 100% 100%, 0 100%);
@@ -23,7 +23,7 @@ body {
 
 body::before {
   content: "";
-  position: absolute;
+  position: fixed;
   z-index: -2;
   top: 0; left: 0; right: 0; bottom: 0;
   background: var(--wave-color-1);
@@ -38,7 +38,7 @@ body::before {
 /* Wave Layer 2 (Front) */
 body::after {
   content: "";
-  position: absolute;
+  position: fixed;
   z-index: -1;
   top: 0; left: 0; right: 0; bottom: 0;
   background: var(--wave-color-3);
@@ -54,21 +54,28 @@ main-header {
   transition: opacity 0.6s ease, transform 0.6s ease;
 }
 main-header.visible {
+  z-index: 2;
   opacity: 1;
+  width: 100%;
+  position: fixed;
   transform: translateY(0);
 }
 
 /* Animate the main container */
 #mainContainer {
   opacity: 0;
+  border-radius: 15px;
   transform: scale(0.85);
   transition: opacity 0.6s ease, transform 0.6s ease;
+  justify-content: center;
+  align-items: center;
 }
 #mainContainer.visible {
   opacity: 1;
   padding: 20px;
-  margin: 80px auto;
+  margin: 80px auto 20px auto;
   min-width: 500px;
+  max-width: 1200px;
   background-color: aliceblue;
   transform: scale(1);
 }

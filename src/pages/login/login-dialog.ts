@@ -37,7 +37,7 @@ class LoginDialog extends HTMLElement {
         <!-- CHANGED: remove password container entirely -->
         <button id="sendLinkBtn" class="btn">
           <span class="icon-text">
-            <i class="far fa-paper-plane"></i>
+            <i class="fas fa-paper-plane"></i>
             <span class="text">Send Magic Link</span>
           </span>
           <span class="wave-spinner">
@@ -403,18 +403,26 @@ class LoginDialog extends HTMLElement {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      background-color: #f36f21;
-      color: #fff;
+      background-color:rgb(255, 255, 255);
+      color: black;
       font-size: 14px;
       font-weight: bold;
-      border: none;
       border-radius: 12px;
       cursor: pointer;
       height: 45px;
+      border: 3px solid black;
       margin: auto;
       padding: 0 16px;
       transition: width 0.25s ease, height 0.25s ease, padding 0.25s ease;
       overflow: hidden;
+      }
+      
+
+      .btn:hover {
+      background-color: #e36a1e;
+      color: white;
+      border: none;
+      
       }
 
       /* Container for Icon and Text */
@@ -439,6 +447,7 @@ class LoginDialog extends HTMLElement {
       width: 140px;
       height: 60px;
       border-radius: 25px;
+      border: none;
       background-color:rgb(255, 255, 255);
       padding: 0; /* Remove extra padding */
       animation: colorTransition 0.5s ease forwards; /* Add color transition */
