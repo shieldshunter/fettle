@@ -1,3 +1,5 @@
+
+
 :root {
   --wave1-clip: polygon(0 65%, 50% 75%, 100% 60%, 100% 100%, 0 100%);
   --wave2-clip: polygon(0 70%, 50% 85%, 100% 70%, 100% 100%, 0 100%);
@@ -8,15 +10,17 @@
   --wave-color-4: #345995;
 }
 
+
 body {
   margin: 0;
   min-height: 100vh;
   position: relative;
   background: #345995;
-  overflow: hidden;
+  z-index: 0;
 }
 
 /* Wave Layer 1 (Behind) */
+
 body::before {
   content: "";
   position: absolute;
@@ -43,6 +47,31 @@ body::after {
   transition: clip-path 1s;
 }
 
+/* Animate the header */
+main-header {
+  opacity: 0;
+  transform: translateY(-30px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+main-header.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Animate the main container */
+#mainContainer {
+  opacity: 0;
+  transform: scale(0.85);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+#mainContainer.visible {
+  opacity: 1;
+  padding: 20px;
+  margin: 80px auto;
+  min-width: 500px;
+  background-color: aliceblue;
+  transform: scale(1);
+}
 header {
   grid-area: header;
   overflow: hidden;

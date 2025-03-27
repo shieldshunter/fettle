@@ -46,6 +46,6 @@ function randomWavePolygon(): string {
     shuffleWaves();
   
     // Then shuffle repeatedly (optional):
-    setInterval(shuffleWaves, 5000);
+    setInterval(shuffleWaves, 1500);
   }
   

@@ -1,53 +1,97 @@
 /*********************************
  * main.ts
  *********************************/
-import { LoginDialog } from './login-dialog'
-import './drop-zone'
-import './login-dialog'
-import auth from './auth'
-import { initWaves } from './wave'; // or correct path
+import { LoginDialog } from './pages/login/login-dialog';
+import './pages/treeBOM/drop-zone';
+import './pages/login/login-dialog';
+import auth from './utils/auth';
+import './pages/treeBOM/treeBOM-page';
+import './components/main-header'; // Make sure this path is correct
+import { initWaves } from './utils/wave'; // or correct path
+
+
 
 window.addEventListener('DOMContentLoaded', () => {
   initWaves();
+  // Insert the header at the top if not already present.
+  let header = document.querySelector('main-header') as HTMLElement;
+  if (!header) {
+    header = document.createElement('main-header');
+    document.body.prepend(header);
+  }
+  
+  // Create a main content container if it doesn't exist.
+  let mainContainer = document.getElementById('mainContainer') as HTMLElement;
+  if (!mainContainer) {
+    mainContainer = document.createElement('div');
+    mainContainer.id = 'mainContainer';
+    document.body.appendChild(mainContainer);
+  }
+  
+  // Call init() once at startup.
+  init();
 });
 
+/**
+ * init() checks auth. If authenticated, loads the treeBOM.
+ * If not, shows the login dialog.
+ */
 async function init() {
-  const iframe = document.getElementById('catalog') as HTMLIFrameElement
-  const logoutButton = document.getElementById('logoutButton') as HTMLButtonElement
-
-  // Check if user is already authenticated
-  if (await auth.isAuthenticated()) {
-    // If authenticated, show the main content
-    iframe.src = ''
-    logoutButton.style.display = 'block'
-  } else {
-    // If not authenticated, clear the content
-    iframe.src = ''
-    logoutButton.style.display = 'none'
-    // Show the login dialog
-    loginDialog.show(() => {
-      // After the dialog closes (successful login), run init again
-      init()
-    })
-  }
-
-  // Handle logout
+  const header = document.querySelector('main-header') as HTMLElement;
+  const mainContainer = document.getElementById('mainContainer') as HTMLElement;
+  const loginDialog = document.getElementById('login') as LoginDialog;
+  
+  // Access the logout button from header's shadow DOM.
+  const logoutButton = (document.querySelector('main-header') as any)
+    .shadowRoot.querySelector('#logoutButton') as HTMLButtonElement;
+  
   logoutButton.onclick = async () => {
-    await auth.signOut()
-    iframe.src = ''
-    logoutButton.style.display = 'none'
-    // Show the login again so the user can re-auth
-    loginDialog.show(() => {
-      init()
-    })
+    console.log("Logout button clicked");
+    await auth.signOut();
+    mainContainer.innerHTML = '';
+    header.style.display = 'none';
+    logoutButton.style.display = 'none';
+    
+    // Remove the visible classes when logging out.
+    header.classList.remove('visible');
+    mainContainer.classList.remove('visible');
+    
+    loginDialog.resetSendLinkButton();
+    loginDialog.show();
+  };
+
+  if (await auth.isAuthenticated()) {
+    console.log("User is authenticated - showing header + BOM");
+    header.style.display = 'block';
+    logoutButton.style.display = 'block';
+    
+    // Hide the login dialog.
+    loginDialog.style.display = 'none';
+    
+    // Load the treeBOM page into the main container.
+    mainContainer.innerHTML = '';
+    mainContainer.appendChild(document.createElement('tree-bom-page'));
+
+    // Use a slight delay to ensure the element is rendered, then add the visible classes
+    setTimeout(() => {
+      header.classList.add('visible');
+      mainContainer.classList.add('visible');
+    }, 50);
+  } else {
+    console.log("User is NOT authenticated - hiding header + showing login");
+    header.style.display = 'none';
+    logoutButton.style.display = 'none';
+    mainContainer.innerHTML = '';
+    loginDialog.show();
   }
 }
 
-// Grab a reference to your <login-dialog> element
-const loginDialog = document.getElementById('login') as LoginDialog
 
-// Show the login dialog when the page first loads.
-// After the user logs in (or closes the dialog), call `init()`.
-loginDialog.show(() => {
-  init()
-})
+/**
+ * Listen for a custom 'login-success' event from the login dialog
+ * and re-run init() so we can check isAuthenticated() again.
+ */
+document.addEventListener('login-success', () => {
+  console.log("login-success event received - re-checking auth via init()");
+  init();
+});

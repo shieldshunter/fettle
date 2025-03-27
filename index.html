@@ -7,14 +7,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.9/tailwind.min.css" />
     <link rel="stylesheet" href="./src/styles.css" />
   </head>
-
-  <body class="overflow-hidden h-full">
+  <body class="h-full">
     <div class="h-full flex flex-col">
-      <main class="flex flex-col flex-1">
-        <iframe id="catalog" class="flex-1" src=""></iframe>
-      </main>
+      <!-- The header will be dynamically injected by main.ts (via your <main-header> component) -->
+      
+      <!-- Main content container for your treeBOM page -->
+      <div id="mainContainer" class="flex-grow"></div>
+      
+      <!-- The login dialog, which will only be visible when needed -->
       <login-dialog id="login" class="select-none"></login-dialog>
-      <button id="logoutButton">Logout</button>
     </div>
     <script type="module" src="./src/main.ts"></script>
   </body>

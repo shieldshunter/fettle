@@ -1,6 +1,6 @@
 //@ts-ignore
-import { auth, shouldAuthenticate } from './auth.js'
-import { fetchAuthData } from './fetchAuthData.js'; // Make sure path is correct
+import { auth, shouldAuthenticate } from '../../utils/auth.js'
+import { fetchAuthData } from '../../utils/fetchAuthData.js'; // Make sure path is correct
 
 let cachedWhitelist: Set<string> | null = null;
 function isValidEmail(email: string): boolean {
@@ -11,6 +11,7 @@ class LoginDialog extends HTMLElement {
   modal: HTMLDivElement
   content: HTMLDivElement
   onCloseCallback?: () => void
+  initialBtnHTML: string
 
   constructor() {
     super()
@@ -71,7 +72,7 @@ class LoginDialog extends HTMLElement {
     const sendLinkBtn = this.shadowRoot!.getElementById('sendLinkBtn') as HTMLButtonElement;
     const msFormContainer = this.shadowRoot!.getElementById('msFormContainer') as HTMLDivElement;
     //const msForm = this.shadowRoot!.getElementById('msForm') as HTMLIFrameElement;
-
+    
 
     const waveColorSets = [
       {
@@ -151,51 +152,73 @@ class LoginDialog extends HTMLElement {
     /*
      * Login Button Click - Validate Before Login
      */
-    const initialBtnHTML = sendLinkBtn.innerHTML;
 
-    sendLinkBtn.onclick = async () => {
+    this.initialBtnHTML = sendLinkBtn.innerHTML;
+    const initialBtnHTML = sendLinkBtn.innerHTML;
+    // Set to true to bypass the fetch and simulate success
+    const TESTING_BYPASS = true;
+
+    const originalClickHandler = async () => {
       const email = uname.value.trim().toLowerCase();
       
-      // Optionally, validate email here if needed
       await auth.setUserData({ email });
-
-      // Enter loading state:
+    
+      // Enter loading animation state
       sendLinkBtn.disabled = true;
       sendLinkBtn.classList.add("loading");
-
-      try {
-        await fetch("https://trebrosinglesignon.azurewebsites.net/api/send_magic_link_function", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email })
-        });
-        
-        // DISABLED LOGIC for testing purposes, for some reason the fetch request is working but always still returns a 500 error
-        // Im thinbking it has to do with the cosmos db connection problem that I keep having
-        // On successful response, show success state:
-        sendLinkBtn.classList.remove("loading");
-        sendLinkBtn.classList.add("success");
-        sendLinkBtn.textContent = "Success! Check your email";
-
-        // Optionally, you could alert the user or close the dialog here.
-
-        // Reset the button back to its idle state after a delay:
+    
+      if (TESTING_BYPASS) {
+        // Simulate loading for 2 seconds, then show success animation
         setTimeout(() => {
-          sendLinkBtn.disabled = false;
-          sendLinkBtn.classList.remove("success");
+          sendLinkBtn.classList.remove("loading");
+          sendLinkBtn.classList.add("success");
+          sendLinkBtn.textContent = "Success! Check your email";
+          
+          // Set a fake auth cookie for testing
+          document.cookie = "auth=testing; path=/;";
+          
+          // Instead of a second timeout, trigger the minimize transition.
+
           sendLinkBtn.innerHTML = initialBtnHTML;
-        }, 6000);
-        
-        // Optionally, close the dialog (if desired):
-        // this.close();
-      } catch (err) {
-        console.error(`Error: ${err}`);
-        // On error, revert to idle state:
-        sendLinkBtn.disabled = false;
-        sendLinkBtn.classList.remove("loading");
-        sendLinkBtn.innerHTML = initialBtnHTML;
+          sendLinkBtn.classList.add("success");
+          sendLinkBtn.onclick = originalClickHandler;
+          this.minimizeAndClose();
+          document.dispatchEvent(new CustomEvent('login-success'));
+          this.minimizeAndClose();
+        }, 1500);
+      } else {
+        // Normal fetch logic...
+        try {
+          await fetch("https://trebrosinglesignon.azurewebsites.net/api/send_magic_link_function", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email })
+          });
+      
+          sendLinkBtn.classList.remove("loading");
+          sendLinkBtn.classList.add("success");
+          sendLinkBtn.textContent = "Success! Check your email";
+      
+          setTimeout(() => {
+            sendLinkBtn.disabled = false;
+            sendLinkBtn.textContent = "Click to try again";
+            sendLinkBtn.onclick = () => {
+              sendLinkBtn.classList.remove("success");
+              sendLinkBtn.innerHTML = initialBtnHTML;
+            };
+          }, 10000);
+          
+        } catch (err) {
+          console.error(`Error: ${err}`);
+          sendLinkBtn.disabled = false;
+          sendLinkBtn.classList.remove("loading");
+          sendLinkBtn.innerHTML = initialBtnHTML;
+        }
       }
     };
+    
+    sendLinkBtn.onclick = originalClickHandler;
+
     /*
      * Inject stylesheet
      */
@@ -237,15 +260,41 @@ class LoginDialog extends HTMLElement {
           background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
         }
 
-        /* Modal Content/Box */
+        /* Modal Content initial state */
         .modal-content {
-          background-color:rgb(255, 255, 255);
-          margin: 15% auto; /* 15% from the top and centered */
+          background-color: rgb(255, 255, 255);
+          margin: 15% auto; /* centered on screen */
           padding: 20px;
           border-radius: 10px;
           border: 1px solid #888;
-          width: 80%; /* Could be more or less, depending on screen size */
+          width: 80%;
           max-width: 600px;
+          /* Add transition for smooth transformation */
+          transition: transform 1.5s ease-in-out, 
+            top 1.5s ease-in-out, 
+            left 1.5s ease-in-out, 
+            width 1.5s ease-in-out;
+        }
+
+        /* Minimized state for modal-content (adjust top/left as needed to match your header) */
+        .modal-content.minimized {
+          top: 10px;       /* Position it near the top */
+          left: 10px;      /* Position it near the left */
+          transform: translate(0, 0) scale(0.5); /* Scale down to half size */
+          width: 300px;    /* Optionally adjust the width */
+        }
+
+        /* Transition for the logo image */
+        .logo {
+          transition: transform 0.6s ease-in-out, width 0.6s ease-in-out;
+        }
+
+        /* When modal-content is minimized, the logo scales down */
+        .modal-content.minimized .logo {
+          transform: scale(0.5);
+          /* Alternatively, you can set a new width:
+            width: 100px; 
+          */
         }
         /* By default, hide animations (unless class is added) */
         opacity: 0;
@@ -488,32 +537,45 @@ class LoginDialog extends HTMLElement {
     shadowRoot.appendChild(styleTag)
   }
 
+  minimizeAndClose(callback?: () => void) {
+    this.content.classList.add('minimized');
+    // Force-close after 1s, ignoring transitionend
+    setTimeout(() => {
+      this.close();
+      if (callback) callback();
+    }, 1500);
+  }
+
+  resetSendLinkButton() {
+    const sendLinkBtn = this.shadowRoot!.getElementById('sendLinkBtn') as HTMLButtonElement;
+    sendLinkBtn.disabled = false;
+    sendLinkBtn.classList.remove('loading', 'success');
+    sendLinkBtn.innerHTML = this.initialBtnHTML;
+  }
   /*
    * Shows the modal. If user is already authenticated, it closes immediately.
    */
-  show(onCloseCallback: () => void) {
-    this.onCloseCallback = onCloseCallback
-
-    if (shouldAuthenticate) {
-      auth.isAuthenticated().then((result: any) => {
-        if (result) {
-          this.close()
-        } else {
-          this.modal.style.display = 'block'
-        }
-      })
-    } else {
-      this.modal.style.display = 'block'
-    }
+  show(onCloseCallback?: () => void) {
+    console.log("login-dialog show() invoked");
+    // Reset any minimized state
+    this.content.classList.remove('minimized');
+    this.onCloseCallback = onCloseCallback;
+    // Ensure the host element itself is visible:
+    this.style.display = 'block';
+    this.hidden = false;
+    // Also display the inner modal:
+    this.modal.style.display = 'block';
   }
-
-  /**
-   * Hides the modal. Calls onCloseCallback if provided.
-   */
+  
   close() {
-    this.modal.style.display = 'none'
+    console.log("login-dialog close() invoked");
+    // Hide the inner modal
+    this.modal.style.display = 'none';
+    // Hide the host element so it no longer takes up space
+    this.style.display = 'none';
+    this.hidden = true;
     if (this.onCloseCallback) {
-      this.onCloseCallback()
+      this.onCloseCallback();
     }
   }
 }
