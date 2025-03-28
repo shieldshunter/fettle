@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Equilateral Triangles Logo</title>
+  <style>
+    /* Example hover: gently scale/rotate the entire shape */
+  </style>
+</head>
+<body>
+
+<svg width="200" height="200" viewBox="0 0 200 200"
+     xmlns="http://www.w3.org/2000/svg"
+     style=" display:block;">
+  <!-- 
+    The center is (100,100).
+    We define a “radius” of 60 to each corner.
+    A regular hex with side length = 60 has corners at:
+      c0 = (152, 70)
+      c1 = (152,130)
+      c2 = (100,160)
+      c3 = (48, 130)
+      c4 = (48, 70)
+      c5 = (100,40)
+
+    Each triangle is (center, corner i, corner i+1).
+    Because the distance from center to each corner = side length,
+    these triangles are truly equilateral.
+  -->
+
+  <!-- Mark the center (optional debug) 
+  <circle cx="100" cy="100" r="2" fill="black" /> -->
+
+  <!-- Triangles around the center -->
+  <polygon fill="#EA3546"   points="100,100  152,70   152,130" />
+  <polygon fill="#EA3546"   points="100,100  152,130  100,160" />
+  <polygon fill="#FABF35"   points="100,100  100,160  48,130" />
+  <polygon fill="#FABF35"   points="100,100  48,130   48,70"   />
+  <polygon fill="#345995"   points="100,100  48,70    100,40"  />
+  <polygon fill="#345995"   points="100,100  100,40   152,70"  />
+
+  <!-- Optionally, draw the hex outline or “spokes” with <line> elements if desired:
+       <line x1="152" y1="70"  x2="152" y2="130" stroke="#fff" stroke-width="2" />
+       ... etc ...
+  -->
+</svg>
+
+</body>
+</html>

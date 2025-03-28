@@ -44,7 +44,7 @@ class ClusterPage extends HTMLElement {
           }
             button:hover {
             background-color: #e36a1e;
-            border: none;
+            border: #e36a1e 3px solid;
             transform: scale(1);
             transition: transform 0.1s ease;
             color: white;

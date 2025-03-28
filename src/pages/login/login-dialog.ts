@@ -267,7 +267,10 @@ class LoginDialog extends HTMLElement {
           z-index: 1000;
           background:var(--container-bg);
         }
-
+        label {
+          color: var(--color-text);
+          display: block; /* So it sits on its own line */
+        }
         .modal-content.minimized {
           opacity: 0;
         }
@@ -488,7 +491,7 @@ class LoginDialog extends HTMLElement {
       @keyframes scaling {
         0%, 100% {
           transform: scaleY(0.5);
-          background-color: var(--wave-color-0, --container-bg);
+          background-color: var( --container-bg);
         }
         40% {
           transform: scaleY(1.5);

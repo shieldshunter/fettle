@@ -85,15 +85,75 @@ class MainHeader extends HTMLElement {
             background-color: red
             color: white;
           }
-          .logoutButton:hover {
-            background-color: red;
+          .header-btn#logoutButton {
+            background-color:rgb(194, 69, 47);  /* or a different base color if you prefer */
+            color: white;
+            /* Don’t forget the semicolon! */
           }
+          .header-btn#logoutButton:hover {
+            background-color: darkred; /* or just 'red' if you want no change */
+            transform: scale(1.1);
+            color: white;
+          }
+          .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 28px;
+            margin-left: 10px;
+          }
+
+          .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+          }
+
+          .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0;
+            right: 0; bottom: 0;
+            background-color: #ccc;
+            transition: 0.4s;
+            border-radius: 34px;
+          }
+
+          .slider::before {
+            position: absolute;
+            content: "☀️";
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background-color: var(--container-bg);
+            border-radius: 50%;
+            transition: 0.4s;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+
+          input:checked + .slider {
+            background-color: #555;
+          }
+
+          input:checked + .slider::before {
+            transform: translateX(22px);
+            content: "🌙";
+          }
+
+            
         </style>
         <header>
           <div class="logo-container">
             <img src="data/Crescent1.png" alt="Logo" class="logo">
             <span>fettle</span>
-            <button id="darkModeToggle" title="Toggle Dark Mode">🌓</button>
+            <label class="toggle-switch" title="Toggle Dark Mode">
+              <input type="checkbox" id="darkModeToggle" />
+              <span class="slider"></span>
+            </label>
           </div>
           <div class="header-buttons">
             <button class="header-btn" id="homeButton">Home</button>
@@ -129,9 +189,9 @@ class MainHeader extends HTMLElement {
     shadow.getElementById('logoutButton')!.onclick = () => 
       document.dispatchEvent(new CustomEvent('navigate', { detail: 'logout' }));
 
-    shadow.getElementById('darkModeToggle')!.onclick = () => {
+    shadow.getElementById('darkModeToggle')!.addEventListener('change', () => {
       document.dispatchEvent(new CustomEvent('toggleDarkMode'));
-    };
+    });
   }
 }
 
