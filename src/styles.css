@@ -78,30 +78,69 @@ main-header.visible {
 
 
 /* Animate the main container */
+/* Container holds both old and new pages stacked. */
 #mainContainer {
+  /* Start in a hidden/faded/scaled state */
   opacity: 0;
-  border-radius: 15px;
-  transform: scale(0.85);
-  transition: opacity 0.6s ease, transform 0.6s ease;
-  justify-content: center;
-  align-items: center;
-
-}
-#mainContainer.visible {
   align-self: center;
-  z-index: 1;
-  opacity: 1;
-  padding: 20px;
+  transform: scale(0.9);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+
+  /* Layout styling */
+  position: relative;
   margin-top: 80px;
-  min-width: 500px;
-  margin-left:10px;
-  margin-right:10px;
+  margin: 80px 10px 0 10px;
   width: 90%;
   height: 90%;
-  background:var(--container-bg);
+  min-width: 500px;
+  background: var(--container-bg);
   color: var(--color-text);
+  border-radius: 15px;
+  overflow: hidden;
+}
+
+/* When we add `.visible`, fade/scale in */
+#mainContainer.visible {
+  opacity: 1;
   transform: scale(1);
 }
+
+/* Optionally, a `.hidden` class if you want to hide it again */
+#mainContainer.hidden {
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(0.9);
+}
+
+/* Each child is absolutely positioned on top of each other */
+.page-content {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  padding: 20px;
+  border-radius: 15px;
+  transform: translateY(0);
+  opacity: 1;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+/* Slide down (old page exit): move downward, fade out */
+.slide-down-exit {
+  transform: translateY(30px);
+  opacity: 0;
+}
+
+/* Slide up (new page enter): initially start below, then come up */
+.slide-up-enter {
+  transform: translateY(30px);
+  opacity: 0;
+}
+.slide-up-enter-active {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* You can tweak the distance from 30px to any offset you like. */
+
 header {
   grid-area: header;
   overflow: hidden;

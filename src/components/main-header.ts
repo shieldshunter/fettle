@@ -123,6 +123,9 @@ class MainHeader extends HTMLElement {
     shadow.getElementById('goTreeBOM')!.onclick = () => 
       document.dispatchEvent(new CustomEvent('navigate', { detail: 'treebom' }));
 
+    shadow.getElementById('goLogo')!.onclick = () => 
+      document.dispatchEvent(new CustomEvent('navigate', { detail: 'logo' }));
+
     shadow.getElementById('logoutButton')!.onclick = () => 
       document.dispatchEvent(new CustomEvent('navigate', { detail: 'logout' }));
 

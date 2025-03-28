@@ -16,22 +16,37 @@ export class TreeBOMPage extends HTMLElement {
           color: var(--color-text);
           padding: 5px;
         }
-        #settings { width: 300px; padding-right: 10px; }
+        #settings { 
+          width: 300px; 
+          padding-right: 10px; 
+          margin-top: 10px;
+          margin-left: 10px;
+          margin-bottom: 10px;
+          margin-right: 10px;
+        }
         #tooltipContainer {
           flex: 1;
           border: 1px solid #ddd;
           padding: 10px;
           min-height: 100px;
-          background:var(--container-bg);
-          color: var(--color-text);
+          margin-left: 10px;
+          margin-right: 10px;
+          margin-top: 10px;
+          border-radius: 10px;
+          background: #353d46;
+          color: white;
           overflow-y: auto;
           opacity: 1;
           transition: opacity 0.2s ease-in-out;
         }
-        #chart { width: 100%; height: 600px; border: 1px solid #ccc; margin-top: 10px; 
+        #chart { height: 600px; border: 1px solid #ccc; margin-top: 10px; 
           background: #353d46;
           margin-bottom: 20px;
           position: relative;
+          border-radius: 20px;
+          margin-left: 10px;
+          margin-right: 10px;
+
         }
         #chart svg { width: 100%; height: 100%; }
       </style>

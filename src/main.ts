@@ -6,6 +6,7 @@ import './components/main-header';
 import auth from './utils/auth';
 import { initWaves } from './utils/wave';
 import './pages/cluster/cluster-page'; // Import the cluster page
+import './pages/logo/logo-page'; // Import the logo page
 
 window.addEventListener('DOMContentLoaded', () => {
   initWaves();
@@ -46,6 +47,7 @@ async function init() {
     // Remove visible classes
     header.classList.remove('visible');
     mainContainer.classList.remove('visible');
+    mainContainer.classList.add('hidden');
 
     // Reset login dialog
     loginDialog.resetSendLinkButton();
@@ -56,6 +58,7 @@ async function init() {
     console.log("User is authenticated - showing header + main container");
     header.style.display = 'block';
     logoutButton.style.display = 'block';
+    mainContainer.classList.remove('hidden');
 
     // Hide the login dialog
     loginDialog.style.display = 'none';
@@ -81,27 +84,45 @@ async function init() {
   }
 }
 
+function slideTransition(newPageEl: HTMLElement) {
+  const container = document.getElementById('mainContainer')!;
+
+  // Clear the container's content by setting innerHTML
+  container.innerHTML = '';
+
+  // Prepare the new page, hidden off-screen
+  newPageEl.classList.add('page-content', 'slide-up-enter');
+  container.appendChild(newPageEl);
+
+  // Force a reflow before toggling the active class so CSS transitions apply
+  requestAnimationFrame(() => {
+    newPageEl.classList.add('slide-up-enter-active');
+  });
+
+  // Remove the transition classes after the animation completes
+  setTimeout(() => {
+    newPageEl.classList.remove('slide-up-enter', 'slide-up-enter-active');
+  }, 300);
+}
+
+
 function setupHeaderNav() {
   // Grab the main container
-  const mainContainer = document.getElementById('mainContainer');
-
+  
   // For example, if you have these nav buttons inside <main-header>’s shadowRoot:
   //  <button id="goTreeBom">Tree BOM</button>
   //  <button id="goOtherPanel">Other Panel</button>
 
   // Hook up events
   document.addEventListener('navigate', (evt: Event) => {
-      const customEvt = evt as CustomEvent;
-      const pageId = customEvt.detail;
-    
+      const pageId = (evt as CustomEvent).detail;
       if (pageId === 'treebom') {
-        mainContainer!.innerHTML = '';
-        mainContainer!.appendChild(document.createElement('tree-bom-page'));
+        slideTransition(document.createElement('tree-bom-page'));
       } else if (pageId === 'cluster') {
-        mainContainer!.innerHTML = '';
-        mainContainer!.appendChild(document.createElement('cluster-page'));
+        slideTransition(document.createElement('cluster-page'));
+      } else if (pageId === 'logo') {
+        slideTransition(document.createElement('logo-page'));
       }
-      // ... etc ...
     });
   // Repeat or generalize as needed for other nav buttons…
 }
