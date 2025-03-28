@@ -26,9 +26,13 @@ export class TreeBOMPage extends HTMLElement {
           color: var(--color-text);
           overflow-y: auto;
           opacity: 1;
-          transition: opacity 0.1s ease-in-out;
+          transition: opacity 0.2s ease-in-out;
         }
-        #chart { width: 100%; height: 600px; border: 1px solid #ccc; margin-top: 10px; }
+        #chart { width: 100%; height: 600px; border: 1px solid #ccc; margin-top: 10px; 
+          background: #353d46;
+          margin-bottom: 20px;
+          position: relative;
+        }
         #chart svg { width: 100%; height: 100%; }
       </style>
 
@@ -178,7 +182,7 @@ export class TreeBOMPage extends HTMLElement {
         d3.select(event.currentTarget).select('rect')
           .transition().duration(200)
           .attr('stroke-width', 5)
-          .attr('stroke', 'var(--color-text)');
+          .attr('stroke', 'white');
       })
       .on('mouseout', (event, _) => {
         // Reset highlight
