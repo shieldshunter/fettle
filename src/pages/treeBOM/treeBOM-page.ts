@@ -11,14 +11,19 @@ export class TreeBOMPage extends HTMLElement {
 
     shadow.innerHTML = `
       <style>
-        #container { display: flex; }
+        #container { display: flex; 
+          background:var(--container-bg);
+          color: var(--color-text);
+          padding: 5px;
+        }
         #settings { width: 300px; padding-right: 10px; }
         #tooltipContainer {
           flex: 1;
           border: 1px solid #ddd;
           padding: 10px;
           min-height: 100px;
-          background: #f9f9f9;
+          background:var(--container-bg);
+          color: var(--color-text);
           overflow-y: auto;
           opacity: 1;
           transition: opacity 0.1s ease-in-out;
@@ -146,7 +151,9 @@ export class TreeBOMPage extends HTMLElement {
     g.selectAll('path')
       .data(root.links())
       .enter().append('path')
-      .attr('fill', 'none').attr('stroke', '#ccc')
+      .attr('fill', 'none')
+      .attr('stroke', '#ccc')
+      .attr('stroke-width', 4) // ← increase line thickness here (try 2–4)
       .attr('d', d3.linkVertical<d3.HierarchyLink<TreeNodeData>, [number, number]>()
         .source(d => [d.source.x!, d.source.y!])
         .target(d => [d.target.x!, d.target.y!]));
@@ -170,8 +177,8 @@ export class TreeBOMPage extends HTMLElement {
         // Highlight hovered node
         d3.select(event.currentTarget).select('rect')
           .transition().duration(200)
-          .attr('stroke-width', 3)
-          .attr('stroke', '#555');
+          .attr('stroke-width', 5)
+          .attr('stroke', 'var(--color-text)');
       })
       .on('mouseout', (event, _) => {
         // Reset highlight
@@ -182,11 +189,23 @@ export class TreeBOMPage extends HTMLElement {
       });
       
 
-    node.append('rect').attr('width', 120).attr('height', 50)
-          .attr('x', -60).attr('y', -25)
-          .attr('fill', d => colorScale(d.data.nodeCount ?? 0)).attr('stroke', '#333');
+    node.append('rect')
+      .attr('width', 120)
+      .attr('height', 50)
+      .attr('x', -60)
+      .attr('y', -25)
+      .attr('rx', 10) // Rounded corners
+      .attr('ry', 10)
+      .attr('fill', d => colorScale(d.data.nodeCount ?? 0))
+      .attr('stroke', '#333')
+      .attr('stroke-width', 1);
 
-    node.append('text').attr('text-anchor', 'middle').attr('dy', '.35em')
+    node.append('text')
+      .attr('text-anchor', 'middle')
+      .attr('dy', '.35em')
+      .attr('fill', 'white') // Text color
+      .style('font-weight', 'bold') // Bold font
+      .style('font-size', '14px')
       .text(d => String(d.data[childCol]).slice(0, 15));
 
     this.chartContainer.innerHTML = '';

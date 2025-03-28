@@ -9,7 +9,7 @@ class MainHeader extends HTMLElement {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            background-color: rgb(255, 255, 255);
+            background-color: var(--container-bg);
             padding: 10px 20px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
             font-family: sans-serif;
@@ -20,7 +20,21 @@ class MainHeader extends HTMLElement {
             .logo-container {
             display: flex;
             align-items: center;
+            color: var(--color-text);
             }
+
+          #darkModeToggle {
+            margin-left: 10px;
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+          }
+
+          #darkModeToggle:hover {
+            transform: rotate(20deg) scale(1.2);
+          }
             
             @keyframes slideRight {
             to {
@@ -49,8 +63,8 @@ class MainHeader extends HTMLElement {
           }
           /* Style header buttons similar to sendmagiclinkbtn */
           .header-btn {
-            background-color:rgb(255, 255, 255);
-            color: black
+            background-color: var(--container-bg);
+            color: var(--color-text);
             font-size: 14px;
             font-weight: bold;
             border: none;
@@ -79,6 +93,7 @@ class MainHeader extends HTMLElement {
           <div class="logo-container">
             <img src="data/Crescent1.png" alt="Logo" class="logo">
             <span>fettle</span>
+            <button id="darkModeToggle" title="Toggle Dark Mode">🌓</button>
           </div>
           <div class="header-buttons">
             <button class="header-btn" id="homeButton">Home</button>
@@ -105,6 +120,10 @@ class MainHeader extends HTMLElement {
 
     shadow.getElementById('logoutButton')!.onclick = () => 
       document.dispatchEvent(new CustomEvent('navigate', { detail: 'logout' }));
+
+    shadow.getElementById('darkModeToggle')!.onclick = () => {
+      document.dispatchEvent(new CustomEvent('toggleDarkMode'));
+    };
   }
 }
 

@@ -88,6 +88,12 @@ async function init() {
 }
 
 
+let isDarkMode = false;
+
+document.addEventListener('toggleDarkMode', () => {
+  isDarkMode = !isDarkMode;
+  document.body.classList.toggle('dark-mode', isDarkMode);
+});
 /**
  * Listen for a custom 'login-success' event from the login dialog
  * and re-run init() so we can check isAuthenticated() again.

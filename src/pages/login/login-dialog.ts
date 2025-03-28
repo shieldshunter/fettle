@@ -265,7 +265,7 @@ class LoginDialog extends HTMLElement {
           max-width: 600px;
           border-radius: 10px;
           z-index: 1000;
-          background-color: #fefefe;
+          background:var(--container-bg);
         }
 
         .modal-content.minimized {
@@ -391,14 +391,14 @@ class LoginDialog extends HTMLElement {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      background-color:rgb(255, 255, 255);
-      color: black;
+      background:var(--container-bg);
+      color: var(--color-text);
       font-size: 14px;
       font-weight: bold;
       border-radius: 12px;
       cursor: pointer;
       height: 45px;
-      border: 3px solid black;
+      border: 3px solid var(--color-text);
       margin: auto;
       padding: 0 16px;
       transition: width 0.25s ease, height 0.25s ease, padding 0.25s ease;
@@ -436,7 +436,7 @@ class LoginDialog extends HTMLElement {
       height: 60px;
       border-radius: 25px;
       border: none;
-      background-color:rgb(255, 255, 255);
+      background:var(--container-bg);
       padding: 0; /* Remove extra padding */
       animation: colorTransition 0.5s ease forwards; /* Add color transition */
       }
@@ -464,7 +464,7 @@ class LoginDialog extends HTMLElement {
       height: 8px;
       margin: 0 6px;
       border-radius: 20%; /* Rotate to form diamond shape */
-      background-color: rgb(255, 255, 255);
+      background:var(--container-bg);
       animation: scaling 1.2s ease-in-out infinite;
       }
 
@@ -488,7 +488,7 @@ class LoginDialog extends HTMLElement {
       @keyframes scaling {
         0%, 100% {
           transform: scaleY(0.5);
-          background-color: var(--wave-color-0, rgb(255, 255, 255));
+          background-color: var(--wave-color-0, --container-bg);
         }
         40% {
           transform: scaleY(1.5);
@@ -506,17 +506,16 @@ class LoginDialog extends HTMLElement {
       background-color: #f36f21;
       }
       100% {
-      background-color: #ffffff;
+      background:var(--container-bg);
       }
       }
 
       @keyframes successTransition {
         0% {
-
-          background-color:rgb(255, 255, 255);
+         background:var(--container-bg);
         }
         50% {
-          background-color: #ffffff;
+         background:var(--container-bg);
         }
         100% {
           background-color: #28a745;

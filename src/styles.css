@@ -8,9 +8,21 @@
   --wave-color-2: #F36F21;
   --wave-color-3: #FABF35;
   --wave-color-4: #345995;
-  --backgrnd-color-light: white;
+
+  --color-bg: white;
+  --color-text: black;
+  --container-bg: white;
 }
 
+body.dark-mode {
+  --color-bg: #353d46; /* Steel dark gray */
+  --color-text: #e0e0e0;
+  --container-bg: #353d46;
+}
+
+* {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
 
 body {
   margin: 0;
@@ -73,6 +85,7 @@ main-header.visible {
   transition: opacity 0.6s ease, transform 0.6s ease;
   justify-content: center;
   align-items: center;
+
 }
 #mainContainer.visible {
   align-self: center;
@@ -85,7 +98,8 @@ main-header.visible {
   margin-right:10px;
   width: 90%;
   height: 90%;
-  background-color: white;
+  background:var(--container-bg);
+  color: var(--color-text);
   transform: scale(1);
 }
 header {
