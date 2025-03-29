@@ -10,9 +10,24 @@ class LogoPage extends HTMLElement {
         .cluster-container {
           display: flex;
           flex-direction: column;
-          padding: 5px;
+          padding: 16px;
           font-family: sans-serif;
           align-items: center;
+          max-height: 90vh;
+          overflow-y: auto;
+          overflow-x: hidden;
+        }
+
+        .logo-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+          gap: 24px;
+          width: 100%;
+          justify-items: center;
+          align-items: center;
+          padding: 16px;
+          overflow-y: auto;
+          overflow-x: hidden;
         }
 
         .logo-wrapper svg {
@@ -51,13 +66,28 @@ class LogoPage extends HTMLElement {
         .pulse {
           animation: flashOrange 1.2s ease-in-out 3;
         }
+        @keyframes groupPulse {
+          0%, 100% {
+            transform: translate(0, 0);
+          }
+          50% {
+            transform: var(--move);
+          }
+        }
+
+        .group-animate {
+          animation: groupPulse 1.5s ease-in-out 3;
+        }
       </style>
 
       <div class="cluster-container">
         <h2>Logo Page</h2>
-        <div class="logo-wrapper"></div>
-        <div class="logo-wrapper"></div>
-        <div class="logo-wrapper"></div>
+            <div class="logo-grid">
+              <div class="logo-wrapper"></div>
+              <div class="logo-wrapper"></div>
+              <div class="logo-wrapper"></div>
+              <div class="logo-wrapper"></div> <!-- New one -->
+            </div>
       </div>
     `;
   }
@@ -72,9 +102,10 @@ class LogoPage extends HTMLElement {
           const currentClasses = polygon.classList;
           const isPulse = currentClasses.contains('pulse');
           const isRotate = currentClasses.contains('rotate');
+          const isGroupPulse = currentClasses.contains('group-animate');
 
           // Remove animation class
-          polygon.classList.remove('pulse', 'rotate');
+          polygon.classList.remove('pulse', 'rotate', 'group-animate');
 
           // Force reflow to reset animation
           void polygon.getBoundingClientRect().width;
@@ -82,6 +113,24 @@ class LogoPage extends HTMLElement {
           // Re-apply the class to restart animation
           if (isPulse) polygon.classList.add('pulse');
           if (isRotate) polygon.classList.add('rotate');
+          if (isGroupPulse) {
+            // Re-sequence group animation
+            const group = [
+              [0, 1], // red
+              [2, 3], // yellow
+              [4, 5]  // blue
+            ];
+          
+            const allPolygons = Array.from(wrapper.querySelectorAll('polygon'));
+            group.forEach((indices, groupIndex) => {
+              indices.forEach(i => {
+                const poly = allPolygons[i];
+                setTimeout(() => {
+                  poly.classList.add('group-animate');
+                }, groupIndex * 500);
+              });
+            });
+          }
         });
       });
     });
@@ -150,6 +199,45 @@ class LogoPage extends HTMLElement {
           // Every two polygons share the same delay
           const delayGroup = Math.floor(i / 2);
           poly.style.animationDelay = `${delayGroup * 0.4}s`;
+        });
+      }
+      if (originalSVG && wrappers[3]) {
+        const groupedClone = originalSVG.cloneNode(true) as SVGSVGElement;
+        wrappers[3].appendChild(groupedClone);
+      
+        const groupPolygons = groupedClone.querySelectorAll('polygon');
+      
+        groupPolygons.forEach((poly, i) => {
+          const originalFill = poly.getAttribute('fill') || '#000';
+          poly.style.setProperty('--original-fill', originalFill);
+      
+          // Assign group movement based on index
+          let move = '';
+          if (i === 0 || i === 1) {
+            move = 'translate(15px, 15px)'; // red group
+          } else if (i === 2 || i === 3) {
+            move = 'translate(-15px, 15px)'; // yellow group
+          } else if (i === 4 || i === 5) {
+            move = 'translate(0px, -15px)'; // blue group
+          }
+      
+          poly.style.setProperty('--move', move);
+        });
+      
+        // Animate one group at a time with delay
+        const sequence = [
+          [0, 1], // red
+          [2, 3], // yellow
+          [4, 5]  // blue
+        ];
+      
+        sequence.forEach((group, groupIndex) => {
+          group.forEach(i => {
+            const poly = groupPolygons[i];
+            setTimeout(() => {
+              poly.classList.add('group-animate');
+            }, groupIndex * 1500);
+          });
         });
       }
   
