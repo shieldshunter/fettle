@@ -1,3 +1,7 @@
+const groupDelay = 750
+;       // delay between group starts (e.g., red → yellow → blue)
+const intraGroupOffset = 0; // optional offset between two polygons in the same group
+
 class LogoPage extends HTMLElement {
   private shadow: ShadowRoot;
 
@@ -91,7 +95,7 @@ class LogoPage extends HTMLElement {
       </div>
     `;
   }
-
+  
   connectedCallback() {
   this.loadSVG().then(() => {
     // Once SVGs are loaded, add click-to-restart logic
@@ -114,20 +118,19 @@ class LogoPage extends HTMLElement {
           if (isPulse) polygon.classList.add('pulse');
           if (isRotate) polygon.classList.add('rotate');
           if (isGroupPulse) {
-            // Re-sequence group animation
             const group = [
               [0, 1], // red
               [2, 3], // yellow
               [4, 5]  // blue
             ];
           
-            const allPolygons = Array.from(wrapper.querySelectorAll('polygon'));
             group.forEach((indices, groupIndex) => {
-              indices.forEach(i => {
-                const poly = allPolygons[i];
+              indices.forEach((polygonIndex, intraIndex) => {
+                const totalDelay = (groupIndex * groupDelay) + (intraIndex * intraGroupOffset);
+          
                 setTimeout(() => {
-                  poly.classList.add('group-animate');
-                }, groupIndex * 500);
+                  polygons[polygonIndex].classList.add('group-animate');
+                }, totalDelay);
               });
             });
           }
