@@ -62,5 +62,19 @@ Fettle’s platform combines field support, mechanical design visualization, and
 
 ---
 
-## 🗂 Project Structure
+## 🧠 Future Vision
+
+- [ ] Predictive diagnostics powered by cluster machine learning
+- [ ] Live BOM editing tied to manufacturing data
+- [ ] Role-based views for engineers, service techs, and operators
+- [ ] Report generation & export to ERP systems
+
+---
+
+## 📦 Dev Notes
+
+- Web Components used over frameworks for full control and reusability
+- State, transitions, and events handled via `CustomEvent`s
+- Modular pages load dynamically via `slideTransition()`
+- SSO & dark mode built with user preference persistence
 
