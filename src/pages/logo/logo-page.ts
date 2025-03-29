@@ -20,6 +20,9 @@ class LogoPage extends HTMLElement {
           height: 200px;
           margin: 20px auto;
         }
+        .logo-wrapper:hover {
+          transform: scale(1.1) rotate(10deg);
+        }
 
         polygon {
           transform-origin: 100px 100px;
@@ -60,9 +63,30 @@ class LogoPage extends HTMLElement {
   }
 
   connectedCallback() {
-    this.loadSVG();
-    
-  }
+  this.loadSVG().then(() => {
+    // Once SVGs are loaded, add click-to-restart logic
+    this.shadow.querySelectorAll('.logo-wrapper').forEach(wrapper => {
+      wrapper.addEventListener('click', () => {
+        const polygons = wrapper.querySelectorAll('polygon');
+        polygons.forEach(polygon => {
+          const currentClasses = polygon.classList;
+          const isPulse = currentClasses.contains('pulse');
+          const isRotate = currentClasses.contains('rotate');
+
+          // Remove animation class
+          polygon.classList.remove('pulse', 'rotate');
+
+          // Force reflow to reset animation
+          void polygon.getBoundingClientRect().width;
+
+          // Re-apply the class to restart animation
+          if (isPulse) polygon.classList.add('pulse');
+          if (isRotate) polygon.classList.add('rotate');
+        });
+      });
+    });
+  });
+  } 
 
   async loadSVG() {
     try {
