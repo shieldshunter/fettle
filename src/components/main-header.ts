@@ -168,31 +168,38 @@ class MainHeader extends HTMLElement {
     }
 
   
-  connectedCallback() {
-    const shadow = this.shadowRoot!;
+    connectedCallback() {
+      const shadow = this.shadowRoot!;
     
-    shadow.getElementById('homeButton')!.onclick = () => 
-      document.dispatchEvent(new CustomEvent('navigate', { detail: 'home' }));
-
-    shadow.getElementById('featuresButton')!.onclick = () => 
-      document.dispatchEvent(new CustomEvent('navigate', { detail: 'features' }));
-
-    shadow.getElementById('goCluster')!.onclick = () => 
-      document.dispatchEvent(new CustomEvent('navigate', { detail: 'cluster' }));
-
-    shadow.getElementById('goTreeBOM')!.onclick = () => 
-      document.dispatchEvent(new CustomEvent('navigate', { detail: 'treebom' }));
-
-    shadow.getElementById('goLogo')!.onclick = () => 
-      document.dispatchEvent(new CustomEvent('navigate', { detail: 'logo' }));
-
-    shadow.getElementById('logoutButton')!.onclick = () => 
-      document.dispatchEvent(new CustomEvent('navigate', { detail: 'logout' }));
-
-    shadow.getElementById('darkModeToggle')!.addEventListener('change', () => {
-      document.dispatchEvent(new CustomEvent('toggleDarkMode'));
-    });
-  }
+      const darkToggle = shadow.getElementById('darkModeToggle') as HTMLInputElement;
+    
+      // Set toggle switch checked state based on localStorage
+      const prefersDark = localStorage.getItem('darkMode') === 'true';
+      darkToggle.checked = prefersDark;
+    
+      darkToggle.addEventListener('change', () => {
+        document.dispatchEvent(new CustomEvent('toggleDarkMode'));
+      });
+    
+      // Navigation buttons (your existing handlers)
+      shadow.getElementById('homeButton')!.onclick = () => 
+        document.dispatchEvent(new CustomEvent('navigate', { detail: 'home' }));
+    
+      shadow.getElementById('featuresButton')!.onclick = () => 
+        document.dispatchEvent(new CustomEvent('navigate', { detail: 'features' }));
+    
+      shadow.getElementById('goCluster')!.onclick = () => 
+        document.dispatchEvent(new CustomEvent('navigate', { detail: 'cluster' }));
+    
+      shadow.getElementById('goTreeBOM')!.onclick = () => 
+        document.dispatchEvent(new CustomEvent('navigate', { detail: 'treebom' }));
+    
+      shadow.getElementById('goLogo')!.onclick = () => 
+        document.dispatchEvent(new CustomEvent('navigate', { detail: 'logo' }));
+    
+      shadow.getElementById('logoutButton')!.onclick = () => 
+        document.dispatchEvent(new CustomEvent('navigate', { detail: 'logout' }));
+    }
 }
 
 customElements.define('main-header', MainHeader);
