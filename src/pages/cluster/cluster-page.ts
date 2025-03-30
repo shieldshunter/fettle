@@ -1,9 +1,14 @@
 // /pages/cluster/cluster-page.ts
 import { generateProjectWithCallbacks } from '../../ai/orchestrator';
+import JSZip from 'jszip';
 
 class ClusterPage extends HTMLElement {
   private shadow: ShadowRoot;
   private stepCards = new Map<string, HTMLDivElement>();
+  private isFilesVisible = false; // track the toggle state
+
+  // We'll store the generated project for "Download All"
+  private _projectResultCache: Record<string, string> = {};
 
   constructor() {
     super();
@@ -16,6 +21,7 @@ class ClusterPage extends HTMLElement {
           flex-direction: column;
           padding: 16px;
           font-family: sans-serif;
+          overflow-x: hidden;
         }
         .actions {
           margin-top: 12px;
@@ -29,10 +35,12 @@ class ClusterPage extends HTMLElement {
           margin-top: 16px;
           white-space: pre-wrap;
           font-size: 0.9rem;
-          background:rgb(212, 76, 76);
-          color:
+          background: #e36a1e;
+          color: white;
           padding: 12px;
           border-radius: 6px;
+          max-height: 180px;
+          overflow-y: scroll;
         }
         button {
           background-color: var(--container-bg);
@@ -44,17 +52,40 @@ class ClusterPage extends HTMLElement {
           cursor: pointer;
           transform: scale(0.9);
           padding: 10px 16px;
-          transition: background-color 0.25s ease;
+          transition: background-color 0.25s ease, transform 0.1s ease;
         }
         button:hover {
           background-color: #e36a1e;
           border: #e36a1e 3px solid;
           transform: scale(1);
-          transition: transform 0.1s ease;
           color: white;
         }
 
-        /* NEW: styling the selector to match your button look. */
+        /* Distinct styling for "Download All" button */
+        .download-all-btn {
+          background-color: #128712;
+          border-color: #128712;
+          color: #fff;
+        }
+        .download-all-btn:hover {
+          background-color: #0f6b0f;
+          border-color: #0f6b0f;
+        }
+
+        /* Hidden container for individual file downloads */
+        .file-downloads-container {
+          margin-top: 16px;
+          display: none; /* hidden by default */
+          flex-wrap: wrap;
+          gap: 8px;
+          overflow-y: scroll;
+          max-height: 85px;
+        }
+        .file-downloads-container.show {
+          display: flex; /* show it when toggled */
+        }
+
+        /* The store selector styling */
         select.store-selector {
           background-color: var(--container-bg);
           color: var(--color-text);
@@ -71,15 +102,14 @@ class ClusterPage extends HTMLElement {
           background-color: #e36a1e;
           border: #e36a1e 3px solid;
           transform: scale(1);
-          transition: transform 0.1s ease;
           color: white;
         }
 
         textarea {
-          width: 100%;
           padding: 12px;
           min-height: 100px;
         }
+
         .download-buttons {
           margin-top: 16px;
         }
@@ -144,30 +174,65 @@ class ClusterPage extends HTMLElement {
         .pulse {
           animation: flashOrange 1.2s ease-in-out infinite;
         }
+
+        /* 
+         * NEW: #loweractions container. Initially hidden (with transition).
+         * We'll fade+scale it in once files are ready.
+         */
+        #loweractions {
+          display: flex;            /* so it's in the layout, but invisible */
+          opacity: 0;
+          pointer-events: none;
+          transform: scale(0.95);
+          transition: opacity 0.4s ease, transform 0.4s ease;
+          margin-top: 16px;
+          gap: 12px;
+        }
+        #loweractions.show {
+          opacity: 1;
+          pointer-events: auto;
+          transform: scale(1);
+        }
       </style>
 
       <div class="cluster-container">
         <h2>Cluster Page</h2>
         <p>Describe your desired project:</p>
-        <textarea id="projectDescription"
-          placeholder="e.g., 'Build a TS/HTML web app with Azure Function backend...'">
-        </textarea>
+        <textarea id="projectDescription" placeholder="e.g., 'Build an Azure Function backend...'"></textarea>
 
         <div class="actions">
-          <!-- NEW: File store selector -->
+          <!-- The store selector -->
           <select class="store-selector" id="storeSelector">
-            <option value="">Select a Vector</option>
-            <option value="vector_store_1">Vector Store 1 UI ONLY</option>
-            <option value="vector_store_2">Vector Store 2 UI ONLY</option>
-            <option value="vector_store_3">Vector Store 3 UI ONLY</option>
+            <option value="">Null</option>
+            <option value="vector_store_1">Vector Store 1</option>
+            <option value="vector_store_2">Vector Store 2</option>
+            <option value="vector_store_3">Vector Store 3</option>
           </select>
 
+          <!-- Normal generate button -->
           <button id="generateBtn">Generate Project</button>
         </div>
 
         <div class="carousel" id="logCarousel"></div>
+        
         <div class="results" id="results"></div>
-        <div class="download-buttons" id="downloadButtons"></div>
+
+        <!-- 
+          The new loweractions container that will be hidden 
+          until files exist, then fade in.
+        -->
+        <div class="actions" id="loweractions">
+          <!-- Distinct "Download All" button -->
+          <button id="downloadAllBtn" class="download-all-btn">Download All (ZIP)</button>
+
+          <!-- Toggle button for showing/hiding the individual file downloads -->
+          <button id="toggleFilesBtn">See All Project Files</button>
+        </div>
+
+        <!-- The hidden container for the individual file download buttons -->
+        <div class="file-downloads-container" id="fileDownloadsContainer">
+          <!-- We'll fill this dynamically after generation -->
+        </div>
       </div>
     `;
   }
@@ -175,52 +240,75 @@ class ClusterPage extends HTMLElement {
   connectedCallback() {
     const generateBtn = this.shadow.getElementById('generateBtn') as HTMLButtonElement;
     generateBtn.addEventListener('click', () => this.onGenerateProject());
+
+    const toggleFilesBtn = this.shadow.getElementById('toggleFilesBtn') as HTMLButtonElement;
+    toggleFilesBtn.addEventListener('click', () => this.onToggleFiles());
+
+    const downloadAllBtn = this.shadow.getElementById('downloadAllBtn') as HTMLButtonElement;
+    downloadAllBtn.addEventListener('click', () => this.downloadAllAsZip());
   }
 
   private async onGenerateProject() {
     const descEl = this.shadow.getElementById('projectDescription') as HTMLTextAreaElement;
     const resultsEl = this.shadow.getElementById('results') as HTMLDivElement;
-    const downloadContainer = this.shadow.getElementById('downloadButtons') as HTMLDivElement;
     const logCarousel = this.shadow.getElementById('logCarousel') as HTMLDivElement;
-
-    // NEW: read the selected store from the dropdown
+    const fileDownloadsContainer = this.shadow.getElementById('fileDownloadsContainer') as HTMLDivElement;
+  
+    // The store ID
     const storeSelector = this.shadow.getElementById('storeSelector') as HTMLSelectElement;
-    const selectedStoreId = storeSelector.value; // e.g. "vector_store_1"
-
-    // Clear old content
+    const selectedStoreId = storeSelector.value;
+  
+    // Clear old logs/downloads
     resultsEl.innerText = '';
-    downloadContainer.innerHTML = '';
+    fileDownloadsContainer.innerHTML = '';
     logCarousel.innerHTML = '';
     this.stepCards.clear();
-
+    this._projectResultCache = {};
+  
+    // Hide the #loweractions by removing .show
+    const lowerActions = this.shadow.getElementById('loweractions') as HTMLDivElement;
+    lowerActions.classList.remove('show');
+  
     const prompt = descEl.value.trim();
     if (!prompt) {
       resultsEl.innerText = "Please provide a project description.";
       return;
     }
-
+  
+    // You can choose to type this line as well, or just set it instantly
     resultsEl.innerText = "Generating project...\n";
-
+  
     try {
-      /**
-       * We'll pass the selectedStoreId to our orchestrator so it can incorporate
-       * that in an OpenAI responses.create call with "tools: [{ type: 'file_search', vector_store_ids: [selectedStoreId], ... }]"
-       */
+      // If your orchestrator uses the vector store ID, pass it here:
       const projectResult = await generateProjectWithCallbacks(
         prompt,
         (stepId, startMsg) => this.startLogCard(stepId, startMsg),
         (stepId, finishMsg) => this.finishLogCard(stepId, finishMsg),
-        selectedStoreId // NEW: pass to orchestrator
+        selectedStoreId
       );
-
-      resultsEl.innerText = "Project successfully generated!\n\nFiles:";
-
+  
+      // Build the text we want to "type out"
       const fileNames = Object.keys(projectResult);
-      fileNames.forEach((fileName) => {
-        resultsEl.innerText += `\n- ${fileName}`;
-      });
-
-      // Create download buttons
+      let finalText = "Project successfully generated!\n\nFiles:";
+      if (fileNames.length === 0) {
+        finalText += "\n(No files were generated)";
+      } else {
+        // Show the #loweractions container with a smooth fade if we have files
+        lowerActions.classList.add('show');
+        // Append each file name
+        for (const fileName of fileNames) {
+          finalText += `\n- ${fileName}`;
+        }
+      }
+  
+      // Clear out the 'results' before typing
+      resultsEl.textContent = "";
+      
+      // Call your existing typing function here (whatever you named it)
+      // Example: typeTextAnimation(element, text, speed, callback?)
+      typeTextAnimation(resultsEl, finalText, 40);
+  
+      // Create an individual download button for each file
       fileNames.forEach((filePath) => {
         const fileContent = projectResult[filePath];
         const downloadBtn = document.createElement('button');
@@ -234,13 +322,50 @@ class ClusterPage extends HTMLElement {
           a.click();
           URL.revokeObjectURL(url);
         });
-        downloadContainer.appendChild(downloadBtn);
+        fileDownloadsContainer.appendChild(downloadBtn);
       });
-
+  
+      // Store the project so "Download All" can ZIP it up
+      this._projectResultCache = projectResult;
+  
     } catch (err) {
+      // If there's an error, just show it instantly
       resultsEl.innerText = `Error: ${err}`;
     }
   }
+
+  private onToggleFiles() {
+    const container = this.shadow.getElementById('fileDownloadsContainer') as HTMLDivElement;
+    this.isFilesVisible = !this.isFilesVisible;
+    if (this.isFilesVisible) {
+      container.classList.add('show');
+    } else {
+      container.classList.remove('show');
+    }
+  }
+
+  private async downloadAllAsZip() {
+    if (!this._projectResultCache || Object.keys(this._projectResultCache).length === 0) {
+      alert('No project files found. Please generate a project first.');
+      return;
+    }
+
+    const zip = new JSZip();
+    for (const [filePath, fileContent] of Object.entries(this._projectResultCache)) {
+      zip.file(filePath, fileContent);
+    }
+    const blob = await zip.generateAsync({ type: 'blob' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'project_files.zip';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+
+
+  
 
   /**
    * Create a new card at the left.
@@ -381,5 +506,26 @@ class ClusterPage extends HTMLElement {
     });
   }
 }
+
+function typeTextAnimation(
+    element: HTMLElement,
+    text: string,
+    speed = 50,
+    callback?: () => void
+  ) {
+    let index = 0;
+    element.textContent = '';
+    const timer = setInterval(() => {
+      element.textContent += text.charAt(index);
+      // Scroll to the bottom after appending each character
+      element.scrollTop = element.scrollHeight;
+      index++;
+      if (index >= text.length) {
+        clearInterval(timer);
+        callback?.();
+      }
+    }, speed);
+  }
+
 
 customElements.define('cluster-page', ClusterPage);

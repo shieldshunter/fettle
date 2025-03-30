@@ -97,13 +97,13 @@ main-header.visible {
   background: var(--container-bg);
   color: var(--color-text);
   border-radius: 15px;
-  overflow: hidden;
 }
 
 /* When we add `.visible`, fade/scale in */
 #mainContainer.visible {
   opacity: 1;
   transform: scale(1);
+  flex-grow:S;
 }
 
 /* Optionally, a `.hidden` class if you want to hide it again */
