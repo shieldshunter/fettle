@@ -740,8 +740,6 @@ https://github.com/nodeca/pako/blob/main/LICENSE
           color: white;
           padding: 12px;
           border-radius: 6px;
-          max-height: 180px;
-          overflow-y: scroll;
         }
         button {
           background-color: var(--container-bg);
@@ -779,8 +777,6 @@ https://github.com/nodeca/pako/blob/main/LICENSE
           display: none; /* hidden by default */
           flex-wrap: wrap;
           gap: 8px;
-          overflow-y: scroll;
-          max-height: 85px;
         }
         .file-downloads-container.show {
           display: flex; /* show it when toggled */

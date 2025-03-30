@@ -39,8 +39,6 @@ class ClusterPage extends HTMLElement {
           color: white;
           padding: 12px;
           border-radius: 6px;
-          max-height: 180px;
-          overflow-y: scroll;
         }
         button {
           background-color: var(--container-bg);
@@ -78,8 +76,6 @@ class ClusterPage extends HTMLElement {
           display: none; /* hidden by default */
           flex-wrap: wrap;
           gap: 8px;
-          overflow-y: scroll;
-          max-height: 85px;
         }
         .file-downloads-container.show {
           display: flex; /* show it when toggled */

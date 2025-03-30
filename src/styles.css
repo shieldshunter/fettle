@@ -90,7 +90,8 @@ main-header.visible {
   /* Layout styling */
   position: relative;
   margin-top: 80px;
-  margin: 80px 10px 0 10px;
+  margin: 80px 10px 20px 10px;
+  padding-bottom: 60px;
   width: 90%;
   height: 90%;
   min-width: 500px;
@@ -99,11 +100,18 @@ main-header.visible {
   border-radius: 15px;
 }
 
+#mainContainer {
+  scrollbar-width: none;    /* Firefox */
+  -ms-overflow-style: none; /* IE 10+ */
+}
+#mainContainer::-webkit-scrollbar {
+  display: none;            /* Chrome, Safari, Opera */
+}
+
 /* When we add `.visible`, fade/scale in */
 #mainContainer.visible {
   opacity: 1;
   transform: scale(1);
-  flex-grow:S;
 }
 
 /* Optionally, a `.hidden` class if you want to hide it again */
