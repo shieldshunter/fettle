@@ -29,7 +29,8 @@ class ClusterPage extends HTMLElement {
           margin-top: 16px;
           white-space: pre-wrap;
           font-size: 0.9rem;
-          background: #f7f7f7;
+          background:rgb(212, 76, 76);
+          color:
           padding: 12px;
           border-radius: 6px;
         }
