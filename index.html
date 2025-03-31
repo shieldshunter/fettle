@@ -1,21 +1,30 @@
 <!DOCTYPE html>
 <html class="h-full">
   <head>
-    <title>Trebro Parts</title>
-    <link rel="shortcut icon" type="image/png" href="./data/favicon-32x32.png" />
+    <title>Fettle Redirect</title>
+    <link
+      rel="shortcut icon"
+      type="image/png"
+      href="./data/favicon-32x32.png"
+    />
     <meta charset="UTF-8" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.9/tailwind.min.css" />
+    <!-- Optional: Tailwind or any global CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.9/tailwind.min.css"
+    />
     <link rel="stylesheet" href="./src/styles.css" />
   </head>
+  <body class="overflow-hidden h-full flex flex-col">
+    <!-- We’ve removed any iframes or references to extra login fields -->
 
-  <body class="overflow-hidden h-full">
-    <div class="h-full flex flex-col">
-      <main class="flex flex-col flex-1">
-        <iframe id="catalog" class="flex-1" src=""></iframe>
-      </main>
-      <login-dialog id="login" class="select-none"></login-dialog>
-      <button id="logoutButton">Logout</button>
-    </div>
+    <!-- Our simplified custom login element -->
+    <login-dialog id="login"></login-dialog>
+
+    <!-- Logout button (optional: remove if not needed) -->
+    <button id="logoutButton" style="display: none">Logout</button>
+
+    <!-- Load main script that sets up waves and shows the dialog -->
     <script type="module" src="./src/main.ts"></script>
   </body>
 </html>
