@@ -59,6 +59,13 @@ class ClusterPage extends HTMLElement {
           color: white;
         }
 
+        button.active {
+            transition: background-color 0.25s ease;
+            background-color:rgb(35, 88, 202);
+            border: rgb(35, 88, 202) 3px solid;
+            color: white;
+        }
+
         /* Distinct styling for "Download All" button */
         .download-all-btn {
           background-color: #128712;
@@ -121,16 +128,23 @@ class ClusterPage extends HTMLElement {
           overflow-x: hidden;
         }
         .log-card {
-          min-width: 240px;
-          background: var(--container-bg);
-          border-radius: 8px;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-          flex-shrink: 0;
-          padding: 12px;
-          display: flex;
-          flex-direction: row;
-          align-items: center;
-          transition: opacity 0.6s ease;
+        min-width: 240px;
+        background: var(--container-bg);
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+        flex-shrink: 0;
+        padding: 12px;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        transition: transform 0.6s ease, opacity 0.6s ease;
+        transform: translateX(0); /* Default position */
+        opacity: 1;
+        }
+
+        .log-card.enter {
+        transform: translateX(-50px); /* Adjust the value as needed */
+        opacity: 0;
         }
         .pulse-hex {
           width: 60px;
@@ -170,6 +184,20 @@ class ClusterPage extends HTMLElement {
         .pulse {
           animation: flashOrange 1.2s ease-in-out infinite;
         }
+        @keyframes pulseStop {
+        0%   { /* start from whatever color is currently used by flashOrange mid-cycle */
+                /* but we can't know it exactly, so we assume it's close to var(--color-bg) or the mid-cycle color. */
+                fill: var(--container-bg);
+                transform: scale(1);
+            }
+        100% { fill: var(--original-fill);
+                transform: scale(1);
+            }
+        }
+        /* We apply this once the .pulse class is removed. */
+        .pulse-stop {
+            animation: pulseStop 0.6s forwards;
+        }
 
         /* 
          * NEW: #loweractions container. Initially hidden (with transition).
@@ -198,6 +226,8 @@ class ClusterPage extends HTMLElement {
 
         <div class="actions">
           <!-- The store selector -->
+          <button id="validationToggle">Validation Mode</button>
+          <button id="advancedToggle">Advanced Mode</button>
           <select class="store-selector" id="storeSelector">
             <option value="">Null</option>
             <option value="vector_store_1">Vector Store 1</option>
@@ -233,6 +263,8 @@ class ClusterPage extends HTMLElement {
     `;
   }
 
+
+  
   connectedCallback() {
     const generateBtn = this.shadow.getElementById('generateBtn') as HTMLButtonElement;
     generateBtn.addEventListener('click', () => this.onGenerateProject());
@@ -242,6 +274,21 @@ class ClusterPage extends HTMLElement {
 
     const downloadAllBtn = this.shadow.getElementById('downloadAllBtn') as HTMLButtonElement;
     downloadAllBtn.addEventListener('click', () => this.downloadAllAsZip());
+
+    const advancedToggle = this.shadow.getElementById('advancedToggle') as HTMLButtonElement;
+    advancedToggle.addEventListener('click', () => {
+          advancedToggle.classList.toggle('active');
+          console.log('Toggled active', advancedToggle.classList);
+      });
+    
+    const validationToggle = this.shadow.getElementById('validationToggle') as HTMLButtonElement;
+    validationToggle.addEventListener('click', () => {
+          validationToggle.classList.toggle('active');
+          console.log('Toggled active', validationToggle.classList);
+      });
+
+    
+
   }
 
   private async onGenerateProject() {
@@ -249,6 +296,7 @@ class ClusterPage extends HTMLElement {
     const resultsEl = this.shadow.getElementById('results') as HTMLDivElement;
     const logCarousel = this.shadow.getElementById('logCarousel') as HTMLDivElement;
     const fileDownloadsContainer = this.shadow.getElementById('fileDownloadsContainer') as HTMLDivElement;
+
   
     // The store ID
     const storeSelector = this.shadow.getElementById('storeSelector') as HTMLSelectElement;
@@ -276,11 +324,17 @@ class ClusterPage extends HTMLElement {
   
     try {
       // If your orchestrator uses the vector store ID, pass it here:
+      const advancedToggle = this.shadow.getElementById('advancedToggle') as HTMLButtonElement;
+      const useAdvanced = advancedToggle.classList.contains('active');
+      const validationToggle = this.shadow.getElementById('validationToggle') as HTMLButtonElement;
+      const useValidation = validationToggle.classList.contains('active');
       const projectResult = await generateProjectWithCallbacks(
         prompt,
         (stepId, startMsg) => this.startLogCard(stepId, startMsg),
         (stepId, finishMsg) => this.finishLogCard(stepId, finishMsg),
-        selectedStoreId
+        selectedStoreId,
+        useAdvanced,
+        useValidation
       );
   
       // Build the text we want to "type out"
@@ -368,36 +422,45 @@ class ClusterPage extends HTMLElement {
    */
   private startLogCard(stepId: string, rawMsg: string) {
     const logCarousel = this.shadow.getElementById('logCarousel') as HTMLDivElement;
-    
-    // Strip bracket text
+  
+    // Remove bracket text
     const msgNoBrackets = rawMsg.replace(/\[.*?\]\s*/g, '');
-
+  
     // Build wave text
     const waveSpan = this.createWaveText(msgNoBrackets);
-
+  
     // Create the card
     const card = document.createElement('div');
-    card.classList.add('log-card');
-
+    // 1) Add both 'log-card' and 'enter' for initial state
+    card.classList.add('log-card', 'enter');
+  
     // The hex
-    const svg = this.createPulseHex(); 
-
+    const svg = this.createPulseHex();
+  
     // The text container
     const textEl = document.createElement('div');
     textEl.classList.add('log-text');
     textEl.appendChild(waveSpan);
-
+  
     card.appendChild(svg);   // hex on the left
     card.appendChild(textEl); // text on the right
-
+  
     // Insert at left
     if (logCarousel.firstChild) {
       logCarousel.insertBefore(card, logCarousel.firstChild);
     } else {
       logCarousel.appendChild(card);
     }
-
+  
+    // Force a reflow, then remove the 'enter' class so it transitions
+    requestAnimationFrame(() => {
+      card.classList.remove('enter');
+    });
+  
+    // Track the card
     this.stepCards.set(stepId, card);
+  
+    // Fade older cards if needed
     this.updateCardOpacity();
   }
 
@@ -407,26 +470,26 @@ class ClusterPage extends HTMLElement {
   private finishLogCard(stepId: string, rawMsg: string) {
     const card = this.stepCards.get(stepId);
     if (!card) return;
-
-    // Remove bracket text
+  
+    // Rebuild wave text with infinite=false
     const msgNoBrackets = rawMsg.replace(/\[.*?\]\s*/g, '');
-
-    // Rebuild wave text but we will use a "final" version
-    // so it smoothly ends instead of continuing infinitely.
-    const waveSpan = this.createWaveText(msgNoBrackets, /* infinite= */ false);
-
+    const waveSpan = this.createWaveText(msgNoBrackets, false);
+  
     const textEl = card.querySelector('.log-text');
     if (textEl) {
       textEl.innerHTML = '';
       textEl.appendChild(waveSpan);
     }
-
-    // Stop pulsing the hex
+  
+    // Smoothly stop the hex pulse
     const polygons = card.querySelectorAll('polygon');
     polygons.forEach(poly => {
+      // Remove the infinite pulse class
       poly.classList.remove('pulse');
+      // Add a short "pulse-stop" animation
+      poly.classList.add('pulse-stop');
     });
-  }
+  } 
 
   /**
    * Make a 6-polygon pulse hex.
