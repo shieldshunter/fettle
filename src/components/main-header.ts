@@ -2,7 +2,7 @@ class MainHeader extends HTMLElement {
     constructor() {
       super();
       const shadow = this.attachShadow({ mode: 'open' });
-    
+
       shadow.innerHTML = `
         <style>
           header {
@@ -35,7 +35,7 @@ class MainHeader extends HTMLElement {
           #darkModeToggle:hover {
             transform: rotate(20deg) scale(1.2);
           }
-            
+
             @keyframes slideRight {
             to {
                 transform: translateX(0) rotate(90);
@@ -144,12 +144,12 @@ class MainHeader extends HTMLElement {
             content: "🌙";
           }
 
-            
+
         </style>
         <header>
           <div class="logo-container">
-            <img src="data/Crescent1.png" alt="Logo" class="logo">
-            <span>fettle</span>
+            <img src="data/trebroAI.png" alt="Logo" class="logo">
+            <span>Trebro.AI</span>
             <label class="toggle-switch" title="Toggle Dark Mode">
               <input type="checkbox" id="darkModeToggle" />
               <span class="slider"></span>
@@ -157,9 +157,7 @@ class MainHeader extends HTMLElement {
           </div>
           <div class="header-buttons">
             <button class="header-btn" id="homeButton">Home</button>
-            <button class="header-btn" id="goCluster">Cluster</button>
-            <button class="header-btn" id="goLogo">Logo</button>
-            <button class="header-btn" id="goTreeBOM">TreeBOM</button>
+            <button class="header-btn" id="goCluster">Bluegrass</button>
             <button class="header-btn" id="featuresButton">Features</button>
             <button class="header-btn" id="logoutButton">Logout</button>
           </div>
@@ -167,37 +165,37 @@ class MainHeader extends HTMLElement {
       `;
     }
 
-  
+
     connectedCallback() {
       const shadow = this.shadowRoot!;
-    
+
       const darkToggle = shadow.getElementById('darkModeToggle') as HTMLInputElement;
-    
+
       // Set toggle switch checked state based on localStorage
       const prefersDark = localStorage.getItem('darkMode') === 'true';
       darkToggle.checked = prefersDark;
-    
+
       darkToggle.addEventListener('change', () => {
         document.dispatchEvent(new CustomEvent('toggleDarkMode'));
       });
-    
+
       // Navigation buttons (your existing handlers)
-      shadow.getElementById('homeButton')!.onclick = () => 
+      shadow.getElementById('homeButton')!.onclick = () =>
         document.dispatchEvent(new CustomEvent('navigate', { detail: 'home' }));
-    
-      shadow.getElementById('featuresButton')!.onclick = () => 
+
+      shadow.getElementById('featuresButton')!.onclick = () =>
         document.dispatchEvent(new CustomEvent('navigate', { detail: 'features' }));
-    
-      shadow.getElementById('goCluster')!.onclick = () => 
+
+      shadow.getElementById('goCluster')!.onclick = () =>
         document.dispatchEvent(new CustomEvent('navigate', { detail: 'cluster' }));
-    
-      shadow.getElementById('goTreeBOM')!.onclick = () => 
+
+      shadow.getElementById('goTreeBOM')!.onclick = () =>
         document.dispatchEvent(new CustomEvent('navigate', { detail: 'treebom' }));
-    
-      shadow.getElementById('goLogo')!.onclick = () => 
+
+      shadow.getElementById('goLogo')!.onclick = () =>
         document.dispatchEvent(new CustomEvent('navigate', { detail: 'logo' }));
-    
-      shadow.getElementById('logoutButton')!.onclick = () => 
+
+      shadow.getElementById('logoutButton')!.onclick = () =>
         document.dispatchEvent(new CustomEvent('navigate', { detail: 'logout' }));
     }
 }

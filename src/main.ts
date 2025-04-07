@@ -2,7 +2,7 @@ import './pages/treeBOM/treeBOM-page';
 import { LoginDialog } from './pages/login/login-dialog';
 import './pages/login/login-dialog'; // define custom element
 import './pages/treeBOM/drop-zone';
-import './components/main-header'; 
+import './components/main-header';
 import auth from './utils/auth';
 import { initWaves } from './utils/wave';
 import './pages/cluster/cluster-page'; // Import the cluster page
@@ -65,7 +65,7 @@ async function init() {
 
     // Load the default page (e.g. treeBOM) into mainContainer
     mainContainer!.innerHTML = '';
-    mainContainer!.appendChild(document.createElement('tree-bom-page'));
+    mainContainer!.appendChild(document.createElement('cluster-page'));
 
     // Optional: call a helper to set up nav button listeners
     setupHeaderNav();
@@ -108,7 +108,7 @@ function slideTransition(newPageEl: HTMLElement) {
 
 function setupHeaderNav() {
   // Grab the main container
-  
+
   // For example, if you have these nav buttons inside <main-header>’s shadowRoot:
   //  <button id="goTreeBom">Tree BOM</button>
   //  <button id="goOtherPanel">Other Panel</button>

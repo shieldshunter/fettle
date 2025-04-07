@@ -29,7 +29,7 @@ class LoginDialog extends HTMLElement {
     this.content.innerHTML = `
       <div class="container">
         <div class="imgcontainer">
-          <img src="data/Crescent1.png" alt="Logo" class="logo">
+          <img src="data/trebroAI.png" alt="Logo" class="logo">
         </div>
         <label for="uname"><b>Email</b></label>
         <input id="uname" type="text" placeholder="Enter Email" name="uname" required>
@@ -72,7 +72,7 @@ class LoginDialog extends HTMLElement {
     const sendLinkBtn = this.shadowRoot!.getElementById('sendLinkBtn') as HTMLButtonElement;
     const msFormContainer = this.shadowRoot!.getElementById('msFormContainer') as HTMLDivElement;
     //const msForm = this.shadowRoot!.getElementById('msForm') as HTMLIFrameElement;
-    
+
 
     const waveColorSets = [
       {
@@ -102,30 +102,30 @@ class LoginDialog extends HTMLElement {
 
     waveDots.forEach(dot => {
       const randomColors = waveColorSets[Math.floor(Math.random() * waveColorSets.length)];
-      
+
       dot.style.setProperty('--wave-color-0', randomColors.step0);
       dot.style.setProperty('--wave-color-40', randomColors.step40);
       dot.style.setProperty('--wave-color-50', randomColors.step50);
     });
-    
+
     sendLinkBtn.style.display = 'none'
     /*
      * Show/Hide Password + Buttons On Email Input
      */
     uname.addEventListener('input', async () => {
       const typedEmail = uname.value.trim().toLowerCase();
-    
+
       // Only fetch once
       if (!cachedWhitelist) {
         cachedWhitelist = await fetchAuthData();
       }
-    
+
       if (isValidEmail(typedEmail)) {
         // Convert the set to an array and check if any item starts with typedEmail
         const partialMatchExists = Array.from(cachedWhitelist).some(
           (whitelistedEmail) => whitelistedEmail.startsWith(typedEmail)
         );
-    
+
         if (partialMatchExists) {
           sendLinkBtn.style.display = 'block';
           msFormContainer.style.display = 'none';
@@ -161,20 +161,20 @@ class LoginDialog extends HTMLElement {
     const originalClickHandler = async () => {
       const email = uname.value.trim().toLowerCase();
       await auth.setUserData({ email });
-    
+
       sendLinkBtn.disabled = true;
       sendLinkBtn.classList.add("loading");
-    
+
       if (TESTING_BYPASS) {
         // Simulate loading for 2 seconds, then show success animation
         setTimeout(() => {
           sendLinkBtn.classList.remove("loading");
           sendLinkBtn.classList.add("success");
           sendLinkBtn.textContent = "Success! Check your email";
-          
+
           // Set a fake auth cookie for testing
           document.cookie = "auth=testing; path=/;";
-          
+
           // Instead of a second timeout, trigger the minimize transition.
 
             sendLinkBtn.innerHTML = initialBtnHTML;
@@ -194,14 +194,14 @@ class LoginDialog extends HTMLElement {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email })
           });
-    
+
           sendLinkBtn.classList.remove("loading");
           sendLinkBtn.classList.add("success");
           sendLinkBtn.textContent = "Success! Check your email";
-    
+
           // Trigger minimize animation here too if needed
           this.content.classList.add("minimized");
-    
+
         } catch (err) {
           console.error(`Error: ${err}`);
           sendLinkBtn.disabled = false;
@@ -210,7 +210,7 @@ class LoginDialog extends HTMLElement {
         }
       }
     };
-    
+
     sendLinkBtn.onclick = originalClickHandler;
 
     /*
@@ -284,7 +284,7 @@ class LoginDialog extends HTMLElement {
         .modal-content.minimized .logo {
           transform: scale(0.5) rotate(-90deg);
           /* Alternatively, you can set a new width:
-            width: 100px; 
+            width: 100px;
           */
         }
         /* By default, hide animations (unless class is added) */
@@ -407,13 +407,13 @@ class LoginDialog extends HTMLElement {
       transition: width 0.25s ease, height 0.25s ease, padding 0.25s ease;
       overflow: hidden;
       }
-      
+
 
       .btn:hover {
       background-color: #e36a1e;
       color: white;
       border: none;
-      
+
       }
 
       /* Container for Icon and Text */
@@ -542,7 +542,7 @@ class LoginDialog extends HTMLElement {
     if (modalContent) {
       modalContent.classList.add('minimized');
     }
-  
+
     setTimeout(() => {
       if (modalContent) {
         (modalContent as HTMLElement).style.display = 'none';
@@ -571,7 +571,7 @@ class LoginDialog extends HTMLElement {
     // Also display the inner modal:
     this.modal.style.display = 'block';
   }
-  
+
   close() {
     console.log("login-dialog close() invoked");
     // Hide the inner modal

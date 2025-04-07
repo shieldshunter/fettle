@@ -4,10 +4,10 @@
   --wave1-clip: polygon(0 65%, 50% 75%, 100% 60%, 100% 100%, 0 100%);
   --wave2-clip: polygon(0 70%, 50% 85%, 100% 70%, 100% 100%, 0 100%);
   /*--wave2-clip: polygon(0 45%, 35% 25%, 100% 50%, 100% 100%, 0 100%);*/
-  --wave-color-1: #EA3546;
-  --wave-color-2: #F36F21;
-  --wave-color-3: #FABF35;
-  --wave-color-4: #345995;
+  --wave-color-1: #73f97f;
+  --wave-color-2: #08f31c;
+  --wave-color-3: #F36F21;
+  --wave-color-4: #ffffff;
 
   --color-bg: white;
   --color-text: black;
@@ -28,7 +28,7 @@ body {
   margin: 0;
   min-height: 100vh;
   position: relative;
-  background: #345995;
+  background: #dddddd;
   z-index: 0;
   overflow: hidden;
   padding-bottom: 10px;
@@ -46,6 +46,7 @@ body::before {
 
   /* Use CSS variable for the clip-path: */
   clip-path: var(--wave1-clip);
+  opacity: 0.7;
 
   /* Optional: smooth transitions if you update the variable: */
   transition: clip-path 3s;
