@@ -4,7 +4,7 @@
   --wave1-clip: polygon(0 65%, 50% 75%, 100% 60%, 100% 100%, 0 100%);
   --wave2-clip: polygon(0 70%, 50% 85%, 100% 70%, 100% 100%, 0 100%);
   /*--wave2-clip: polygon(0 45%, 35% 25%, 100% 50%, 100% 100%, 0 100%);*/
-  --wave-color-1: #1daf29;
+  --wave-color-1: #000000;
   --wave-color-2: #08f31c;
   --wave-color-3: #F36F21;
   --wave-color-4: #ffffff;
