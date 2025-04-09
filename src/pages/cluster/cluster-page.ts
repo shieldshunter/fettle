@@ -455,7 +455,7 @@ Phone: (406) 652‑5867 • Toll‑Free: (888) 395‑5867`.trim();
 
     // TSR image cursor (inline, like a blinking character)
     const cursor = document.createElement('img');
-    cursor.src = 'docs/data/TSRIcon.png';
+    cursor.src = 'data/TSRIcon.png';
     cursor.alt = 'TSR';
     cursor.className = 'tsr-inline-cursor';
     typedTextSpan.appendChild(cursor);
