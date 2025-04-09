@@ -235,7 +235,7 @@ Phone: (406) 652‑5867 • Toll‑Free: (888) 395‑5867`.trim();
           color: var(--color-text);
           font-size: 14px;
           font-weight: bold;
-          border: 3px solid black;
+          border: 3px solid var(--color-text);
           border-radius: 12px;
           cursor: pointer;
           transform: scale(0.9);
@@ -422,6 +422,74 @@ Phone: (406) 652‑5867 • Toll‑Free: (888) 395‑5867`.trim();
     transform: translateY(0);
   }
 }
+.tsr-loading-wrapper {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  height: 80px;
+  position: relative;
+}
+
+/* Infinite horizontal belt illusion */
+.dot-stream-container {
+  overflow: hidden;
+  width: 160px;
+  height: 12px;
+  position: relative;
+  mask-image: linear-gradient(to left, black 60%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to left, black 90%, transparent 100%);
+}
+
+.dot-stream {
+  display: flex;
+  gap: 12px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  animation: slide-left-loop 2.4s linear infinite;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: white;
+  opacity: 1;
+}
+
+/* New keyframe to loop */
+@keyframes slide-left-loop {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* Bounce for the TSR */
+@keyframes bounce-tsr {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-4px); }
+}
+
+@keyframes blink-tsr {
+  50% {
+    opacity: 0.4;
+  }
+}
+
+@keyframes move-dots-left {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-20px); /* how far the dots shift left */
+  }
+}
+  .tsr-icon.loading {
+  width: 120px;
+  height: auto;
+  animation: bounce-tsr 1.2s ease-in-out infinite;
+}
+
+
 
       </style>
       <div class="cluster-container">
@@ -444,7 +512,7 @@ Phone: (406) 652‑5867 • Toll‑Free: (888) 395‑5867`.trim();
     el: HTMLElement,
     text: string,
     done: () => void,
-    speed = 40
+    speed = 30
   ) {
     let i = 0;
 
@@ -480,7 +548,37 @@ Phone: (406) 652‑5867 • Toll‑Free: (888) 395‑5867`.trim();
     step();
   }
 
+  private showWaitingAnimation() {
+    const chat = this.shadow.getElementById('chatMessages') as HTMLDivElement;
 
+    const wrapper = document.createElement('div');
+    wrapper.classList.add('message-container');
+
+    const bubble = document.createElement('div');
+    bubble.classList.add('message', 'assistant-message');
+
+    // 🚜 Create the TSR + dot animation container
+    const tsrRow = document.createElement('div');
+    tsrRow.className = 'tsr-harvest-row';
+    tsrRow.innerHTML = `
+    <div class="tsr-loading-wrapper">
+      <img class="tsr-icon loading" src="docs/data/TSRIcon.png" alt="TSR">
+      <div class="dot-stream-container">
+        <div class="dot-stream">
+          ${'<div class="dot"></div>'.repeat(10)}
+          ${'<div class="dot"></div>'.repeat(10)}
+        </div>
+      </div>
+    </div>
+  `;
+
+    bubble.appendChild(tsrRow);
+    wrapper.appendChild(bubble);
+    chat.appendChild(wrapper);
+    chat.scrollTop = chat.scrollHeight;
+
+    return wrapper; // allow you to remove it later
+  }
 
   /* ───────── helpers ───────── */
   private appendOneMessage(msg: UserMsg | AssistantMsg) {
@@ -620,13 +718,17 @@ function updateDetailsContainer(container: HTMLElement, newContent: string): voi
     this.renderNewMessages();
     input.value = '';
 
+    const loader = this.showWaitingAnimation(); // show animation before the call
+
     try {
       const assistant = await this.callAssistantAPI(text);
       this.conversation.push(assistant);
+      loader.remove(); // remove placeholder
       this.renderNewMessages();
     } catch (e) {
       console.error(e);
       alert('Assistant error – check console.');
+      loader.remove(); // cleanup
     }
   }
 
