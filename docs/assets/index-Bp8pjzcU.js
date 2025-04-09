@@ -892,7 +892,9 @@ https://help.openai.com/en/articles/5112595-best-practices-for-api-key-safety
   background-color: rgb(255, 255, 255);
   animation: scaling 1.2s ease-in-out infinite;
 }
-
+.chat-messages {
+  scroll-behavior: smooth;
+}
 /* Set staggered animation delays for a wave effect */
 .wave-spinner > div:nth-child(1) {
   animation-delay: -0.6s;
@@ -1025,8 +1027,8 @@ https://help.openai.com/en/articles/5112595-best-practices-for-api-key-safety
           <button id="sendBtn">Send</button>
         </div>
       </div>
-    `}connectedCallback(){this.shadow.getElementById("sendBtn").addEventListener("click",()=>this.onSendMessage())}typeWriter(t,n,a,s=30){let i=0;const c=document.createElement("span");c.className="typed-text-span",t.appendChild(c);const f=document.createElement("img");f.src="data/TSRIcon.png",f.alt="TSR",f.className="tsr-inline-cursor",c.appendChild(f);const o=()=>{if(i<n.length){const l=n[i++];l===`
-`?c.insertBefore(document.createElement("br"),f):c.insertBefore(document.createTextNode(l),f),setTimeout(o,s)}else f.remove(),a()};o()}showWaitingAnimation(){const t=this.shadow.getElementById("chatMessages"),n=document.createElement("div");n.classList.add("message-container");const a=document.createElement("div");a.classList.add("message","assistant-message");const s=document.createElement("div");return s.className="tsr-harvest-row",s.innerHTML=`
+    `}connectedCallback(){this.shadow.getElementById("sendBtn").addEventListener("click",()=>this.onSendMessage())}smoothScrollToBottom(t){t.scrollTo({top:t.scrollHeight,behavior:"smooth"})}typeWriter(t,n,a,s=30){let i=0;const c=document.createElement("span");c.className="typed-text-span",t.appendChild(c);const f=document.createElement("img");f.src="data/TSRIcon.png",f.alt="TSR",f.className="tsr-inline-cursor",c.appendChild(f);const o=()=>{if(i<n.length){const l=n[i++];l===`
+`?c.insertBefore(document.createElement("br"),f):c.insertBefore(document.createTextNode(l),f);const u=this.shadow.getElementById("chatMessages");this.smoothScrollToBottom(u),setTimeout(o,s)}else f.remove(),a()};o()}showWaitingAnimation(){const t=this.shadow.getElementById("chatMessages"),n=document.createElement("div");n.classList.add("message-container");const a=document.createElement("div");a.classList.add("message","assistant-message");const s=document.createElement("div");return s.className="tsr-harvest-row",s.innerHTML=`
     <div class="tsr-loading-wrapper">
       <img class="tsr-icon loading" src="data/TSRIcon.png" alt="TSR">
       <div class="dot-stream-container">

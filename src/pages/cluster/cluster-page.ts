@@ -367,7 +367,9 @@ Phone: (406) 652‑5867 • Toll‑Free: (888) 395‑5867`.trim();
   background-color: rgb(255, 255, 255);
   animation: scaling 1.2s ease-in-out infinite;
 }
-
+.chat-messages {
+  scroll-behavior: smooth;
+}
 /* Set staggered animation delays for a wave effect */
 .wave-spinner > div:nth-child(1) {
   animation-delay: -0.6s;
@@ -507,6 +509,14 @@ Phone: (406) 652‑5867 • Toll‑Free: (888) 395‑5867`.trim();
     this.shadow.getElementById('sendBtn')!.addEventListener('click', () => this.onSendMessage());
   }
 
+  private smoothScrollToBottom(container: HTMLElement) {
+    container.scrollTo({
+      top: container.scrollHeight,
+      behavior: 'smooth'
+    });
+  }
+
+
   /* ───────── typewriter helper ───────── */
   private typeWriter(
     el: HTMLElement,
@@ -537,6 +547,10 @@ Phone: (406) 652‑5867 • Toll‑Free: (888) 395‑5867`.trim();
         } else {
           typedTextSpan.insertBefore(document.createTextNode(ch), cursor);
         }
+
+        // Automatically scroll down
+        const chatMessages = this.shadow.getElementById('chatMessages') as HTMLElement;
+        this.smoothScrollToBottom(chatMessages);
 
         setTimeout(step, speed);
       } else {
