@@ -119,21 +119,14 @@ async function fetchBinLocationsByPart(partNumber: string): Promise<BinLocation[
 }
 
 function binLocationHtml(b: BinLocation | null | undefined): string {
-  console.log('[binLocationHtml] Called with bin location:', b);
-
-  if (!b) {
-    return '<i>bin location not found</i>';
-  }
-
-  // Format fallback values
+  if (!b) return '<i>bin location not found</i>';
   const cost  = b.cost.toFixed(2);
   const qty   = b.quantityOnHand;
   const last  = b.lastModDate ? new Date(b.lastModDate).toLocaleDateString() : '—';
   const bin   = b.binLocation ?? '—';
   const uid   = b.uniqueID ?? '—';
   const part  = b.partNumber ?? '—';
-
-  return `
+  const rawHtml = `
     <div class="bin-location-card">
       <div class="bin-partnumber">${part}</div>
       <div class="bin-details">
@@ -145,7 +138,11 @@ function binLocationHtml(b: BinLocation | null | undefined): string {
       </div>
     </div>
   `;
+  // Remove newlines and extra whitespace
+  return rawHtml.replace(/\s\s+/g, ' ').trim();
 }
+
+/* ───────── Type definitions ───────── */
 
 
 type AssistantMsg = { role: 'assistant'; rawText: string; partNumbers: string[] };
@@ -221,6 +218,7 @@ Phone: (406) 652‑5867 • Toll‑Free: (888) 395‑5867`.trim();
           background: #e36a1e;
           color: #fff;
           align-self: flex-start;
+          padding: 25px;
         }
 
         .input-area {
@@ -281,56 +279,148 @@ Phone: (406) 652‑5867 • Toll‑Free: (888) 395‑5867`.trim();
             background: transparent;
           }
         }
+        .tsr-inline-cursor {
+          display: inline-block;
+          width: 70px;
+          height: auto;
+          vertical-align: text-bottom;
+          margin-left: 2px;
+          animation: blink-tsr 2s ease infinite, bounce-tsr 1.2s ease-in-out infinite;
+        }
+
+        /* Blinking */
+        @keyframes blink-tsr {
+          50% {
+            opacity: 0.7;
+          }
+        }
+
+        /* Tiny bounce while typing */
+        @keyframes bounce-tsr {
+          0%, 100% { transform: translateY(0); }
+          50%      { transform: translateY(-1px); }
+        }
         /* Bin location styling */
         /* NEW: container that wraps all bin items side by side, with wrapping */
         /* Flex container holding all bin location cards */
-.bin-locations-container {
+/* Container for the part number buttons */
+.bin-buttons-container {
   display: flex;
-  flex-wrap: wrap;      /* let cards wrap */
-  gap: 12px;
-  margin-top: 8px;
-  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+  margin-top: 12px;
 }
 
-/* The parent card: big enough to show part number by default */
-.bin-location-card {
-  position: relative;        /* or your desired height */
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+.bin-partnumber {
+  font-weight: bold;
+  font-size: 20px;
+
+}
+
+/* Style for each button */
+.bin-button {
+  background:rgb(255, 255, 255);
+  color: #e36a1e;
+  border: 1px solid #e36a1e;
+  padding: 8px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.2s ease, color 0.2s ease, height: 0.4s ease;
+}
+
+.bin-button:hover {
+  background: rgb(27, 99, 182);
+  color: #fff;
+  border-color: black;
+  border-weight: 3px;
+  scale: 1.1;
+  transition: scale 0.2s ease;
+}
+
+/* Container for the details below the buttons */
+.bin-details-container {
   border: 1px solid #e36a1e;
   border-radius: 6px;
+  padding: 12px;
   background: #fff;
   color: #000;
-  cursor: pointer;
-  /* minimal padding so the base height is small */
-  padding: 4px 6px;
-  overflow: hidden;
+  overflow: hidden;              /* Hide overflowing content during transition */
+  height: auto;
+  transition: height 0.3s ease;
 }
 
-/* The always-visible part number */
-.bin-partnumber {
-  font-size: 1.2em;
-  font-weight: bold;
-  margin-bottom: 4px;
+/* Wave Spinner Container (will be visible in our placeholder div) */
+.wave-spinner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* The details section: hidden by default via max-height + scaleY */
-.bin-details {
-  overflow: hidden;
-  max-height: 0;               /* collapsed by default */
-  transform: scaleY(0);        /* visually "squashed" */
-  transform-origin: top;       /* so it grows downward */
-  transition:
-    max-height 0.3s ease,
-    transform 0.3s ease;
+/* Wave Spinner Dot Styles */
+.wave-spinner > div {
+  width: 6px;
+  height: 8px;
+  margin: 0 6px;
+  border-radius: 20%; /* to form a diamond-like shape */
+  background-color: rgb(255, 255, 255);
+  animation: scaling 1.2s ease-in-out infinite;
 }
 
-/* On hover, expand the details in both height and scale */
-.bin-location-card:hover .bin-details {
-  max-height: 400px; /* or 999px if your content is large */
-  transform: scaleY(1);
-  heigh: auto;
+/* Set staggered animation delays for a wave effect */
+.wave-spinner > div:nth-child(1) {
+  animation-delay: -0.6s;
+}
+.wave-spinner > div:nth-child(2) {
+  animation-delay: -0.4s;
+}
+.wave-spinner > div:nth-child(3) {
+  animation-delay: -0.2s;
+}
+.wave-spinner > div:nth-child(4) {
+  animation-delay: 0s;
+}
+.wave-spinner > div:nth-child(5) {
+  animation-delay: 0.2s;
+}
+
+/* Wave Dot Keyframes */
+@keyframes scaling {
+  0%, 100% {
+    transform: scaleY(0.5);
+    background-color: rgb(255, 255, 255);
+  }
+  40% {
+    transform: scaleY(1.5);
+    background-color: rgb(255, 160, 105);
+  }
+  50% {
+    transform: scaleY(3);
+    background-color: #f36f21;
+  }
+}
+
+/* Optional: a container for the spinner */
+.loading-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 60px; /* Set a fixed height to reserve space */
+}
+.bin-details-container.fade-transition {
+  animation: fadeContent 0.4s ease;
+}
+
+@keyframes fadeContent {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
       </style>
@@ -354,41 +444,42 @@ Phone: (406) 652‑5867 • Toll‑Free: (888) 395‑5867`.trim();
     el: HTMLElement,
     text: string,
     done: () => void,
-    speed = 15
+    speed = 40
   ) {
     let i = 0;
+
+    // Main container for typed text
     const typedTextSpan = document.createElement('span');
+    typedTextSpan.className = 'typed-text-span';
     el.appendChild(typedTextSpan);
+
+    // TSR image cursor (inline, like a blinking character)
+    const cursor = document.createElement('img');
+    cursor.src = 'docs/data/TSRIcon.png';
+    cursor.alt = 'TSR';
+    cursor.className = 'tsr-inline-cursor';
+    typedTextSpan.appendChild(cursor);
 
     const step = () => {
       if (i < text.length) {
         const ch = text[i++];
 
         if (ch === '\n') {
-          // line break
-          typedTextSpan.appendChild(document.createElement('br'));
-        } else if (ch === '🚜') {
-          // Insert an inline image instead of the tractor emoji
-          const img = document.createElement('img');
-          // Use your own icon:
-          img.src = 'docs/data/TSRIcon.png';
-          img.alt = 'harvester';
-          img.style.width = '10px'; // for example
-          // Add it in the same flow as typed text
-          typedTextSpan.appendChild(img);
+          typedTextSpan.insertBefore(document.createElement('br'), cursor);
         } else {
-          // Normal text
-          typedTextSpan.appendChild(document.createTextNode(ch));
+          typedTextSpan.insertBefore(document.createTextNode(ch), cursor);
         }
 
         setTimeout(step, speed);
       } else {
+        cursor.remove();
         done();
       }
     };
 
     step();
   }
+
 
 
   /* ───────── helpers ───────── */
@@ -429,30 +520,77 @@ Phone: (406) 652‑5867 • Toll‑Free: (888) 395‑5867`.trim();
         .replace(/\n/g, '<br>');
 
       /* slide‑in part containers */
-      if (msg.partNumbers.length) {
-        const list = document.createElement('div');
-        list.className = 'bin-locations-container'; // Flex container for all cards
+/* slide‑in part containers */
+if (msg.partNumbers.length) {
+  // Create container for part-number buttons
+  const buttonsContainer = document.createElement('div');
+  buttonsContainer.className = 'bin-buttons-container';
 
-        msg.partNumbers.forEach(async pn => {
-          const slide = document.createElement('div');
-          slide.innerHTML = '<i>loading…</i>';
-          list.appendChild(slide);
+  // Create a separate details container (initially with placeholder text)
+  const detailsContainer = document.createElement('div');
+  detailsContainer.className = 'bin-details-container';
+  detailsContainer.innerHTML = '<i>Select a part to see bin details.</i>';
 
-          try {
-            const binLocations = await fetchBinLocationsByPart(pn);
-            if (binLocations && binLocations.length > 0) {
-              slide.innerHTML = binLocationHtml(binLocations[0]);
-            } else {
-              slide.innerHTML = '';
-            }
-          } catch (err) {
-            console.error(err);
-            slide.innerHTML = `<span style="color:#c00">API error – see console</span>`;
-          }
-        });
+  // For each part number, create a flex button
+  msg.partNumbers.forEach(pn => {
+    const btn = document.createElement('div');
+    btn.className = 'bin-button';
+    btn.textContent = pn;
 
-        bubble.appendChild(list);
+    // On hover (or click if you prefer), fetch and display the details.
+    btn.addEventListener('click', async () => {
+      try {
+        const binLocations = await fetchBinLocationsByPart(pn);
+        if (binLocations && binLocations.length > 0) {
+          // Instead of direct assignment, use our helper to animate the height change
+          updateDetailsContainer(detailsContainer, binLocationHtml(binLocations[0]));
+        } else {
+          updateDetailsContainer(detailsContainer, '<i>No bin location found</i>');
+        }
+      } catch (err) {
+        console.error(err);
+        updateDetailsContainer(detailsContainer, `<span style="color:#c00">API error – see console</span>`);
       }
+    });
+
+    buttonsContainer.appendChild(btn);
+  });
+
+  // Append both containers to the message bubble
+  bubble.appendChild(buttonsContainer);
+  bubble.appendChild(detailsContainer);
+}
+
+function updateDetailsContainer(container: HTMLElement, newContent: string): void {
+  const oldHeight = container.offsetHeight;
+
+  // Apply a temporary fade-out by removing the content (optional)
+  container.classList.remove('fade-transition');
+
+  // Set new content
+  container.innerHTML = newContent;
+
+  // Force reflow to restart animation
+  void container.offsetWidth;
+
+  // Add fade-in class
+  container.classList.add('fade-transition');
+
+  // Animate height (same as before)
+  const newHeight = container.scrollHeight;
+  container.style.height = oldHeight + 'px';
+  void container.offsetHeight;
+  requestAnimationFrame(() => {
+    container.style.height = newHeight + 'px';
+  });
+
+  container.addEventListener('transitionend', function handler(e) {
+    if (e.propertyName === 'height') {
+      container.style.height = 'auto';
+      container.removeEventListener('transitionend', handler);
+    }
+  });
+}
 
 
 
