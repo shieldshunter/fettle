@@ -1028,7 +1028,7 @@ https://help.openai.com/en/articles/5112595-best-practices-for-api-key-safety
     `}connectedCallback(){this.shadow.getElementById("sendBtn").addEventListener("click",()=>this.onSendMessage())}typeWriter(t,n,a,s=30){let i=0;const c=document.createElement("span");c.className="typed-text-span",t.appendChild(c);const f=document.createElement("img");f.src="data/TSRIcon.png",f.alt="TSR",f.className="tsr-inline-cursor",c.appendChild(f);const o=()=>{if(i<n.length){const l=n[i++];l===`
 `?c.insertBefore(document.createElement("br"),f):c.insertBefore(document.createTextNode(l),f),setTimeout(o,s)}else f.remove(),a()};o()}showWaitingAnimation(){const t=this.shadow.getElementById("chatMessages"),n=document.createElement("div");n.classList.add("message-container");const a=document.createElement("div");a.classList.add("message","assistant-message");const s=document.createElement("div");return s.className="tsr-harvest-row",s.innerHTML=`
     <div class="tsr-loading-wrapper">
-      <img class="tsr-icon loading" src="docs/data/TSRIcon.png" alt="TSR">
+      <img class="tsr-icon loading" src="data/TSRIcon.png" alt="TSR">
       <div class="dot-stream-container">
         <div class="dot-stream">
           ${'<div class="dot"></div>'.repeat(10)}
