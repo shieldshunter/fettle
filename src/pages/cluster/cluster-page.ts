@@ -15,6 +15,26 @@ const JB2_AUTH = {
   clientSecret: import.meta.env.VITE_JB2_CLIENT_SECRET
 };
 
+function exportToCSV(data: BinLocation[], filename: string) {
+  if (!data.length) return alert("No data to export!");
+
+  const header = Object.keys(data[0]);
+  const rows = data.map(obj =>
+    header.map(field => JSON.stringify((obj as any)[field] ?? "")).join(",")
+  );
+
+  const csv = [header.join(","), ...rows].join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", filename);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
 
 const AUTH_BASE = 'https://api-user.integrations.ecimanufacturing.com';
 const API_BASE  = 'https://api-jb2.integrations.ecimanufacturing.com';
@@ -120,12 +140,14 @@ async function fetchBinLocationsByPart(partNumber: string): Promise<BinLocation[
 
 function binLocationHtml(b: BinLocation | null | undefined): string {
   if (!b) return '<i>bin location not found</i>';
-  const cost  = b.cost.toFixed(2);
-  const qty   = b.quantityOnHand;
+
+  const cost  = b.cost != null ? b.cost.toFixed(2) : '—';
+  const qty   = b.quantityOnHand ?? '—';
   const last  = b.lastModDate ? new Date(b.lastModDate).toLocaleDateString() : '—';
   const bin   = b.binLocation ?? '—';
   const uid   = b.uniqueID ?? '—';
   const part  = b.partNumber ?? '—';
+
   const rawHtml = `
     <div class="bin-location-card">
       <div class="bin-partnumber">${part}</div>
@@ -138,7 +160,7 @@ function binLocationHtml(b: BinLocation | null | undefined): string {
       </div>
     </div>
   `;
-  // Remove newlines and extra whitespace
+
   return rawHtml.replace(/\s\s+/g, ' ').trim();
 }
 
@@ -507,7 +529,12 @@ Phone: (406) 652‑5867 • Toll‑Free: (888) 395‑5867`.trim();
 
   connectedCallback() {
     this.shadow.getElementById('sendBtn')!.addEventListener('click', () => this.onSendMessage());
+
+    // Add "Download All" button inside the cluster container
   }
+
+
+
 
   private smoothScrollToBottom(container: HTMLElement) {
     container.scrollTo({
@@ -515,7 +542,7 @@ Phone: (406) 652‑5867 • Toll‑Free: (888) 395‑5867`.trim();
       behavior: 'smooth'
     });
   }
-
+  private binCache: Map<string, BinLocation[]> = new Map();
 
   /* ───────── typewriter helper ───────── */
   private typeWriter(
@@ -650,27 +677,37 @@ if (msg.partNumbers.length) {
     btn.textContent = pn;
 
     // On hover (or click if you prefer), fetch and display the details.
-    btn.addEventListener('click', async () => {
-      try {
-        const binLocations = await fetchBinLocationsByPart(pn);
-        if (binLocations && binLocations.length > 0) {
-          // Instead of direct assignment, use our helper to animate the height change
-          updateDetailsContainer(detailsContainer, binLocationHtml(binLocations[0]));
-        } else {
-          updateDetailsContainer(detailsContainer, '<i>No bin location found</i>');
-        }
-      } catch (err) {
-        console.error(err);
-        updateDetailsContainer(detailsContainer, `<span style="color:#c00">API error – see console</span>`);
+    btn.addEventListener('click', () => {
+      const data = this.binCache.get(pn);
+      if (data && data.length > 0) {
+        updateDetailsContainer(detailsContainer, binLocationHtml(data[0]));
+      } else {
+        updateDetailsContainer(detailsContainer, '<i>No bin location found</i>');
       }
     });
 
     buttonsContainer.appendChild(btn);
   });
 
-  // Append both containers to the message bubble
+  // Create the download button for just these part numbers
+  const downloadBtn = document.createElement('button');
+  downloadBtn.textContent = '📥 Download These';
+  downloadBtn.className = 'bin-button';
+  downloadBtn.style.marginTop = '10px';
+
+  downloadBtn.addEventListener('click', () => {
+    const selectedParts: BinLocation[] = msg.partNumbers
+      .map(pn => this.binCache.get(pn))
+      .flat()
+      .filter((x): x is BinLocation => !!x?.partNumber);
+
+    exportToCSV(selectedParts, `TSR_SelectedParts_${Date.now()}.csv`);
+  });
+
+  // Append everything to the bubble
   bubble.appendChild(buttonsContainer);
   bubble.appendChild(detailsContainer);
+  bubble.appendChild(downloadBtn); // ✅ Add download after part details
 }
 
 function updateDetailsContainer(container: HTMLElement, newContent: string): void {
@@ -746,6 +783,22 @@ function updateDetailsContainer(container: HTMLElement, newContent: string): voi
     }
   }
 
+  private async prefetchBinLocations(partNumbers: string[]) {
+    const fetches = partNumbers.map(async pn => {
+      if (!this.binCache.has(pn)) {
+        try {
+          const data = await fetchBinLocationsByPart(pn);
+          this.binCache.set(pn, data);
+        } catch (err) {
+          console.error(`Error fetching bin for ${pn}:`, err);
+          this.binCache.set(pn, []);
+        }
+      }
+    });
+
+    await Promise.all(fetches);
+  }
+
   /* ───────── Assistant API ───────── */
   private async callAssistantAPI(userText: string): Promise<AssistantMsg> {
     let threadId = sessionStorage.getItem('tsrThread');
@@ -773,12 +826,16 @@ function updateDetailsContainer(container: HTMLElement, newContent: string): voi
     let parsed: { raw_text?: string; part_numbers?: string[] } = {};
     try { parsed = JSON.parse(raw); } catch {}
 
+    const partNumbers = Array.isArray(parsed.part_numbers) ? parsed.part_numbers : [];
+    await this.prefetchBinLocations(partNumbers); // ✅ move before return
+
     return {
       role:        'assistant',
       rawText:     parsed.raw_text ?? raw,
-      partNumbers: Array.isArray(parsed.part_numbers) ? parsed.part_numbers : []
+      partNumbers: partNumbers
     };
   }
+
 }
 
 customElements.define('cluster-page', ClusterPage);
