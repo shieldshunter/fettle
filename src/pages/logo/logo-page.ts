@@ -30,7 +30,7 @@ class LogoPage extends HTMLElement {
           justify-items: center;
           align-items: center;
           padding: 16px;
-          overflow-y: auto;
+          overflow-y: hidden;
           overflow-x: hidden;
         }
 

@@ -140,7 +140,7 @@ var Gd=Object.defineProperty;var zd=(e,r,t)=>r in e?Gd(e,r,{enumerable:!0,config
           ></iframe>
         </div>
       </div>
-    `;const n=this.shadowRoot.getElementById("uname"),a=this.shadowRoot.getElementById("sendLinkBtn"),s=this.shadowRoot.getElementById("msFormContainer"),i=[{step0:"rgb(255, 255, 255)",step40:"rgb(255, 160, 105)",step50:"#f36f21"},{step0:"rgb(255, 255, 255)",step40:"rgb(255, 228, 141)",step50:"#FABF35"},{step0:"rgb(255, 255, 255)",step40:"rgb(255, 143, 143)",step50:"#EA3546"},{step0:"rgb(255, 255, 255)",step40:"rgb(136, 148, 255)",step50:"#345995"}];a.querySelectorAll(".wave-spinner > div").forEach(u=>{const h=i[Math.floor(Math.random()*i.length)];u.style.setProperty("--wave-color-0",h.step0),u.style.setProperty("--wave-color-40",h.step40),u.style.setProperty("--wave-color-50",h.step50)}),a.style.display="none",n.addEventListener("input",async()=>{const u=n.value.trim().toLowerCase();Mi||(Mi=await dh()),J4(u)?Array.from(Mi).some(d=>d.startsWith(u))?(a.style.display="block",s.style.display="none"):(a.style.display="none",s.style.display="block"):(a.style.display="none",s.style.display="none")}),this.initialBtnHTML=a.innerHTML;const f=a.innerHTML,o=async()=>{const u=n.value.trim().toLowerCase();await w0.setUserData({email:u}),a.disabled=!0,a.classList.add("loading"),setTimeout(()=>{a.classList.remove("loading"),a.classList.add("success"),a.textContent="Success! Check your email",document.cookie="auth=testing; path=/;",a.innerHTML=f,a.classList.add("success"),a.textContent="Success! Check your email",this.content.classList.add("minimized"),a.onclick=o,setTimeout(()=>{document.dispatchEvent(new CustomEvent("login-success"))},1e3)},1500)};a.onclick=o;const l=document.createElement("style");l.appendChild(document.createTextNode(`
+    `;const n=this.shadowRoot.getElementById("uname"),a=this.shadowRoot.getElementById("sendLinkBtn"),s=this.shadowRoot.getElementById("msFormContainer"),i=[{step0:"var(--container-bg:)",step40:"rgb(255, 160, 105)",step50:"#f36f21"},{step0:"var(--container-bg:)",step40:"rgb(255, 160, 105)",step50:"#f36f21"},{step0:"var(--container-bg:)",step40:"rgb(255, 160, 105)",step50:"#f36f21"},{step0:"var(--container-bg:)",step40:"rgb(255, 160, 105)",step50:"#f36f21"}];a.querySelectorAll(".wave-spinner > div").forEach(u=>{const h=i[Math.floor(Math.random()*i.length)];u.style.setProperty("--wave-color-0",h.step0),u.style.setProperty("--wave-color-40",h.step40),u.style.setProperty("--wave-color-50",h.step50)}),a.style.display="none",n.addEventListener("input",async()=>{const u=n.value.trim().toLowerCase();Mi||(Mi=await dh()),J4(u)?Array.from(Mi).some(d=>d.startsWith(u))?(a.style.display="block",s.style.display="none"):(a.style.display="none",s.style.display="block"):(a.style.display="none",s.style.display="none")}),this.initialBtnHTML=a.innerHTML;const f=a.innerHTML,o=async()=>{const u=n.value.trim().toLowerCase();await w0.setUserData({email:u}),a.disabled=!0,a.classList.add("loading"),setTimeout(()=>{a.classList.remove("loading"),a.classList.add("success"),a.textContent="Success! Check your email",document.cookie="auth=testing; path=/;",a.innerHTML=f,a.classList.add("success"),a.textContent="Success! Check your email",this.content.classList.add("minimized"),a.onclick=o,setTimeout(()=>{document.dispatchEvent(new CustomEvent("login-success"))},1e3)},1500)};a.onclick=o;const l=document.createElement("style");l.appendChild(document.createTextNode(`
         @keyframes slideDown {
           0% {
             opacity: 0;
@@ -685,7 +685,7 @@ new OpenAI({ apiKey, dangerouslyAllowBrowser: true });
 
 https://help.openai.com/en/articles/5112595-best-practices-for-api-key-safety
 `);super({baseURL:i.baseURL,timeout:i.timeout??6e5,httpAgent:i.httpAgent,maxRetries:i.maxRetries,fetch:i.fetch}),this.completions=new vd(this),this.chat=new di(this),this.embeddings=new _d(this),this.files=new Dc(this),this.images=new wd(this),this.audio=new Wa(this),this.moderations=new yd(this),this.models=new Uc(this),this.fineTuning=new za(this),this.vectorStores=new $r(this),this.beta=new $n(this),this.batches=new yc(this),this.uploads=new Vc(this),this.responses=new Wc(this),this._options=i,this.apiKey=t,this.organization=n,this.project=a}defaultQuery(){return this._options.defaultQuery}defaultHeaders(r){return{...super.defaultHeaders(r),"OpenAI-Organization":this.organization,"OpenAI-Project":this.project,...this._options.defaultHeaders}}authHeaders(r){return{Authorization:`Bearer ${this.apiKey}`}}stringifyQuery(r){return uA(r,{arrayFormat:"brackets"})}}bd=ve;ve.OpenAI=bd;ve.DEFAULT_TIMEOUT=6e5;ve.OpenAIError=de;ve.APIError=at;ve.APIConnectionError=ci;ve.APIConnectionTimeoutError=_c;ve.APIUserAbortError=Ut;ve.NotFoundError=Ch;ve.ConflictError=Rh;ve.RateLimitError=Oh;ve.BadRequestError=Sh;ve.AuthenticationError=bh;ve.InternalServerError=Dh;ve.PermissionDeniedError=Fh;ve.UnprocessableEntityError=Ih;ve.toFile=Uh;ve.fileFromPath=kh;ve.Completions=vd;ve.Chat=di;ve.ChatCompletionsPage=hi;ve.Embeddings=_d;ve.Files=Dc;ve.FileObjectsPage=Pc;ve.Images=wd;ve.Audio=Wa;ve.Moderations=yd;ve.Models=Uc;ve.ModelsPage=$c;ve.FineTuning=za;ve.VectorStores=$r;ve.VectorStoresPage=zc;ve.VectorStoreSearchResponsesPage=Xc;ve.Beta=$n;ve.Batches=yc;ve.BatchesPage=Ec;ve.Uploads=Vc;ve.Responses=Wc;const Zf={clientId:void 0,clientSecret:void 0};function fS(e,r){if(!e.length)return alert("No data to export!");const t=Object.keys(e[0]),n=e.map(f=>t.map(o=>JSON.stringify(f[o]??"")).join(",")),a=[t.join(","),...n].join(`
-`),s=new Blob([a],{type:"text/csv;charset=utf-8;"}),i=URL.createObjectURL(s),c=document.createElement("a");c.setAttribute("href",i),c.setAttribute("download",r),document.body.appendChild(c),c.click(),document.body.removeChild(c)}const lS="https://api-user.integrations.ecimanufacturing.com",uS="https://api-jb2.integrations.ecimanufacturing.com";let jn="",Qf=0;async function hS(){console.log("[getJB2Token] Called.");const e=Math.floor(Date.now()/1e3);if(jn&&e<Qf-60)return console.log("[getJB2Token] Reusing cached token."),jn;const r=`${lS}/oauth2/api-user/token`;console.log("[getJB2Token] Request token from:",r);const t=new URLSearchParams({grant_type:"client_credentials",client_id:Zf.clientId,client_secret:Zf.clientSecret,scope:"jb2-api offline_access"}),n=await fetch(r,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:t});if(!n.ok){const s=await n.text();throw console.error("[getJB2Token] Token fetch failed:",n.status,n.statusText,s),new Error(`OAuth ${n.status}: ${n.statusText}`)}const a=await n.json();return jn=a.access_token,Qf=e+a.expires_in,console.log("[getJB2Token] Got token:",jn?"***":"NO TOKEN","Expires in:",a.expires_in),jn}async function dS(e){const r=await hS();console.log("Using token:",r);const t=new URL("/api/v1/bin-locations",uS);t.searchParams.set("partNumber[eq]",e),t.searchParams.set("fields","binLocation,cost,datePosted,deliveryTicketNumber,lastModDate,lastModUser,lotNumber,partNumber,POItemNumber,quantityOnHand,receiverNumber,uniqueID,vendorCode"),t.searchParams.set("take","50"),t.searchParams.set("skip","0"),t.searchParams.set("sort","-lastModDate"),console.log("BinLocations endpoint:",t.toString());const n=await fetch(t.toString(),{headers:{Authorization:`Bearer ${r}`}});if(!n.ok)throw new Error(`Bin locations fetch failed ${n.status} ${n.statusText}`);const a=await n.json();return console.log("Got response:",a),a.Data}function xS(e){if(!e)return"<i>bin location not found</i>";const r=e.cost!=null?e.cost.toFixed(2):"—",t=e.quantityOnHand??"—",n=e.lastModDate?new Date(e.lastModDate).toLocaleDateString():"—",a=e.binLocation??"—",s=e.uniqueID??"—";return`
+`),s=new Blob([a],{type:"text/csv;charset=utf-8;"}),i=URL.createObjectURL(s),c=document.createElement("a");c.setAttribute("href",i),c.setAttribute("download",r),document.body.appendChild(c),c.click(),document.body.removeChild(c)}const lS="https://api-user.integrations.ecimanufacturing.com",uS="https://api-jb2.integrations.ecimanufacturing.com";let jn="",Qf=0;async function hS(){console.log("[getJB2Token] Called.");const e=Math.floor(Date.now()/1e3);if(jn&&e<Qf-60)return console.log("[getJB2Token] Reusing cached token."),jn;const r=`${lS}/oauth2/api-user/token`;console.log("[getJB2Token] Request token from:",r);const t=new URLSearchParams({grant_type:"client_credentials",client_id:Zf.clientId,client_secret:Zf.clientSecret,scope:"jb2-api offline_access"}),n=await fetch(r,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:t});if(!n.ok){const s=await n.text();throw console.error("[getJB2Token] Token fetch failed:",n.status,n.statusText,s),new Error(`OAuth ${n.status}: ${n.statusText}`)}const a=await n.json();return jn=a.access_token,Qf=e+a.expires_in,console.log("[getJB2Token] Got token:",jn?"***":"NO TOKEN","Expires in:",a.expires_in),jn}async function dS(e){const r=await hS();console.log("Using token:",r);const t=new URL("/api/v1/bin-locations",uS);t.searchParams.set("partNumber[eq]",e),t.searchParams.set("fields","binLocation,cost,datePosted,deliveryTicketNumber,lastModDate,lastModUser,lotNumber,partNumber,POItemNumber,quantityOnHand,receiverNumber,uniqueID,vendorCode"),t.searchParams.set("take","50"),t.searchParams.set("skip","0"),t.searchParams.set("sort","-lastModDate"),console.log("BinLocations endpoint:",t.toString());const n=await fetch(t.toString(),{headers:{Authorization:`Bearer ${r}`}});if(!n.ok)throw new Error(`Bin locations fetch failed ${n.status} ${n.statusText}`);const a=await n.json();return console.log("Got response:",a),a.Data}function xS(e){const r=e.offsetHeight;e.style.height=r+"px",e.style.transition="height 0.4s ease-in-out, opacity 0.4s ease-in-out",e.offsetWidth,requestAnimationFrame(()=>{e.style.height="0px",e.style.opacity="0"}),e.addEventListener("transitionend",function t(n){n.propertyName==="height"&&(e.innerHTML="<i>Select a part to see bin details.</i>",e.style.height="auto",e.style.opacity="1",e.removeEventListener("transitionend",t))})}function pS(e){if(!e)return"<i>bin location not found</i>";const r=e.cost!=null?e.cost.toFixed(2):"—",t=e.quantityOnHand??"—",n=e.lastModDate?new Date(e.lastModDate).toLocaleDateString():"—",a=e.binLocation??"—",s=e.uniqueID??"—";return`
     <div class="bin-location-card">
       <div class="bin-partnumber">${e.partNumber??"—"}</div>
       <div class="bin-details">
@@ -696,7 +696,7 @@ https://help.openai.com/en/articles/5112595-best-practices-for-api-key-safety
         <div style="font-size:0.8em;"><small>ID: ${s}</small></div>
       </div>
     </div>
-  `.replace(/\s\s+/g," ").trim()}const qn=new ve({apiKey:void 0,dangerouslyAllowBrowser:!0,defaultHeaders:{"OpenAI-Beta":"assistants=v2"}}),pS=void 0,Qs=class Qs extends HTMLElement{constructor(){super();it(this,"shadow");it(this,"conversation",[]);it(this,"renderedCount",0);it(this,"binCache",new Map);this.shadow=this.attachShadow({mode:"open"}),this.shadow.innerHTML=`
+  `.replace(/\s\s+/g," ").trim()}const qn=new ve({apiKey:void 0,dangerouslyAllowBrowser:!0,defaultHeaders:{"OpenAI-Beta":"assistants=v2"}}),mS=void 0,Qs=class Qs extends HTMLElement{constructor(){super();it(this,"shadow");it(this,"conversation",[]);it(this,"renderedCount",0);it(this,"binCache",new Map);this.shadow=this.attachShadow({mode:"open"}),this.shadow.innerHTML=`
       <style>
         .cluster-container {
           display: flex;
@@ -798,7 +798,7 @@ https://help.openai.com/en/articles/5112595-best-practices-for-api-key-safety
           width: 8px;
           background: #fff;
           margin-left: 2px;
-          animation: blink 1s steps(2, start) infinite;
+          animation: blink 0.2s steps(2, start) infinite;
         }
         @keyframes blink {
           to {
@@ -811,7 +811,7 @@ https://help.openai.com/en/articles/5112595-best-practices-for-api-key-safety
           height: auto;
           vertical-align: text-bottom;
           margin-left: 2px;
-          animation: blink-tsr 2s ease infinite, bounce-tsr 1.2s ease-in-out infinite;
+          animation: bounce-tsr 1.2s ease-in-out infinite;
         }
 
         /* Blinking */
@@ -829,193 +829,212 @@ https://help.openai.com/en/articles/5112595-best-practices-for-api-key-safety
         /* Bin location styling */
         /* NEW: container that wraps all bin items side by side, with wrapping */
         /* Flex container holding all bin location cards */
-/* Container for the part number buttons */
-.bin-buttons-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 12px;
-  margin-top: 12px;
-}
+        /* Container for the part number buttons */
+        .bin-buttons-container {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+          margin-bottom: 12px;
+          margin-top: 12px;
+        }
 
-.bin-partnumber {
-  font-weight: bold;
-  font-size: 20px;
+        .bin-partnumber {
+          font-weight: bold;
+          font-size: 20px;
 
-}
+        }
 
-/* Style for each button */
-.bin-button {
-  background:rgb(255, 255, 255);
-  color: #e36a1e;
-  border: 1px solid #e36a1e;
-  padding: 8px 12px;
-  border-radius: 12px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: background 0.2s ease, color 0.2s ease, height: 0.4s ease;
-}
+        /* Style for each button */
+        .bin-button {
+          background: var(--container-bg);
+          color: var(--color-text);
+          border: 1px solid #e36a1e;
+          padding: 8px 12px;
+          border: 2px solid var(--color-text);
+          border-radius: 12px;
+          cursor: pointer;
+          font-weight: bold;
+          transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+          transform-origin: center;
+          margin: 5px; /* <--- adds natural spacing between buttons */
+        }
 
-.bin-button:hover {
-  background: rgb(27, 99, 182);
-  color: #fff;
-  border-color: black;
-  border-weight: 3px;
-  scale: 1.1;
-  transition: scale 0.2s ease;
-}
+        .bin-button:hover {
+          background: rgb(27, 99, 182);
+          color: #fff;
+          border: 2px solid #fff;
+          transform: scale(1.2);
+          transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease, border 0.2s ease;
+        }
 
-/* Container for the details below the buttons */
-.bin-details-container {
-  border: 1px solid #e36a1e;
-  border-radius: 6px;
-  padding: 12px;
-  background: #fff;
-  color: #000;
-  overflow: hidden;              /* Hide overflowing content during transition */
-  height: auto;
-  transition: height 0.3s ease;
-}
+        .bin-button.active {
+          background: rgb(73, 122, 177);
+          color: #fff;
+          border: 2px solid #fff;
+          transform: scale(1.1);
+          transition: transform 0.4s ease, background 0.4s ease, color 0.4s ease, border 0.4s ease;
+        }
 
-/* Wave Spinner Container (will be visible in our placeholder div) */
-.wave-spinner {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
+        .bin-button.disabled {
+          background-color: var(--container-bg);
+          border-color: #ccc;
+          color: var(--color-text);
+          cursor: not-allowed;
+          pointer-events: none;
+          opacity: 0.6;
+        }
 
-/* Wave Spinner Dot Styles */
-.wave-spinner > div {
-  width: 6px;
-  height: 8px;
-  margin: 0 6px;
-  border-radius: 20%; /* to form a diamond-like shape */
-  background-color: rgb(255, 255, 255);
-  animation: scaling 1.2s ease-in-out infinite;
-}
-.chat-messages {
-  scroll-behavior: smooth;
-}
-/* Set staggered animation delays for a wave effect */
-.wave-spinner > div:nth-child(1) {
-  animation-delay: -0.6s;
-}
-.wave-spinner > div:nth-child(2) {
-  animation-delay: -0.4s;
-}
-.wave-spinner > div:nth-child(3) {
-  animation-delay: -0.2s;
-}
-.wave-spinner > div:nth-child(4) {
-  animation-delay: 0s;
-}
-.wave-spinner > div:nth-child(5) {
-  animation-delay: 0.2s;
-}
+        /* Container for the details below the buttons */
+        .bin-details-container {
+          border: 1px solid #e36a1e;
+          border-radius: 12px;
+          padding: 12px;
+          background: var(--container-bg);
+          color: var(--color-text);
+          overflow: hidden;              /* Hide overflowing content during transition */
+          height: auto;
+          transition: height 0.4s ease-in-out;
+        }
 
-/* Wave Dot Keyframes */
-@keyframes scaling {
-  0%, 100% {
-    transform: scaleY(0.5);
-    background-color: rgb(255, 255, 255);
-  }
-  40% {
-    transform: scaleY(1.5);
-    background-color: rgb(255, 160, 105);
-  }
-  50% {
-    transform: scaleY(3);
-    background-color: #f36f21;
-  }
-}
+        /* Wave Spinner Container (will be visible in our placeholder div) */
+        .wave-spinner {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+        }
 
-/* Optional: a container for the spinner */
-.loading-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 60px; /* Set a fixed height to reserve space */
-}
-.bin-details-container.fade-transition {
-  animation: fadeContent 0.4s ease;
-}
+        /* Wave Spinner Dot Styles */
+        .wave-spinner > div {
+          width: 6px;
+          height: 8px;
+          margin: 0 6px;
+          border-radius: 20%; /* to form a diamond-like shape */
+          background-color: rgb(255, 255, 255);
+          animation: scaling 1.2s ease-in-out infinite;
+        }
+        .chat-messages {
+          scroll-behavior: smooth;
+        }
+        /* Set staggered animation delays for a wave effect */
+        .wave-spinner > div:nth-child(1) {
+          animation-delay: -0.6s;
+        }
+        .wave-spinner > div:nth-child(2) {
+          animation-delay: -0.4s;
+        }
+        .wave-spinner > div:nth-child(3) {
+          animation-delay: -0.2s;
+        }
+        .wave-spinner > div:nth-child(4) {
+          animation-delay: 0s;
+        }
+        .wave-spinner > div:nth-child(5) {
+          animation-delay: 0.2s;
+        }
 
-@keyframes fadeContent {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-.tsr-loading-wrapper {
-  display: flex;
-  align-items: flex-end;
-  gap: 12px;
-  height: 80px;
-  position: relative;
-}
+        /* Wave Dot Keyframes */
+        @keyframes scaling {
+          0%, 100% {
+            transform: scaleY(0.5);
+            background-color: rgb(255, 255, 255);
+          }
+          40% {
+            transform: scaleY(1.5);
+            background-color: rgb(255, 160, 105);
+          }
+          50% {
+            transform: scaleY(3);
+            background-color: #f36f21;
+          }
+        }
 
-/* Infinite horizontal belt illusion */
-.dot-stream-container {
-  overflow: hidden;
-  width: 160px;
-  height: 12px;
-  position: relative;
-  mask-image: linear-gradient(to left, black 60%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to left, black 90%, transparent 100%);
-}
+        /* Optional: a container for the spinner */
+        .loading-container {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          height: 60px; /* Set a fixed height to reserve space */
+        }
+        .bin-details-container.fade-transition {
+          animation: fadeContent 0.4s ease-in-out;
+        }
 
-.dot-stream {
-  display: flex;
-  gap: 12px;
-  position: absolute;
-  left: 0;
-  top: 0;
-  animation: slide-left-loop 2.4s linear infinite;
-}
+        @keyframes fadeContent {
+          from {
+            opacity: 0;
+            transform: translateY(4px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .tsr-loading-wrapper {
+          display: flex;
+          align-items: flex-end;
+          gap: 12px;
+          height: 80px;
+          position: relative;
+        }
 
-.dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background-color: white;
-  opacity: 1;
-}
+        /* Infinite horizontal belt illusion */
+        .dot-stream-container {
+          overflow: hidden;
+          width: 160px;
+          height: 12px;
+          position: relative;
+          mask-image: linear-gradient(to left, black 60%, transparent 100%);
+          -webkit-mask-image: linear-gradient(to left, black 90%, transparent 100%);
+        }
 
-/* New keyframe to loop */
-@keyframes slide-left-loop {
-  0%   { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
+        .dot-stream {
+          display: flex;
+          gap: 12px;
+          position: absolute;
+          left: 0;
+          top: 0;
+          animation: slide-left-loop 2.4s linear infinite;
+        }
 
-/* Bounce for the TSR */
-@keyframes bounce-tsr {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-4px); }
-}
+        .dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background-color: white;
+          opacity: 1;
+        }
 
-@keyframes blink-tsr {
-  50% {
-    opacity: 0.4;
-  }
-}
+        /* New keyframe to loop */
+        @keyframes slide-left-loop {
+          0%   { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
 
-@keyframes move-dots-left {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-20px); /* how far the dots shift left */
-  }
-}
-  .tsr-icon.loading {
-  width: 120px;
-  height: auto;
-  animation: bounce-tsr 1.2s ease-in-out infinite;
-}
+        /* Bounce for the TSR */
+        @keyframes bounce-tsr {
+          0%, 100% { transform: translateY(0); }
+          50%      { transform: translateY(-4px); }
+        }
+
+        @keyframes blink-tsr {
+          50% {
+            opacity: 0.4;
+          }
+        }
+
+        @keyframes move-dots-left {
+          0% {
+            transform: translateX(0);
+          }
+          100% {
+            transform: translateX(-20px); /* how far the dots shift left */
+          }
+        }
+          .tsr-icon.loading {
+          width: 120px;
+          height: auto;
+          animation: bounce-tsr 1.2s ease-in-out infinite;
+        }
 
 
 
@@ -1028,7 +1047,7 @@ https://help.openai.com/en/articles/5112595-best-practices-for-api-key-safety
           <button id="sendBtn">Send</button>
         </div>
       </div>
-    `}connectedCallback(){this.shadow.getElementById("sendBtn").addEventListener("click",()=>this.onSendMessage())}smoothScrollToBottom(t){t.scrollTo({top:t.scrollHeight,behavior:"smooth"})}typeWriter(t,n,a,s=30){let i=0;const c=document.createElement("span");c.className="typed-text-span",t.appendChild(c);const f=document.createElement("img");f.src="data/TSRIcon.png",f.alt="TSR",f.className="tsr-inline-cursor",c.appendChild(f);const o=()=>{if(i<n.length){const l=n[i++];l===`
+    `}connectedCallback(){this.shadow.getElementById("sendBtn").addEventListener("click",()=>this.onSendMessage())}smoothScrollToBottom(t){t.scrollTo({top:t.scrollHeight,behavior:"smooth"})}typeWriter(t,n,a,s=20){let i=0;const c=document.createElement("span");c.className="typed-text-span",t.appendChild(c);const f=document.createElement("img");f.src="data/TSRIcon.png",f.alt="TSR",f.className="tsr-inline-cursor",c.appendChild(f);const o=()=>{if(i<n.length){const l=n[i++];l===`
 `?c.insertBefore(document.createElement("br"),f):c.insertBefore(document.createTextNode(l),f);const u=this.shadow.getElementById("chatMessages");this.smoothScrollToBottom(u),setTimeout(o,s)}else f.remove(),a()};o()}showWaitingAnimation(){const t=this.shadow.getElementById("chatMessages"),n=document.createElement("div");n.classList.add("message-container");const a=document.createElement("div");a.classList.add("message","assistant-message");const s=document.createElement("div");return s.className="tsr-harvest-row",s.innerHTML=`
     <div class="tsr-loading-wrapper">
       <img class="tsr-icon loading" src="data/TSRIcon.png" alt="TSR">
@@ -1039,10 +1058,10 @@ https://help.openai.com/en/articles/5112595-best-practices-for-api-key-safety
         </div>
       </div>
     </div>
-  `,a.appendChild(s),n.appendChild(a),t.appendChild(n),t.scrollTop=t.scrollHeight,n}appendOneMessage(t){const n=this.shadow.getElementById("chatMessages"),a=document.createElement("div");a.classList.add("message-container","enter"),t.role==="user"&&a.classList.add("user");const s=document.createElement("div");if(s.classList.add("message",t.role==="user"?"user-message":"assistant-message"),t.role==="user"){s.textContent=t.content,a.appendChild(s),n.appendChild(a),requestAnimationFrame(()=>a.classList.remove("enter")),n.scrollTop=n.scrollHeight;return}const i=document.createElement("div");s.appendChild(i),a.appendChild(s),n.appendChild(a),requestAnimationFrame(()=>a.classList.remove("enter")),n.scrollTop=n.scrollHeight,this.typeWriter(i,t.rawText,()=>{if(s.innerHTML=t.rawText.replace(/^### (.*$)/gim,"<h3>$1</h3>").replace(/^## (.*$)/gim,"<h2>$1</h2>").replace(/^# (.*$)/gim,"<h1>$1</h1>").replace(/\*\*(.*?)\*\*/gim,"<b>$1</b>").replace(/\*(.*?)\*/gim,"<i>$1</i>").replace(/\n/g,"<br>"),t.partNumbers.length){const o=document.createElement("div");o.className="bin-buttons-container";const l=document.createElement("div");l.className="bin-details-container",l.innerHTML="<i>Select a part to see bin details.</i>",t.partNumbers.forEach(h=>{const d=document.createElement("div");d.className="bin-button",d.textContent=h,d.addEventListener("click",()=>{const x=this.binCache.get(h);x&&x.length>0?c(l,xS(x[0])):c(l,"<i>No bin location found</i>")}),o.appendChild(d)});const u=document.createElement("button");u.textContent="📥 Download These",u.className="bin-button",u.style.marginTop="10px",u.addEventListener("click",()=>{const h=t.partNumbers.map(d=>this.binCache.get(d)).flat().filter(d=>!!(d!=null&&d.partNumber));fS(h,`TSR_SelectedParts_${Date.now()}.csv`)}),s.appendChild(o),s.appendChild(l),s.appendChild(u)}function c(o,l){const u=o.offsetHeight;o.classList.remove("fade-transition"),o.innerHTML=l,o.offsetWidth,o.classList.add("fade-transition");const h=o.scrollHeight;o.style.height=u+"px",o.offsetHeight,requestAnimationFrame(()=>{o.style.height=h+"px"}),o.addEventListener("transitionend",function d(x){x.propertyName==="height"&&(o.style.height="auto",o.removeEventListener("transitionend",d))})}const f=document.createElement("div");f.style.cssText="margin-top:12px;font-size:12px;opacity:.8;",f.textContent=Qs.SUPPORT_FOOTER,s.appendChild(f),n.scrollTop=n.scrollHeight})}renderNewMessages(){for(;this.renderedCount<this.conversation.length;)this.appendOneMessage(this.conversation[this.renderedCount]),this.renderedCount+=1}async onSendMessage(){const t=this.shadow.getElementById("userInput"),n=t.value.trim();if(!n)return;this.conversation.push({role:"user",content:n}),this.renderNewMessages(),t.value="";const a=this.showWaitingAnimation();try{const s=await this.callAssistantAPI(n);this.conversation.push(s),a.remove(),this.renderNewMessages()}catch(s){console.error(s),alert("Assistant error – check console."),a.remove()}}async prefetchBinLocations(t){const n=t.map(async a=>{if(!this.binCache.has(a))try{const s=await dS(a);this.binCache.set(a,s)}catch(s){console.error(`Error fetching bin for ${a}:`,s),this.binCache.set(a,[])}});await Promise.all(n)}async callAssistantAPI(t){let n=sessionStorage.getItem("tsrThread");n||(n=(await qn.beta.threads.create()).id,sessionStorage.setItem("tsrThread",n)),await qn.beta.threads.messages.create(n,{role:"user",content:t});const a=await qn.beta.threads.runs.create(n,{assistant_id:pS});for(;;){const l=await qn.beta.threads.runs.retrieve(n,a.id);if(l.status==="completed")break;if(["failed","expired"].includes(l.status))throw new Error(`Run ${l.status}`);await new Promise(u=>setTimeout(u,800))}const{data:s}=await qn.beta.threads.messages.list(n,{limit:1}),i=s[0].content[0];if(i.type!=="text")throw new Error("Assistant returned non‑text block");const c=i.text.value;let f={};try{f=JSON.parse(c)}catch{}const o=Array.isArray(f.part_numbers)?f.part_numbers:[];return await this.prefetchBinLocations(o),{role:"assistant",rawText:f.raw_text??c,partNumbers:o}}};it(Qs,"SUPPORT_FOOTER",`
+  `,a.appendChild(s),n.appendChild(a),t.appendChild(n),t.scrollTop=t.scrollHeight,n}appendOneMessage(t){const n=this.shadow.getElementById("chatMessages"),a=document.createElement("div");a.classList.add("message-container","enter"),t.role==="user"&&a.classList.add("user");const s=document.createElement("div");if(s.classList.add("message",t.role==="user"?"user-message":"assistant-message"),t.role==="user"){s.textContent=t.content,a.appendChild(s),n.appendChild(a),requestAnimationFrame(()=>a.classList.remove("enter")),n.scrollTop=n.scrollHeight;return}const i=document.createElement("div");s.appendChild(i),a.appendChild(s),n.appendChild(a),requestAnimationFrame(()=>a.classList.remove("enter")),n.scrollTop=n.scrollHeight,this.typeWriter(i,t.rawText,()=>{if(s.innerHTML=t.rawText.replace(/^### (.*$)/gim,"<h3>$1</h3>").replace(/^## (.*$)/gim,"<h2>$1</h2>").replace(/^# (.*$)/gim,"<h1>$1</h1>").replace(/\*\*(.*?)\*\*/gim,"<b>$1</b>").replace(/\*(.*?)\*/gim,"<i>$1</i>").replace(/\n/g,"<br>"),t.partNumbers.length){const o=document.createElement("div");o.className="bin-buttons-container";const l=document.createElement("div");l.className="bin-details-container",l.innerHTML="<i>Select a part to see bin details.</i>";let u=null,h=null;t.partNumbers.forEach(x=>{const p=document.createElement("div");p.className="bin-button-wrapper";const m=document.createElement("div");m.className="bin-button",m.textContent=x,p.appendChild(m),o.appendChild(p);const _=this.binCache.get(x);(!_||_.length===0)&&(m.classList.add("disabled"),m.style.opacity="0.5",m.style.cursor="not-allowed",m.style.pointerEvents="none"),m.addEventListener("click",()=>{if(h===x)u&&u.classList.remove("active"),u=null,h=null,xS(l);else{u&&u.classList.remove("active"),m.classList.add("active"),u=m,h=x;const v=_&&_.length>0?pS(_[0]):"<i>No bin location found</i>";c(l,v)}}),o.appendChild(m)});const d=document.createElement("button");d.textContent="📥 Download These",d.className="bin-button",d.style.marginTop="10px",d.addEventListener("click",()=>{const x=t.partNumbers.map(p=>this.binCache.get(p)).flat().filter(p=>!!(p!=null&&p.partNumber));fS(x,`TSR_SelectedParts_${Date.now()}.csv`)}),s.appendChild(o),s.appendChild(l),s.appendChild(d)}function c(o,l){const u=o.offsetHeight;o.classList.remove("fade-transition"),o.innerHTML=l,o.offsetWidth,o.classList.add("fade-transition");const h=o.scrollHeight;o.style.height=u+"px",o.offsetHeight,requestAnimationFrame(()=>{o.style.height=h+"px"}),o.addEventListener("transitionend",function d(x){x.propertyName==="height"&&(o.style.height="auto",o.style.transition="height 0.4s ease-in-out, opacity 0.4s ease-in-out",o.removeEventListener("transitionend",d))})}const f=document.createElement("div");f.style.cssText="margin-top:12px;font-size:12px;opacity:.8;",f.textContent=Qs.SUPPORT_FOOTER,s.appendChild(f),n.scrollTop=n.scrollHeight})}renderNewMessages(){for(;this.renderedCount<this.conversation.length;)this.appendOneMessage(this.conversation[this.renderedCount]),this.renderedCount+=1}async onSendMessage(){const t=this.shadow.getElementById("userInput"),n=t.value.trim();if(!n)return;this.conversation.push({role:"user",content:n}),this.renderNewMessages(),t.value="";const a=this.showWaitingAnimation();try{const s=await this.callAssistantAPI(n);this.conversation.push(s),a.remove(),this.renderNewMessages()}catch(s){console.error(s),alert("Assistant error – check console."),a.remove()}}async prefetchBinLocations(t){const n=t.map(async a=>{if(!this.binCache.has(a))try{const s=await dS(a);this.binCache.set(a,s)}catch(s){console.error(`Error fetching bin for ${a}:`,s),this.binCache.set(a,[])}});await Promise.all(n)}async callAssistantAPI(t){let n=sessionStorage.getItem("tsrThread");n||(n=(await qn.beta.threads.create()).id,sessionStorage.setItem("tsrThread",n)),await qn.beta.threads.messages.create(n,{role:"user",content:t});const a=await qn.beta.threads.runs.create(n,{assistant_id:mS});for(;;){const l=await qn.beta.threads.runs.retrieve(n,a.id);if(l.status==="completed")break;if(["failed","expired"].includes(l.status))throw new Error(`Run ${l.status}`);await new Promise(u=>setTimeout(u,800))}const{data:s}=await qn.beta.threads.messages.list(n,{limit:1}),i=s[0].content[0];if(i.type!=="text")throw new Error("Assistant returned non‑text block");const c=i.text.value;let f={};try{f=JSON.parse(c)}catch{}const o=Array.isArray(f.part_numbers)?f.part_numbers:[];return await this.prefetchBinLocations(o),{role:"assistant",rawText:f.raw_text??c,partNumbers:o}}};it(Qs,"SUPPORT_FOOTER",`
 Contact Support if Necessary
 If the issue persists despite adjustments, contact Trebro Manufacturing support for assistance:
-Phone: (406) 652‑5867 • Toll‑Free: (888) 395‑5867`.trim());let P0=Qs;customElements.define("cluster-page",P0);const mS=750,gS=0;class vS extends HTMLElement{constructor(){super();it(this,"shadow");this.shadow=this.attachShadow({mode:"open"}),this.shadow.innerHTML=`
+Phone: (406) 652‑5867 • Toll‑Free: (888) 395‑5867`.trim());let P0=Qs;customElements.define("cluster-page",P0);const gS=750,vS=0;class _S extends HTMLElement{constructor(){super();it(this,"shadow");this.shadow=this.attachShadow({mode:"open"}),this.shadow.innerHTML=`
       <style>
         .cluster-container {
           display: flex;
@@ -1063,7 +1082,7 @@ Phone: (406) 652‑5867 • Toll‑Free: (888) 395‑5867`.trim());let P0=Qs
           justify-items: center;
           align-items: center;
           padding: 16px;
-          overflow-y: auto;
+          overflow-y: hidden;
           overflow-x: hidden;
         }
 
@@ -1126,4 +1145,4 @@ Phone: (406) 652‑5867 • Toll‑Free: (888) 395‑5867`.trim());let P0=Qs
               <div class="logo-wrapper"></div> <!-- New one -->
             </div>
       </div>
-    `}connectedCallback(){this.loadSVG().then(()=>{this.shadow.querySelectorAll(".logo-wrapper").forEach(t=>{t.addEventListener("click",()=>{const n=t.querySelectorAll("polygon");n.forEach(a=>{const s=a.classList,i=s.contains("pulse"),c=s.contains("rotate"),f=s.contains("group-animate");a.classList.remove("pulse","rotate","group-animate"),a.getBoundingClientRect().width,i&&a.classList.add("pulse"),c&&a.classList.add("rotate"),f&&[[0,1],[2,3],[4,5]].forEach((l,u)=>{l.forEach((h,d)=>{const x=u*mS+d*gS;setTimeout(()=>{n[h].classList.add("group-animate")},x)})})})})})})}async loadSVG(){try{const n=await(await fetch("./data/hexlogo.html")).text(),i=new DOMParser().parseFromString(n,"text/html").querySelector("svg"),c=this.shadow.querySelectorAll(".logo-wrapper");if(i&&c[0]){const f=i.cloneNode(!0);c[0].appendChild(f),f.querySelectorAll("polygon").forEach((l,u)=>{const h=l.getAttribute("fill")||"#000";l.style.setProperty("--original-fill",h),l.classList.add("pulse"),l.style.animationDelay=`${u*.4}s`})}if(i&&c[1]){const f=i.cloneNode(!0);c[1].appendChild(f);const o=f.querySelectorAll("polygon"),l=["#EA3546","#EA3546","#FABF35","#FABF35","#345995","#345995"];o.forEach((u,h)=>{u.style.setProperty("--c0",l[h%6]),u.style.setProperty("--c1",l[(h+1)%6]),u.style.setProperty("--c2",l[(h+2)%6]),u.style.setProperty("--c3",l[(h+3)%6]),u.style.setProperty("--c4",l[(h+4)%6]),u.style.setProperty("--c5",l[(h+5)%6]),u.classList.add("rotate")})}if(i&&c[2]){const f=i.cloneNode(!0);c[2].appendChild(f),f.querySelectorAll("polygon").forEach((l,u)=>{const h=l.getAttribute("fill")||"#000";l.style.setProperty("--original-fill",h),l.classList.add("pulse");const d=Math.floor(u/2);l.style.animationDelay=`${d*.4}s`})}if(i&&c[3]){const f=i.cloneNode(!0);c[3].appendChild(f);const o=f.querySelectorAll("polygon");o.forEach((u,h)=>{const d=u.getAttribute("fill")||"#000";u.style.setProperty("--original-fill",d);let x="";h===0||h===1?x="translate(15px, 15px)":h===2||h===3?x="translate(-15px, 15px)":(h===4||h===5)&&(x="translate(0px, -15px)"),u.style.setProperty("--move",x)}),[[0,1],[2,3],[4,5]].forEach((u,h)=>{u.forEach(d=>{const x=o[d];setTimeout(()=>{x.classList.add("group-animate")},h*1500)})})}}catch(t){console.error("Failed to load SVG:",t)}}}customElements.define("logo-page",vS);window.addEventListener("DOMContentLoaded",()=>{tA();let e=document.querySelector("main-header");e||(e=document.createElement("main-header"),document.body.prepend(e));let r=document.getElementById("mainContainer");r||(r=document.createElement("div"),r.id="mainContainer",document.body.appendChild(r)),Fd()});async function Fd(){const e=document.querySelector("main-header"),r=document.getElementById("mainContainer"),t=document.getElementById("login"),n=document.querySelector("main-header").shadowRoot.querySelector("#logoutButton");n.onclick=async()=>{console.log("Logout button clicked"),await w0.signOut(),r.innerHTML="",e.style.display="none",n.style.display="none",e.classList.remove("visible"),r.classList.remove("visible"),r.classList.add("hidden"),t.resetSendLinkButton(),t.show()},await w0.isAuthenticated()?(console.log("User is authenticated - showing header + main container"),e.style.display="block",n.style.display="block",r.classList.remove("hidden"),t.style.display="none",r.innerHTML="",r.appendChild(document.createElement("cluster-page")),_S(),setTimeout(()=>{e.classList.add("visible"),r.classList.add("visible")},50)):(console.log("User is NOT authenticated - hiding header + showing login"),e.style.display="none",n.style.display="none",r.innerHTML="",t.show())}function Ki(e){const r=document.getElementById("mainContainer");r.innerHTML="",e.classList.add("page-content","slide-up-enter"),r.appendChild(e),requestAnimationFrame(()=>{e.classList.add("slide-up-enter-active")}),setTimeout(()=>{e.classList.remove("slide-up-enter","slide-up-enter-active")},300)}function _S(){document.addEventListener("navigate",e=>{const r=e.detail;r==="treebom"?Ki(document.createElement("tree-bom-page")):r==="cluster"?Ki(document.createElement("cluster-page")):r==="logo"&&Ki(document.createElement("logo-page"))})}let ji=!1;document.addEventListener("toggleDarkMode",()=>{ji=!ji,document.body.classList.toggle("dark-mode",ji)});document.addEventListener("login-success",()=>{console.log("login-success event received - re-checking auth via init()"),Fd()});
+    `}connectedCallback(){this.loadSVG().then(()=>{this.shadow.querySelectorAll(".logo-wrapper").forEach(t=>{t.addEventListener("click",()=>{const n=t.querySelectorAll("polygon");n.forEach(a=>{const s=a.classList,i=s.contains("pulse"),c=s.contains("rotate"),f=s.contains("group-animate");a.classList.remove("pulse","rotate","group-animate"),a.getBoundingClientRect().width,i&&a.classList.add("pulse"),c&&a.classList.add("rotate"),f&&[[0,1],[2,3],[4,5]].forEach((l,u)=>{l.forEach((h,d)=>{const x=u*gS+d*vS;setTimeout(()=>{n[h].classList.add("group-animate")},x)})})})})})})}async loadSVG(){try{const n=await(await fetch("./data/hexlogo.html")).text(),i=new DOMParser().parseFromString(n,"text/html").querySelector("svg"),c=this.shadow.querySelectorAll(".logo-wrapper");if(i&&c[0]){const f=i.cloneNode(!0);c[0].appendChild(f),f.querySelectorAll("polygon").forEach((l,u)=>{const h=l.getAttribute("fill")||"#000";l.style.setProperty("--original-fill",h),l.classList.add("pulse"),l.style.animationDelay=`${u*.4}s`})}if(i&&c[1]){const f=i.cloneNode(!0);c[1].appendChild(f);const o=f.querySelectorAll("polygon"),l=["#EA3546","#EA3546","#FABF35","#FABF35","#345995","#345995"];o.forEach((u,h)=>{u.style.setProperty("--c0",l[h%6]),u.style.setProperty("--c1",l[(h+1)%6]),u.style.setProperty("--c2",l[(h+2)%6]),u.style.setProperty("--c3",l[(h+3)%6]),u.style.setProperty("--c4",l[(h+4)%6]),u.style.setProperty("--c5",l[(h+5)%6]),u.classList.add("rotate")})}if(i&&c[2]){const f=i.cloneNode(!0);c[2].appendChild(f),f.querySelectorAll("polygon").forEach((l,u)=>{const h=l.getAttribute("fill")||"#000";l.style.setProperty("--original-fill",h),l.classList.add("pulse");const d=Math.floor(u/2);l.style.animationDelay=`${d*.4}s`})}if(i&&c[3]){const f=i.cloneNode(!0);c[3].appendChild(f);const o=f.querySelectorAll("polygon");o.forEach((u,h)=>{const d=u.getAttribute("fill")||"#000";u.style.setProperty("--original-fill",d);let x="";h===0||h===1?x="translate(15px, 15px)":h===2||h===3?x="translate(-15px, 15px)":(h===4||h===5)&&(x="translate(0px, -15px)"),u.style.setProperty("--move",x)}),[[0,1],[2,3],[4,5]].forEach((u,h)=>{u.forEach(d=>{const x=o[d];setTimeout(()=>{x.classList.add("group-animate")},h*1500)})})}}catch(t){console.error("Failed to load SVG:",t)}}}customElements.define("logo-page",_S);window.addEventListener("DOMContentLoaded",()=>{tA();let e=document.querySelector("main-header");e||(e=document.createElement("main-header"),document.body.prepend(e));let r=document.getElementById("mainContainer");r||(r=document.createElement("div"),r.id="mainContainer",document.body.appendChild(r)),Fd()});async function Fd(){const e=document.querySelector("main-header"),r=document.getElementById("mainContainer"),t=document.getElementById("login"),n=document.querySelector("main-header").shadowRoot.querySelector("#logoutButton");n.onclick=async()=>{console.log("Logout button clicked"),await w0.signOut(),r.innerHTML="",e.style.display="none",n.style.display="none",e.classList.remove("visible"),r.classList.remove("visible"),r.classList.add("hidden"),t.resetSendLinkButton(),t.show()},await w0.isAuthenticated()?(console.log("User is authenticated - showing header + main container"),e.style.display="block",n.style.display="block",r.classList.remove("hidden"),t.style.display="none",r.innerHTML="",r.appendChild(document.createElement("cluster-page")),wS(),setTimeout(()=>{e.classList.add("visible"),r.classList.add("visible")},50)):(console.log("User is NOT authenticated - hiding header + showing login"),e.style.display="none",n.style.display="none",r.innerHTML="",t.show())}function Ki(e){const r=document.getElementById("mainContainer");r.innerHTML="",e.classList.add("page-content","slide-up-enter"),r.appendChild(e),requestAnimationFrame(()=>{e.classList.add("slide-up-enter-active")}),setTimeout(()=>{e.classList.remove("slide-up-enter","slide-up-enter-active")},300)}function wS(){document.addEventListener("navigate",e=>{const r=e.detail;r==="treebom"?Ki(document.createElement("tree-bom-page")):r==="cluster"?Ki(document.createElement("cluster-page")):r==="logo"&&Ki(document.createElement("logo-page"))})}let ji=!1;document.addEventListener("toggleDarkMode",()=>{ji=!ji,document.body.classList.toggle("dark-mode",ji)});document.addEventListener("login-success",()=>{console.log("login-success event received - re-checking auth via init()"),Fd()});

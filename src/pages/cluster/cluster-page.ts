@@ -138,6 +138,29 @@ async function fetchBinLocationsByPart(partNumber: string): Promise<BinLocation[
   return json.Data;
 }
 
+function collapseDetailsContainer(container: HTMLElement): void {
+  const currentHeight = container.offsetHeight;
+  container.style.height = currentHeight + 'px';
+  container.style.transition = 'height 0.4s ease-in-out, opacity 0.4s ease-in-out';
+
+  // Trigger reflow to lock height before collapsing
+  void container.offsetWidth;
+
+  requestAnimationFrame(() => {
+    container.style.height = '0px';
+    container.style.opacity = '0';
+  });
+
+  container.addEventListener('transitionend', function handler(e) {
+    if (e.propertyName === 'height') {
+      container.innerHTML = '<i>Select a part to see bin details.</i>'; // optional: clear content
+      container.style.height = 'auto';
+      container.style.opacity = '1';
+      container.removeEventListener('transitionend', handler);
+    }
+  });
+}
+
 function binLocationHtml(b: BinLocation | null | undefined): string {
   if (!b) return '<i>bin location not found</i>';
 
@@ -294,7 +317,7 @@ Phone: (406) 652‑5867 • Toll‑Free: (888) 395‑5867`.trim();
           width: 8px;
           background: #fff;
           margin-left: 2px;
-          animation: blink 1s steps(2, start) infinite;
+          animation: blink 0.2s steps(2, start) infinite;
         }
         @keyframes blink {
           to {
@@ -307,7 +330,7 @@ Phone: (406) 652‑5867 • Toll‑Free: (888) 395‑5867`.trim();
           height: auto;
           vertical-align: text-bottom;
           margin-left: 2px;
-          animation: blink-tsr 2s ease infinite, bounce-tsr 1.2s ease-in-out infinite;
+          animation: bounce-tsr 1.2s ease-in-out infinite;
         }
 
         /* Blinking */
@@ -325,193 +348,212 @@ Phone: (406) 652‑5867 • Toll‑Free: (888) 395‑5867`.trim();
         /* Bin location styling */
         /* NEW: container that wraps all bin items side by side, with wrapping */
         /* Flex container holding all bin location cards */
-/* Container for the part number buttons */
-.bin-buttons-container {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 12px;
-  margin-top: 12px;
-}
+        /* Container for the part number buttons */
+        .bin-buttons-container {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+          margin-bottom: 12px;
+          margin-top: 12px;
+        }
 
-.bin-partnumber {
-  font-weight: bold;
-  font-size: 20px;
+        .bin-partnumber {
+          font-weight: bold;
+          font-size: 20px;
 
-}
+        }
 
-/* Style for each button */
-.bin-button {
-  background:rgb(255, 255, 255);
-  color: #e36a1e;
-  border: 1px solid #e36a1e;
-  padding: 8px 12px;
-  border-radius: 12px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: background 0.2s ease, color 0.2s ease, height: 0.4s ease;
-}
+        /* Style for each button */
+        .bin-button {
+          background: var(--container-bg);
+          color: var(--color-text);
+          border: 1px solid #e36a1e;
+          padding: 8px 12px;
+          border: 2px solid var(--color-text);
+          border-radius: 12px;
+          cursor: pointer;
+          font-weight: bold;
+          transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+          transform-origin: center;
+          margin: 5px; /* <--- adds natural spacing between buttons */
+        }
 
-.bin-button:hover {
-  background: rgb(27, 99, 182);
-  color: #fff;
-  border-color: black;
-  border-weight: 3px;
-  scale: 1.1;
-  transition: scale 0.2s ease;
-}
+        .bin-button:hover {
+          background: rgb(27, 99, 182);
+          color: #fff;
+          border: 2px solid #fff;
+          transform: scale(1.2);
+          transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease, border 0.2s ease;
+        }
 
-/* Container for the details below the buttons */
-.bin-details-container {
-  border: 1px solid #e36a1e;
-  border-radius: 6px;
-  padding: 12px;
-  background: #fff;
-  color: #000;
-  overflow: hidden;              /* Hide overflowing content during transition */
-  height: auto;
-  transition: height 0.3s ease;
-}
+        .bin-button.active {
+          background: rgb(73, 122, 177);
+          color: #fff;
+          border: 2px solid #fff;
+          transform: scale(1.1);
+          transition: transform 0.4s ease, background 0.4s ease, color 0.4s ease, border 0.4s ease;
+        }
 
-/* Wave Spinner Container (will be visible in our placeholder div) */
-.wave-spinner {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
+        .bin-button.disabled {
+          background-color: var(--container-bg);
+          border-color: #ccc;
+          color: var(--color-text);
+          cursor: not-allowed;
+          pointer-events: none;
+          opacity: 0.6;
+        }
 
-/* Wave Spinner Dot Styles */
-.wave-spinner > div {
-  width: 6px;
-  height: 8px;
-  margin: 0 6px;
-  border-radius: 20%; /* to form a diamond-like shape */
-  background-color: rgb(255, 255, 255);
-  animation: scaling 1.2s ease-in-out infinite;
-}
-.chat-messages {
-  scroll-behavior: smooth;
-}
-/* Set staggered animation delays for a wave effect */
-.wave-spinner > div:nth-child(1) {
-  animation-delay: -0.6s;
-}
-.wave-spinner > div:nth-child(2) {
-  animation-delay: -0.4s;
-}
-.wave-spinner > div:nth-child(3) {
-  animation-delay: -0.2s;
-}
-.wave-spinner > div:nth-child(4) {
-  animation-delay: 0s;
-}
-.wave-spinner > div:nth-child(5) {
-  animation-delay: 0.2s;
-}
+        /* Container for the details below the buttons */
+        .bin-details-container {
+          border: 1px solid #e36a1e;
+          border-radius: 12px;
+          padding: 12px;
+          background: var(--container-bg);
+          color: var(--color-text);
+          overflow: hidden;              /* Hide overflowing content during transition */
+          height: auto;
+          transition: height 0.4s ease-in-out;
+        }
 
-/* Wave Dot Keyframes */
-@keyframes scaling {
-  0%, 100% {
-    transform: scaleY(0.5);
-    background-color: rgb(255, 255, 255);
-  }
-  40% {
-    transform: scaleY(1.5);
-    background-color: rgb(255, 160, 105);
-  }
-  50% {
-    transform: scaleY(3);
-    background-color: #f36f21;
-  }
-}
+        /* Wave Spinner Container (will be visible in our placeholder div) */
+        .wave-spinner {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+        }
 
-/* Optional: a container for the spinner */
-.loading-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 60px; /* Set a fixed height to reserve space */
-}
-.bin-details-container.fade-transition {
-  animation: fadeContent 0.4s ease;
-}
+        /* Wave Spinner Dot Styles */
+        .wave-spinner > div {
+          width: 6px;
+          height: 8px;
+          margin: 0 6px;
+          border-radius: 20%; /* to form a diamond-like shape */
+          background-color: rgb(255, 255, 255);
+          animation: scaling 1.2s ease-in-out infinite;
+        }
+        .chat-messages {
+          scroll-behavior: smooth;
+        }
+        /* Set staggered animation delays for a wave effect */
+        .wave-spinner > div:nth-child(1) {
+          animation-delay: -0.6s;
+        }
+        .wave-spinner > div:nth-child(2) {
+          animation-delay: -0.4s;
+        }
+        .wave-spinner > div:nth-child(3) {
+          animation-delay: -0.2s;
+        }
+        .wave-spinner > div:nth-child(4) {
+          animation-delay: 0s;
+        }
+        .wave-spinner > div:nth-child(5) {
+          animation-delay: 0.2s;
+        }
 
-@keyframes fadeContent {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-.tsr-loading-wrapper {
-  display: flex;
-  align-items: flex-end;
-  gap: 12px;
-  height: 80px;
-  position: relative;
-}
+        /* Wave Dot Keyframes */
+        @keyframes scaling {
+          0%, 100% {
+            transform: scaleY(0.5);
+            background-color: rgb(255, 255, 255);
+          }
+          40% {
+            transform: scaleY(1.5);
+            background-color: rgb(255, 160, 105);
+          }
+          50% {
+            transform: scaleY(3);
+            background-color: #f36f21;
+          }
+        }
 
-/* Infinite horizontal belt illusion */
-.dot-stream-container {
-  overflow: hidden;
-  width: 160px;
-  height: 12px;
-  position: relative;
-  mask-image: linear-gradient(to left, black 60%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to left, black 90%, transparent 100%);
-}
+        /* Optional: a container for the spinner */
+        .loading-container {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          height: 60px; /* Set a fixed height to reserve space */
+        }
+        .bin-details-container.fade-transition {
+          animation: fadeContent 0.4s ease-in-out;
+        }
 
-.dot-stream {
-  display: flex;
-  gap: 12px;
-  position: absolute;
-  left: 0;
-  top: 0;
-  animation: slide-left-loop 2.4s linear infinite;
-}
+        @keyframes fadeContent {
+          from {
+            opacity: 0;
+            transform: translateY(4px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .tsr-loading-wrapper {
+          display: flex;
+          align-items: flex-end;
+          gap: 12px;
+          height: 80px;
+          position: relative;
+        }
 
-.dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background-color: white;
-  opacity: 1;
-}
+        /* Infinite horizontal belt illusion */
+        .dot-stream-container {
+          overflow: hidden;
+          width: 160px;
+          height: 12px;
+          position: relative;
+          mask-image: linear-gradient(to left, black 60%, transparent 100%);
+          -webkit-mask-image: linear-gradient(to left, black 90%, transparent 100%);
+        }
 
-/* New keyframe to loop */
-@keyframes slide-left-loop {
-  0%   { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
+        .dot-stream {
+          display: flex;
+          gap: 12px;
+          position: absolute;
+          left: 0;
+          top: 0;
+          animation: slide-left-loop 2.4s linear infinite;
+        }
 
-/* Bounce for the TSR */
-@keyframes bounce-tsr {
-  0%, 100% { transform: translateY(0); }
-  50%      { transform: translateY(-4px); }
-}
+        .dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+          background-color: white;
+          opacity: 1;
+        }
 
-@keyframes blink-tsr {
-  50% {
-    opacity: 0.4;
-  }
-}
+        /* New keyframe to loop */
+        @keyframes slide-left-loop {
+          0%   { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
 
-@keyframes move-dots-left {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-20px); /* how far the dots shift left */
-  }
-}
-  .tsr-icon.loading {
-  width: 120px;
-  height: auto;
-  animation: bounce-tsr 1.2s ease-in-out infinite;
-}
+        /* Bounce for the TSR */
+        @keyframes bounce-tsr {
+          0%, 100% { transform: translateY(0); }
+          50%      { transform: translateY(-4px); }
+        }
+
+        @keyframes blink-tsr {
+          50% {
+            opacity: 0.4;
+          }
+        }
+
+        @keyframes move-dots-left {
+          0% {
+            transform: translateX(0);
+          }
+          100% {
+            transform: translateX(-20px); /* how far the dots shift left */
+          }
+        }
+          .tsr-icon.loading {
+          width: 120px;
+          height: auto;
+          animation: bounce-tsr 1.2s ease-in-out infinite;
+        }
 
 
 
@@ -549,7 +591,7 @@ Phone: (406) 652‑5867 • Toll‑Free: (888) 395‑5867`.trim();
     el: HTMLElement,
     text: string,
     done: () => void,
-    speed = 30
+    speed = 20
   ) {
     let i = 0;
 
@@ -671,23 +713,56 @@ if (msg.partNumbers.length) {
   detailsContainer.innerHTML = '<i>Select a part to see bin details.</i>';
 
   // For each part number, create a flex button
+  let activeButton: HTMLElement | null = null;
+  let activePartNumber: string | null = null;
+
   msg.partNumbers.forEach(pn => {
+    const btnWrapper = document.createElement('div');
+    btnWrapper.className = 'bin-button-wrapper';
+
     const btn = document.createElement('div');
     btn.className = 'bin-button';
     btn.textContent = pn;
 
-    // On hover (or click if you prefer), fetch and display the details.
+    btnWrapper.appendChild(btn);
+    buttonsContainer.appendChild(btnWrapper);
+  
+    const data = this.binCache.get(pn);
+    if (!data || data.length === 0) {
+      btn.classList.add('disabled');
+      btn.style.opacity = '0.5';
+      btn.style.cursor = 'not-allowed';
+      btn.style.pointerEvents = 'none';
+    }
+  
     btn.addEventListener('click', () => {
-      const data = this.binCache.get(pn);
-      if (data && data.length > 0) {
-        updateDetailsContainer(detailsContainer, binLocationHtml(data[0]));
+      const isSame = activePartNumber === pn;
+    
+      if (isSame) {
+        // Collapse
+        if (activeButton) activeButton.classList.remove('active');
+        activeButton = null;
+        activePartNumber = null;
+    
+        collapseDetailsContainer(detailsContainer);
       } else {
-        updateDetailsContainer(detailsContainer, '<i>No bin location found</i>');
+        // New item
+        if (activeButton) activeButton.classList.remove('active');
+        btn.classList.add('active');
+        activeButton = btn;
+        activePartNumber = pn;
+    
+        const content = data && data.length > 0
+          ? binLocationHtml(data[0])
+          : '<i>No bin location found</i>';
+    
+        updateDetailsContainer(detailsContainer, content);
       }
     });
-
+  
     buttonsContainer.appendChild(btn);
   });
+  
 
   // Create the download button for just these part numbers
   const downloadBtn = document.createElement('button');
@@ -736,6 +811,7 @@ function updateDetailsContainer(container: HTMLElement, newContent: string): voi
   container.addEventListener('transitionend', function handler(e) {
     if (e.propertyName === 'height') {
       container.style.height = 'auto';
+      container.style.transition = 'height 0.4s ease-in-out, opacity 0.4s ease-in-out';
       container.removeEventListener('transitionend', handler);
     }
   });

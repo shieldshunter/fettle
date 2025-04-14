@@ -76,24 +76,24 @@ class LoginDialog extends HTMLElement {
 
     const waveColorSets = [
       {
-        step0: 'rgb(255, 255, 255)',  // Fallback white
+        step0: 'var(--container-bg:)',  // Fallback white
         step40: 'rgb(255, 160, 105)', // Example wave color
         step50: '#f36f21'            // Orange tone, for instance
       },
       {
-        step0: 'rgb(255, 255, 255)',
-        step40: 'rgb(255, 228, 141)', // Another tone matching your palette
-        step50: '#FABF35'
+        step0: 'var(--container-bg:)',  // Fallback white
+        step40: 'rgb(255, 160, 105)', // Example wave color
+        step50: '#f36f21'            // Orange tone, for instance
       },
       {
-        step0: 'rgb(255, 255, 255)',
-        step40: 'rgb(255, 143, 143)', // A different wave color option
-        step50: '#EA3546'
+        step0: 'var(--container-bg:)',  // Fallback white
+        step40: 'rgb(255, 160, 105)', // Example wave color
+        step50: '#f36f21'            // Orange tone, for instance
       },
       {
-        step0: 'rgb(255, 255, 255)',
-        step40: 'rgb(136, 148, 255)', // A different wave color option
-        step50: '#345995'
+        step0: 'var(--container-bg:)',  // Fallback white
+        step40: 'rgb(255, 160, 105)', // Example wave color
+        step50: '#f36f21'            // Orange tone, for instance
       }
       // Add more sets as needed
     ];
