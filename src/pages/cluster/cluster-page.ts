@@ -339,23 +339,39 @@ function updateDetailsContainer(container: HTMLElement, newContent: string): voi
     const text  = input.value.trim();
     if (!text) return;
 
+    /* USER MSG */
     this.conversation.push({ role: 'user', content: text });
     this.renderNewMessages();
     input.value = '';
 
-    const loader = this.showWaitingAnimation(); // show animation before the call
+    /* LOADER */
+    const loader = this.showWaitingAnimation();
 
     try {
       const assistant = await this.callAssistantAPI(text);
-      this.conversation.push(assistant);
-      loader.remove(); // remove placeholder
-      this.renderNewMessages();
+
+      /* -- delay everything until the final spin is done -- */
+      const sod = loader.querySelector<HTMLImageElement>('.tsr-icon.loading');
+      if (sod) sod.classList.add('spin-back');
+
+      (sod ?? loader).addEventListener('animationend', () => {
+        loader.remove();                      // tidy up
+        this.conversation.push(assistant);    // add assistant msg
+        this.renderNewMessages();             // now start type-writer
+      }, { once: true });
+
     } catch (e) {
       console.error(e);
       alert('Assistant error – check console.');
-      loader.remove(); // cleanup
+
+      /* still wait for the spin so UX is consistent */
+      const sod = loader.querySelector<HTMLImageElement>('.tsr-icon.loading');
+      if (sod) sod.classList.add('spin-back');
+
+      (sod ?? loader).addEventListener('animationend', () => loader.remove(), { once: true });
     }
   }
+
 
   private async prefetchBinLocations(partNumbers: string[]) {
     const fetches = partNumbers.map(async pn => {
