@@ -342,12 +342,31 @@ button:hover {
     /* 2️⃣ perpetual bounce + tilt, starts after 0.6 s */
     sodBounceTilt  1.7s ease-in-out 0.8s infinite;
 }
+/* ─── reverse-spin + POP-OUT exit ─── */
 .tsr-icon.loading.spin-back {
-  /* wipe out the bounce/tilt that’s still running */
-  animation:
-    sodSpinScaleOut 1.2s cubic-bezier(.45,1.5,.5,1) forwards;   /* overrides previous */
+  /* overrides the running bounce/tilt */
+  animation: sodPopOut 0.8s cubic-bezier(.25,1.5,.5,1) forwards;
 }
 
+/*  ❱  grow past 100 %, dip below, shrink to 0 % while counter-spinning */
+@keyframes sodPopOut {
+  0%   { transform: rotate(0deg)    scale(1);   opacity: 1; }
+
+  /* 1️⃣ quick stretch bigger */
+  20%  { transform: rotate(-90deg)  scale(1.25); }
+
+  /* 2️⃣ squash smaller than 1 to sell the spring */
+  45%  { transform: rotate(-180deg) scale(0.9); }
+
+  /* 3️⃣ tiny rebound */
+  60%  { transform: rotate(-240deg) scale(1.1); }
+
+  /* 4️⃣ accelerate shrink + fade */
+  80%  { transform: rotate(-320deg) scale(0.6); opacity: 1; }
+
+  /* 5️⃣ gone */
+  100% { transform: rotate(-360deg) scale(0);   opacity: 0; }
+}
 /* from full size → 0 while turning the OTHER way (-360°) */
 @keyframes sodSpinScaleOut {
   0%   { transform: rotate(0deg)    scale(1);   opacity: 1; }

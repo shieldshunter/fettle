@@ -15,7 +15,7 @@
 }
 
 body.dark-mode {
-  --color-bg: #353d46; /* Steel dark gray */
+  --color-bg: #4c535c; /* Steel dark gray */
   --color-text: #e0e0e0;
   --container-bg: #353d46;
 }
