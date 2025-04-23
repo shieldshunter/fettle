@@ -9,7 +9,7 @@
   --wave-color-3: #F36F21;
   --wave-color-4: #ffffff;
 
-  --color-bg: white;
+  --color-bg: #dddddd;
   --color-text: black;
   --container-bg: white;
 }
@@ -28,7 +28,7 @@ body {
   margin: 0;
   min-height: 100vh;
   position: relative;
-  background: #dddddd;
+  background: var(--color-bg);
   z-index: 0;
   overflow: hidden;
   padding-bottom: 10px;

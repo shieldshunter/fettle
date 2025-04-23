@@ -158,6 +158,7 @@ class MainHeader extends HTMLElement {
           <div class="header-buttons">
             <button class="header-btn" id="homeButton">Home</button>
             <button class="header-btn" id="goCluster">Bluegrass</button>
+            <!-- <button class="header-btn" id="goCustomizer">Customizer</button> -->
             <button class="header-btn" id="featuresButton">Features</button>
             <button class="header-btn" id="logoutButton">Logout</button>
           </div>
@@ -188,6 +189,9 @@ class MainHeader extends HTMLElement {
 
       shadow.getElementById('goCluster')!.onclick = () =>
         document.dispatchEvent(new CustomEvent('navigate', { detail: 'cluster' }));
+
+      shadow.getElementById('goCustomizer')!.onclick = () =>
+        document.dispatchEvent(new CustomEvent('navigate', { detail: 'customizer' }));
 
       shadow.getElementById('goTreeBOM')!.onclick = () =>
         document.dispatchEvent(new CustomEvent('navigate', { detail: 'treebom' }));

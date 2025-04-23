@@ -9,183 +9,19 @@
 
 import OpenAI from 'openai';
 
-/* ───────── JB2 OAuth credentials (ENV) ───────── */
-const JB2_AUTH = {
-  clientId:     import.meta.env.VITE_JB2_CLIENT_ID ,
-  clientSecret: import.meta.env.VITE_JB2_CLIENT_SECRET
-};
+import {
+  fetchBinLocationsByPart,
+  exportToCSV,
+  collapseDetailsContainer,
+  binLocationHtml,
+  BinLocation
+} from '../../components/api/jb2';
 
-function exportToCSV(data: BinLocation[], filename: string) {
-  if (!data.length) return alert("No data to export!");
-
-  const header = Object.keys(data[0]);
-  const rows = data.map(obj =>
-    header.map(field => JSON.stringify((obj as any)[field] ?? "")).join(",")
-  );
-
-  const csv = [header.join(","), ...rows].join("\n");
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-
-  const link = document.createElement("a");
-  link.setAttribute("href", url);
-  link.setAttribute("download", filename);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
+import cssText from './cluster-page-styles.css?inline'; // Import the CSS text
 
 
-const AUTH_BASE = 'https://api-user.integrations.ecimanufacturing.com';
-const API_BASE  = 'https://api-jb2.integrations.ecimanufacturing.com';
-
-let jb2Token  = '';
-let jb2Expiry = 0;
-
-async function getJB2Token() {
-  console.log('[getJB2Token] Called.');
-
-  const now = Math.floor(Date.now() / 1000);
-  // If token is still valid, reuse it
-  if (jb2Token && now < jb2Expiry - 60) {
-    console.log('[getJB2Token] Reusing cached token.');
-    return jb2Token;
-  }
-
-  // Token endpoint at AUTH_BASE
-  const url = `${AUTH_BASE}/oauth2/api-user/token`;
-  console.log('[getJB2Token] Request token from:', url);
-
-  const body = new URLSearchParams({
-    grant_type:    'client_credentials',
-    client_id:     JB2_AUTH.clientId,
-    client_secret: JB2_AUTH.clientSecret,
-    scope:         'jb2-api offline_access'
-  });
-
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body
-  });
-
-  if (!res.ok) {
-    const errorText = await res.text();
-    console.error('[getJB2Token] Token fetch failed:', res.status, res.statusText, errorText);
-    throw new Error(`OAuth ${res.status}: ${res.statusText}`);
-  }
-
-  const json = await res.json();
-  jb2Token  = json.access_token;
-  jb2Expiry = now + json.expires_in;
-
-  console.log('[getJB2Token] Got token:', jb2Token ? '***' : 'NO TOKEN', 'Expires in:', json.expires_in);
-
-  return jb2Token;
-}
-
-
-interface BinLocation {
-  binLocation: string;
-  cost: number;
-  datePosted: string;
-  deliveryTicketNumber: string;
-  lastModDate: string | number | null;
-  lastModUser: string;
-  lotNumber: string;
-  partNumber: string;
-  POItemNumber: number;
-  quantityOnHand: number;
-  receiverNumber: string;
-  uniqueID: number;
-  vendorCode: string;
-}
-
-async function fetchBinLocationsByPart(partNumber: string): Promise<BinLocation[]> {
-  const token = await getJB2Token();
-  console.log("Using token:", token);
-
-  // Construct the URL for the bin locations endpoint.
-  const url = new URL("/api/v1/bin-locations", API_BASE);
-  // Use filter expression for the part number.
-  url.searchParams.set("partNumber[eq]", partNumber);
-  // Specify only the desired fields.
-  url.searchParams.set(
-    "fields",
-    "binLocation,cost,datePosted,deliveryTicketNumber,lastModDate,lastModUser,lotNumber,partNumber,POItemNumber,quantityOnHand,receiverNumber,uniqueID,vendorCode"
-  );
-  // Set paging parameters.
-  url.searchParams.set("take", "50");
-  url.searchParams.set("skip", "0");
-  // Optionally, add a sort expression.
-  url.searchParams.set("sort", "-lastModDate");
-
-  console.log("BinLocations endpoint:", url.toString());
-
-  const response = await fetch(url.toString(), {
-    headers: { Authorization: `Bearer ${token}` }
-  });
-
-  if (!response.ok) {
-    throw new Error(
-      `Bin locations fetch failed ${response.status} ${response.statusText}`
-    );
-  }
-
-  const json = await response.json();
-  console.log("Got response:", json);
-  // Return the Data array (which should be an array of BinLocation objects).
-  return json.Data;
-}
-
-function collapseDetailsContainer(container: HTMLElement): void {
-  const currentHeight = container.offsetHeight;
-  container.style.height = currentHeight + 'px';
-  container.style.transition = 'height 0.4s ease-in-out, opacity 0.4s ease-in-out';
-
-  // Trigger reflow to lock height before collapsing
-  void container.offsetWidth;
-
-  requestAnimationFrame(() => {
-    container.style.height = '0px';
-    container.style.opacity = '0';
-  });
-
-  container.addEventListener('transitionend', function handler(e) {
-    if (e.propertyName === 'height') {
-      container.innerHTML = '<i>Select a part to see bin details.</i>'; // optional: clear content
-      container.style.height = 'auto';
-      container.style.opacity = '1';
-      container.removeEventListener('transitionend', handler);
-    }
-  });
-}
-
-function binLocationHtml(b: BinLocation | null | undefined): string {
-  if (!b) return '<i>bin location not found</i>';
-
-  const cost  = b.cost != null ? b.cost.toFixed(2) : '—';
-  const qty   = b.quantityOnHand ?? '—';
-  const last  = b.lastModDate ? new Date(b.lastModDate).toLocaleDateString() : '—';
-  const bin   = b.binLocation ?? '—';
-  const uid   = b.uniqueID ?? '—';
-  const part  = b.partNumber ?? '—';
-
-  const rawHtml = `
-    <div class="bin-location-card">
-      <div class="bin-partnumber">${part}</div>
-      <div class="bin-details">
-        <div><strong>Bin:</strong> ${bin}</div>
-        <div><strong>Cost:</strong> $${cost}</div>
-        <div><strong>Qty On Hand:</strong> ${qty}</div>
-        <div><strong>Last Modified:</strong> ${last}</div>
-        <div style="font-size:0.8em;"><small>ID: ${uid}</small></div>
-      </div>
-    </div>
-  `;
-
-  return rawHtml.replace(/\s\s+/g, ' ').trim();
-}
+const sheet = new CSSStyleSheet();
+sheet.replaceSync(cssText);
 
 /* ───────── Type definitions ───────── */
 
@@ -215,349 +51,9 @@ Phone: (406) 652‑5867 • Toll‑Free: (888) 395‑5867`.trim();
   constructor() {
     super();
     this.shadow = this.attachShadow({ mode: 'open' });
+    this.shadow.adoptedStyleSheets = [sheet];
     this.shadow.innerHTML = /*html*/ `
-      <style>
-        .cluster-container {
-          display: flex;
-          flex-direction: column;
-          padding: 16px;
-          font-family: sans-serif;
-          overflow-x: hidden;
-        }
 
-        .chat-messages {
-          display: flex;
-          flex-direction: column;
-          flex-grow: 1;
-          margin-bottom: 12px;
-          overflow-y: auto;
-          max-height: 60vh;
-        }
-
-        .message-container {
-          display: flex;
-          justify-content: flex-start;
-          transition: transform 0.35s ease, opacity 0.35s ease;
-        }
-        .message-container.user {
-          justify-content: flex-end;
-        }
-        .message-container.enter {
-          transform: translateY(24px);
-          opacity: 0;
-        }
-
-        .message {
-          margin: 8px 0;
-          padding: 12px;
-          border-radius: 8px;
-          white-space: pre-wrap;
-          max-width: 80%;
-        }
-        .user-message {
-          background:rgb(27, 99, 182);
-          color: #fff;
-          align-self: flex-end;
-        }
-        .assistant-message {
-          background: #e36a1e;
-          color: #fff;
-          align-self: flex-start;
-          padding: 25px;
-        }
-
-        .input-area {
-          display: flex;
-          gap: 8px;
-        }
-        .input-area textarea {
-          flex: 1;
-          padding: 8px;
-          min-height: 50px;
-        }
-        button {
-          background: var(--container-bg);
-          color: var(--color-text);
-          font-size: 14px;
-          font-weight: bold;
-          border: 3px solid var(--color-text);
-          border-radius: 12px;
-          cursor: pointer;
-          transform: scale(0.9);
-          padding: 10px 16px;
-          transition: background-color 0.25s ease, transform 0.1s ease;
-        }
-        button:hover {
-          background: #e36a1e;
-          border-color: #e36a1e;
-          color: #fff;
-          transform: scale(1);
-        }
-
-        /* Slide container styling */
-        .slide {
-          overflow: hidden;
-          max-height: 0;
-          transition: max-height 0.4s ease;
-          padding: 0 4px;
-          border: 1px solid #e36a1e;
-          border-radius: 8px;
-          margin: 4px 0;
-          background: #fff;
-          color: #000;
-        }
-        .slide.show {
-          max-height: 500px;
-          padding: 8px 4px;
-        }
-
-        /* Cursor for typewriter effect */
-        .cursor {
-          display: inline-block;
-          width: 8px;
-          background: #fff;
-          margin-left: 2px;
-          animation: blink 0.2s steps(2, start) infinite;
-        }
-        @keyframes blink {
-          to {
-            background: transparent;
-          }
-        }
-        .tsr-inline-cursor {
-          display: inline-block;
-          width: 70px;
-          height: auto;
-          vertical-align: text-bottom;
-          margin-left: 2px;
-          animation: bounce-tsr 1.2s ease-in-out infinite;
-        }
-
-        /* Blinking */
-        @keyframes blink-tsr {
-          50% {
-            opacity: 0.7;
-          }
-        }
-
-        /* Tiny bounce while typing */
-        @keyframes bounce-tsr {
-          0%, 100% { transform: translateY(0); }
-          50%      { transform: translateY(-1px); }
-        }
-        /* Bin location styling */
-        /* NEW: container that wraps all bin items side by side, with wrapping */
-        /* Flex container holding all bin location cards */
-        /* Container for the part number buttons */
-        .bin-buttons-container {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 10px;
-          margin-bottom: 12px;
-          margin-top: 12px;
-        }
-
-        .bin-partnumber {
-          font-weight: bold;
-          font-size: 20px;
-
-        }
-
-        /* Style for each button */
-        .bin-button {
-          background: var(--container-bg);
-          color: var(--color-text);
-          border: 1px solid #e36a1e;
-          padding: 8px 12px;
-          border: 2px solid var(--color-text);
-          border-radius: 12px;
-          cursor: pointer;
-          font-weight: bold;
-          transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
-          transform-origin: center;
-          margin: 5px; /* <--- adds natural spacing between buttons */
-        }
-
-        .bin-button:hover {
-          background: rgb(27, 99, 182);
-          color: #fff;
-          border: 2px solid #fff;
-          transform: scale(1.2);
-          transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease, border 0.2s ease;
-        }
-
-        .bin-button.active {
-          background: rgb(73, 122, 177);
-          color: #fff;
-          border: 2px solid #fff;
-          transform: scale(1.1);
-          transition: transform 0.4s ease, background 0.4s ease, color 0.4s ease, border 0.4s ease;
-        }
-
-        .bin-button.disabled {
-          background-color: var(--container-bg);
-          border-color: #ccc;
-          color: var(--color-text);
-          cursor: not-allowed;
-          pointer-events: none;
-          opacity: 0.6;
-        }
-
-        /* Container for the details below the buttons */
-        .bin-details-container {
-          border: 1px solid #e36a1e;
-          border-radius: 12px;
-          padding: 12px;
-          background: var(--container-bg);
-          color: var(--color-text);
-          overflow: hidden;              /* Hide overflowing content during transition */
-          height: auto;
-          transition: height 0.4s ease-in-out;
-        }
-
-        /* Wave Spinner Container (will be visible in our placeholder div) */
-        .wave-spinner {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        /* Wave Spinner Dot Styles */
-        .wave-spinner > div {
-          width: 6px;
-          height: 8px;
-          margin: 0 6px;
-          border-radius: 20%; /* to form a diamond-like shape */
-          background-color: rgb(255, 255, 255);
-          animation: scaling 1.2s ease-in-out infinite;
-        }
-        .chat-messages {
-          scroll-behavior: smooth;
-        }
-        /* Set staggered animation delays for a wave effect */
-        .wave-spinner > div:nth-child(1) {
-          animation-delay: -0.6s;
-        }
-        .wave-spinner > div:nth-child(2) {
-          animation-delay: -0.4s;
-        }
-        .wave-spinner > div:nth-child(3) {
-          animation-delay: -0.2s;
-        }
-        .wave-spinner > div:nth-child(4) {
-          animation-delay: 0s;
-        }
-        .wave-spinner > div:nth-child(5) {
-          animation-delay: 0.2s;
-        }
-
-        /* Wave Dot Keyframes */
-        @keyframes scaling {
-          0%, 100% {
-            transform: scaleY(0.5);
-            background-color: rgb(255, 255, 255);
-          }
-          40% {
-            transform: scaleY(1.5);
-            background-color: rgb(255, 160, 105);
-          }
-          50% {
-            transform: scaleY(3);
-            background-color: #f36f21;
-          }
-        }
-
-        /* Optional: a container for the spinner */
-        .loading-container {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          height: 60px; /* Set a fixed height to reserve space */
-        }
-        .bin-details-container.fade-transition {
-          animation: fadeContent 0.4s ease-in-out;
-        }
-
-        @keyframes fadeContent {
-          from {
-            opacity: 0;
-            transform: translateY(4px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .tsr-loading-wrapper {
-          display: flex;
-          align-items: flex-end;
-          gap: 12px;
-          height: 80px;
-          position: relative;
-        }
-
-        /* Infinite horizontal belt illusion */
-        .dot-stream-container {
-          overflow: hidden;
-          width: 160px;
-          height: 12px;
-          position: relative;
-          mask-image: linear-gradient(to left, black 60%, transparent 100%);
-          -webkit-mask-image: linear-gradient(to left, black 90%, transparent 100%);
-        }
-
-        .dot-stream {
-          display: flex;
-          gap: 12px;
-          position: absolute;
-          left: 0;
-          top: 0;
-          animation: slide-left-loop 2.4s linear infinite;
-        }
-
-        .dot {
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-          background-color: white;
-          opacity: 1;
-        }
-
-        /* New keyframe to loop */
-        @keyframes slide-left-loop {
-          0%   { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
-
-        /* Bounce for the TSR */
-        @keyframes bounce-tsr {
-          0%, 100% { transform: translateY(0); }
-          50%      { transform: translateY(-4px); }
-        }
-
-        @keyframes blink-tsr {
-          50% {
-            opacity: 0.4;
-          }
-        }
-
-        @keyframes move-dots-left {
-          0% {
-            transform: translateX(0);
-          }
-          100% {
-            transform: translateX(-20px); /* how far the dots shift left */
-          }
-        }
-          .tsr-icon.loading {
-          width: 120px;
-          height: auto;
-          animation: bounce-tsr 1.2s ease-in-out infinite;
-        }
-
-
-
-      </style>
       <div class="cluster-container">
         <h2>Bluegrass (TSR demo)</h2>
         <div class="chat-messages" id="chatMessages"></div>
@@ -645,13 +141,15 @@ Phone: (406) 652‑5867 • Toll‑Free: (888) 395‑5867`.trim();
     tsrRow.className = 'tsr-harvest-row';
     tsrRow.innerHTML = `
     <div class="tsr-loading-wrapper">
-      <img class="tsr-icon loading" src="data/TSRIcon.png" alt="TSR">
+      <img class="tsr-icon loading" src="data/RollyWhite.png" alt="TSR">
+      <!--
       <div class="dot-stream-container">
         <div class="dot-stream">
           ${'<div class="dot"></div>'.repeat(10)}
           ${'<div class="dot"></div>'.repeat(10)}
         </div>
       </div>
+      -->
     </div>
   `;
 
@@ -726,7 +224,7 @@ if (msg.partNumbers.length) {
 
     btnWrapper.appendChild(btn);
     buttonsContainer.appendChild(btnWrapper);
-  
+
     const data = this.binCache.get(pn);
     if (!data || data.length === 0) {
       btn.classList.add('disabled');
@@ -734,16 +232,16 @@ if (msg.partNumbers.length) {
       btn.style.cursor = 'not-allowed';
       btn.style.pointerEvents = 'none';
     }
-  
+
     btn.addEventListener('click', () => {
       const isSame = activePartNumber === pn;
-    
+
       if (isSame) {
         // Collapse
         if (activeButton) activeButton.classList.remove('active');
         activeButton = null;
         activePartNumber = null;
-    
+
         collapseDetailsContainer(detailsContainer);
       } else {
         // New item
@@ -751,18 +249,18 @@ if (msg.partNumbers.length) {
         btn.classList.add('active');
         activeButton = btn;
         activePartNumber = pn;
-    
+
         const content = data && data.length > 0
           ? binLocationHtml(data[0])
           : '<i>No bin location found</i>';
-    
+
         updateDetailsContainer(detailsContainer, content);
       }
     });
-  
+
     buttonsContainer.appendChild(btn);
   });
-  
+
 
   // Create the download button for just these part numbers
   const downloadBtn = document.createElement('button');

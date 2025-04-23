@@ -7,6 +7,7 @@ import auth from './utils/auth';
 import { initWaves } from './utils/wave';
 import './pages/cluster/cluster-page'; // Import the cluster page
 import './pages/logo/logo-page'; // Import the logo page
+import './pages/chat-customizer/customizer-page'; // Import the customizer page
 
 window.addEventListener('DOMContentLoaded', () => {
   initWaves();
@@ -120,6 +121,8 @@ function setupHeaderNav() {
         slideTransition(document.createElement('tree-bom-page'));
       } else if (pageId === 'cluster') {
         slideTransition(document.createElement('cluster-page'));
+      } else if (pageId === 'customizer') {
+        slideTransition(document.createElement('customizer-page'));
       } else if (pageId === 'logo') {
         slideTransition(document.createElement('logo-page'));
       }

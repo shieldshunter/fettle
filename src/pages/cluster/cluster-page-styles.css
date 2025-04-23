@@ -1,0 +1,338 @@
+.cluster-container {
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  font-family: sans-serif;
+  overflow-x: hidden;
+}
+
+.chat-messages {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  margin-bottom: 12px;
+  overflow-y: auto;
+  max-height: 60vh;
+}
+
+.message-container {
+  display: flex;
+  justify-content: flex-start;
+  transition: transform 0.35s ease, opacity 0.35s ease;
+}
+.message-container.user {
+  justify-content: flex-end;
+}
+.message-container.enter {
+  transform: translateY(24px);
+  opacity: 0;
+}
+
+.message {
+  margin: 8px 0;
+  padding: 12px;
+  border-radius: 8px;
+  white-space: pre-wrap;
+  max-width: 80%;
+}
+.user-message {
+  background:rgb(27, 99, 182);
+  color: #fff;
+  align-self: flex-end;
+}
+.assistant-message {
+  background: #e36a1e;
+  color: #fff;
+  align-self: flex-start;
+  padding: 25px;
+}
+
+.input-area {
+  display: flex;
+  gap: 8px;
+}
+.input-area textarea {
+  flex: 1;
+  padding: 8px;
+  min-height: 50px;
+}
+button {
+  background: var(--container-bg);
+  color: var(--color-text);
+  font-size: 14px;
+  font-weight: bold;
+  border: 3px solid var(--color-text);
+  border-radius: 12px;
+  cursor: pointer;
+  transform: scale(0.9);
+  padding: 10px 16px;
+  transition: background-color 0.25s ease, transform 0.1s ease;
+}
+button:hover {
+  background: #e36a1e;
+  border-color: #e36a1e;
+  color: #fff;
+  transform: scale(1);
+}
+
+/* Slide container styling */
+.slide {
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.4s ease;
+  padding: 0 4px;
+  border: 1px solid #e36a1e;
+  border-radius: 8px;
+  margin: 4px 0;
+  background: #fff;
+  color: #000;
+}
+.slide.show {
+  max-height: 500px;
+  padding: 8px 4px;
+}
+
+/* Cursor for typewriter effect */
+.cursor {
+  display: inline-block;
+  width: 8px;
+  background: #fff;
+  margin-left: 2px;
+  animation: blink 0.2s steps(2, start) infinite;
+}
+@keyframes blink {
+  to {
+    background: transparent;
+  }
+}
+.tsr-inline-cursor {
+  display: inline-block;
+  width: 70px;
+  height: auto;
+  vertical-align: text-bottom;
+  margin-left: 2px;
+  animation: bounce-tsr 1.2s ease-in-out infinite;
+}
+
+/* Blinking */
+@keyframes blink-tsr {
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Tiny bounce while typing */
+@keyframes bounce-tsr {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-1px); }
+}
+/* Bin location styling */
+/* NEW: container that wraps all bin items side by side, with wrapping */
+/* Flex container holding all bin location cards */
+/* Container for the part number buttons */
+.bin-buttons-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+  margin-top: 12px;
+}
+
+.bin-partnumber {
+  font-weight: bold;
+  font-size: 20px;
+
+}
+
+/* Style for each button */
+.bin-button {
+  background: var(--container-bg);
+  color: var(--color-text);
+  border: 1px solid #e36a1e;
+  padding: 8px 12px;
+  border: 2px solid var(--color-text);
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+  transform-origin: center;
+  margin: 5px; /* <--- adds natural spacing between buttons */
+}
+
+.bin-button:hover {
+  background: rgb(27, 99, 182);
+  color: #fff;
+  border: 2px solid #fff;
+  transform: scale(1.2);
+  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease, border 0.2s ease;
+}
+
+.bin-button.active {
+  background: rgb(73, 122, 177);
+  color: #fff;
+  border: 2px solid #fff;
+  transform: scale(1.1);
+  transition: transform 0.4s ease, background 0.4s ease, color 0.4s ease, border 0.4s ease;
+}
+
+.bin-button.disabled {
+  background-color: var(--container-bg);
+  border-color: #ccc;
+  color: var(--color-text);
+  cursor: not-allowed;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+/* Container for the details below the buttons */
+.bin-details-container {
+  border: 1px solid #e36a1e;
+  border-radius: 12px;
+  padding: 12px;
+  background: var(--container-bg);
+  color: var(--color-text);
+  overflow: hidden;              /* Hide overflowing content during transition */
+  height: auto;
+  transition: height 0.4s ease-in-out;
+}
+
+/* Wave Spinner Container (will be visible in our placeholder div) */
+.wave-spinner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Wave Spinner Dot Styles */
+.wave-spinner > div {
+  width: 6px;
+  height: 8px;
+  margin: 0 6px;
+  border-radius: 20%; /* to form a diamond-like shape */
+  background-color: rgb(255, 255, 255);
+  animation: scaling 1.2s ease-in-out infinite;
+}
+.chat-messages {
+  scroll-behavior: smooth;
+}
+/* Set staggered animation delays for a wave effect */
+.wave-spinner > div:nth-child(1) {
+  animation-delay: -0.6s;
+}
+.wave-spinner > div:nth-child(2) {
+  animation-delay: -0.4s;
+}
+.wave-spinner > div:nth-child(3) {
+  animation-delay: -0.2s;
+}
+.wave-spinner > div:nth-child(4) {
+  animation-delay: 0s;
+}
+.wave-spinner > div:nth-child(5) {
+  animation-delay: 0.2s;
+}
+
+/* Wave Dot Keyframes */
+@keyframes scaling {
+  0%, 100% {
+    transform: scaleY(0.5);
+    background-color: rgb(255, 255, 255);
+  }
+  40% {
+    transform: scaleY(1.5);
+    background-color: rgb(255, 160, 105);
+  }
+  50% {
+    transform: scaleY(3);
+    background-color: #f36f21;
+  }
+}
+
+/* Optional: a container for the spinner */
+.loading-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: auto; /* Set a fixed height to reserve space */
+}
+.bin-details-container.fade-transition {
+  animation: fadeContent 0.4s ease-in-out;
+}
+
+@keyframes fadeContent {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.tsr-loading-wrapper {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  height: auto;
+  position: relative;
+}
+
+/* Infinite horizontal belt illusion */
+.dot-stream-container {
+  overflow: hidden;
+  width: 160px;
+  height: 12px;
+  position: relative;
+  mask-image: linear-gradient(to left, black 60%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to left, black 90%, transparent 100%);
+}
+
+.dot-stream {
+  display: flex;
+  gap: 12px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  animation: slide-left-loop 2.4s linear infinite;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: white;
+  opacity: 1;
+}
+
+/* New keyframe to loop */
+@keyframes slide-left-loop {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* Bounce for the TSR */
+@keyframes bounce-tsr {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-4px); }
+}
+
+@keyframes blink-tsr {
+  50% {
+    opacity: 0.4;
+  }
+}
+
+@keyframes move-dots-left {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-20px); /* how far the dots shift left */
+  }
+}
+  .tsr-icon.loading {
+  width: 120px;
+  height: auto;
+  animation: bounce-tsr 1.2s ease-in-out infinite;
+}
+
