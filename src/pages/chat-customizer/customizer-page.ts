@@ -34,7 +34,7 @@ const getNum = (k: string, d: number) => {
 const setNum = (k: string, v: number) => localStorage.setItem(k, String(v));
 
 /** Short‑hand DOM helpers. */
-const $ = (s: string, c: Document | HTMLElement = document) => c.querySelector<HTMLElement>(s);
+//const $ = (s: string, c: Document | HTMLElement = document) => c.querySelector<HTMLElement>(s);
 const getVar = (v: string, d: string) =>
   localStorage.getItem(v) || ((getComputedStyle(document.documentElement) as any).getPropertyValue(v).trim() || d);
 const setVar = (v: string, val: string) => {
