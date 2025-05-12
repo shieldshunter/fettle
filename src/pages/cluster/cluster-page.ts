@@ -141,7 +141,7 @@ Phone: (406) 652‑5867 • Toll‑Free: (888) 395‑5867`.trim();
     tsrRow.className = 'tsr-harvest-row';
     tsrRow.innerHTML = `
     <div class="tsr-loading-wrapper">
-      <img class="tsr-icon loading" src="data/RollyWhite.png" alt="TSR">
+      <img class="tsr-icon loading" src="data/Rollygreen.png" alt="TSR">
       <!--
       <div class="dot-stream-container">
         <div class="dot-stream">
