@@ -105,6 +105,13 @@ main-header.visible {
   scrollbar-width: none;    /* Firefox */
   -ms-overflow-style: none; /* IE 10+ */
 }
+
+#mainContainer.no-scroll {
+  overflow: hidden !important;          /* desktop */
+  overflow-y: none !important;         
+  touch-action: none;                   /* mobile – stops pull-to-scroll */
+}
+
 #mainContainer::-webkit-scrollbar {
   display: none;            /* Chrome, Safari, Opera */
 }

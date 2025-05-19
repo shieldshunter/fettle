@@ -75,8 +75,15 @@ button:hover {
   transform: scale(1);
 }
 
+.relation-panel .bin-button.static {
+  cursor: default;          /* no pointer hand */
+  pointer-events: none;     /* truly non-clickable */
+  opacity: 1;               /* keep full colour */
+}
+
 /* Slide container styling */
 .slide {
+  position: relative;          /* ← new */
   overflow: hidden;
   max-height: 0;
   transition: max-height 0.4s ease;
@@ -84,7 +91,7 @@ button:hover {
   border: 1px solid #e36a1e;
   border-radius: 8px;
   margin: 4px 0;
-  background: #fff;
+  background: #eeeeee;
   color: #000;
 }
 .slide.show {
@@ -92,6 +99,278 @@ button:hover {
   padding: 8px 4px;
 }
 
+/* add anywhere after the .bin-button rules */
+.bin-button.hover-from-model {
+  background: rgb(27, 99, 182);  /* same as :hover */
+  color: #fff;
+  border: 2px solid #fff;
+  transform: scale(1.2);
+  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease, border 0.2s ease;
+}
+/* ───────── full‑screen toggle ───────── */
+
+.assistant-message,
+.assistant-message.fullscreen {
+  transition:
+    top      .35s cubic-bezier(.25,.8,.3,1),
+    left     .35s cubic-bezier(.25,.8,.3,1),
+    width    .35s cubic-bezier(.25,.8,.3,1),
+    height   .35s cubic-bezier(.25,.8,.3,1),
+    border-radius .35s,
+    padding  .35s,
+    transform 0.35s cubic-bezier(.25,.8,.3,1),
+    opacity   0.25s ease;
+}
+
+/* ───── one‑bubble full screen ───── */
+.assistant-message.fullscreen{
+    position: fixed;
+    inset: 0;                       /* = top:0; right:0; bottom:0; left:0; */
+    z-index: 9999;
+    display: grid;
+    top: 4px;
+    right: 12px;
+    max-width: none;
+    height: auto;        /* fill the screen */
+    max-height: inherit;
+    bottom: 12px;
+    left: 12px;
+  grid-template-columns: var(--left-col, 280px) 6px 1fr;
+  grid-template-rows: auto 1fr;   /* hdr | viewer | footer */
+  column-gap: 16px;                    /* gutter between cols   */
+  row-gap:    12px;
+    overflow: hidden;
+    align-self: unset;
+}
+
+.fullscreen .relation-panel {
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+  width: 260px;                /* final width */
+  max-width: calc(100% - 48px);
+  background: #fff;
+  color: #000;
+  max-height: none;
+  font-size: 14px;
+  line-height: 1.35;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.25);
+  padding: 12px 16px;
+  overflow: auto;
+
+  /* transition from hidden to shown */
+  transform: translateX(100%); /* hidden = push fully off-screen */
+  opacity: 0;
+  pointer-events: none;        /* ignore clicks while closed    */
+  transition: transform .32s cubic-bezier(.25,.8,.4,1),
+              opacity   .25s ease;
+}
+
+.assistant-message:not(.fullscreen) .relation-panel {
+  display: none !important; /* hide the panel */
+}
+
+.bubble-col          { 
+  display: grid; 
+  gap:16px;
+  padding-right: 8px;  
+  box-sizing: content-box;  
+  overflow-y:auto;
+  min-height: 300px; /* minimum height for the text area */
+  max-height:calc(100vh - 80px);   /* already present – keep */
+  scrollbar-width: thin;
+  scrollbar-color: #eeeeee transparent;
+  scrollbar-gutter: stable both-edges;
+}
+
+.bubble-col::-webkit-scrollbar {
+  width: 8px;
+}
+.bubble-col::-webkit-scrollbar-track {
+  background: transparent;
+}
+.bubble-col::-webkit-scrollbar-thumb {
+  background: #eeeeee;
+  border-radius: 4px;
+}
+.bubble-col::-webkit-scrollbar-thumb:hover {
+  background: #eeeeee;
+}
+
+.fullscreen .mini-bubble {
+    transition: background 0.4s ease, box-shadow 0.4s ease, opacity 0.4s ease, transform 0.4s ease;
+}
+
+.mini-bubble         { padding:8px; border-radius:6px; background: #e36a1e; }
+.fullscreen .mini-bubble.in-focus {
+  background:rgba(255,187,0,0.10);
+  box-shadow:inset 0 0 0 2px #ffbb00;
+  opacity: 1;
+  transform: scale(1.0);
+}
+
+.fullscreen .mini-bubble:not(.in-focus) {
+  opacity: 0.8;
+  transform: scale(0.95);
+}
+
+.fullscreen .relation-panel.open {
+  transform: translateX(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.fullscreen .doc-chunk.in-focus {
+  background: rgba(255, 187, 0, 0.10);   /* light yellow */
+  box-shadow: inset 0 0 0 2px #ffbb00;   /* thin border */
+  transition: background 0.15s;
+}
+
+.fullscreen .splitter {
+  grid-column: 2;                 /* lives in the middle track      */
+  cursor: col-resize;
+   grid-row:    1 / -1; 
+  background: rgb(255, 187, 0, 0.07);
+}
+.fullscreen .splitter:hover { 
+  background: rgb(255, 187, 0, 0.57); 
+  transform: scale(1.1) smooth;
+}
+
+.fs-anim {
+  position: fixed;
+  top:    var(--start-top);
+  left:   var(--start-left);
+  width:  var(--start-width);
+  height: var(--start-height);
+  /* preserve original size / shape as first frame */
+}
+
+/* left column = text + buttons */
+.assistant-message.fullscreen .content-col{
+    overflow-y: auto;
+    padding-right: 12px;
+}
+
+.assistant-message.fullscreen .download-btn,
+.assistant-message.fullscreen .support-footer {
+  display: none !important;
+}
+
+
+
+/* right column = viewer, fills all remaining width/height */
+.assistant-message.fullscreen .slide {
+    grid-column: 3;
+    grid-row:    1 / -1;
+    height: stretch;
+    padding-bottom: 12px;
+    max-height: none !important;   /* override the animated cap */
+}
+
+.assistant-message.fullscreen .bin-details-container {
+  display: none !important; /* hide the details */
+}
+
+.doc-chunk + .doc-chunk {   /* any chunk that follows another chunk */
+  margin-top: 12px;         /* vertical space between chunks       */
+}
+
+/* tighten the empty space each wrapper reserves */
+.assistant-message.fullscreen .bin-button-wrapper{
+  /* wipe the default margin that created “rows” */
+  margin: 0;                 /* ← previously 5 px on each side       */
+  /* optionally control line-height if you used it elsewhere */
+  line-height: normal;       
+}
+
+/* if some browsers still keep extra height, force it */
+.assistant-message.fullscreen .bin-button-wrapper,
+.assistant-message.fullscreen .bin-button{
+  height: min-content;              /* let the button dictate the height    */
+}
+
+body.fullscreen-active .assistant-message:not(.fullscreen),
+body.fullscreen-active .user-message {
+  display: none !important;
+}
+
+.assistant-message.fullscreen .slide iframe{
+  width:100%; height:100%;
+}
+
+/* hide prompt while full */
+.assistant-message.fullscreen ~ .input-area{display:none}
+
+.assistant-message.fullscreen .bin-buttons-container{
+  max-height: 150px;
+  min-height: 100px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #eeeeee transparent;
+  scrollbar-gutter: stable both-edges;
+  padding: 8px 4px; /* ensures buttons are never clipped */
+  box-sizing: border-box; /* crucial to include padding correctly */
+}
+
+.assistant-message.fullscreen .bin-buttons-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.assistant-message.fullscreen .bin-buttons-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.assistant-message.fullscreen .bin-buttons-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 4px;
+}
+
+.assistant-message.fullscreen .bin-buttons-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.assistant-message.fullscreen .bin-button{
+  font-size:12px;        /* down from ~14-16 */
+  padding:4px 8px;       /* thinner pills   */
+  border-width:1px;      /* slimmer outline */
+  transform:none;        /* cancel the default 0.9 scale   */
+}
+
+/* if the list grows, let it scroll instead of stretching       */
+.assistant-message.fullscreen .content-col{
+  overflow-y:auto;
+  min-height: 300px; /* minimum height for the text area */
+  max-height:calc(100vh - 80px);   /* already present – keep */
+}
+
+/* floating toggle always lives in viewer corner */
+.fullscreen-btn{
+  position:absolute; top:8px; right:8px;
+  width:28px; height:28px; font-size:  14px;
+  display:flex; align-items:center; justify-content:center;
+  border:none; border-radius:6px;
+  background:#1b63b6; color:#fff; cursor:pointer;
+}
+.fullscreen-btn:hover{background:#145099}
+
+/* root state */ /*
+:host-context(.viewer-full) .cluster-container {
+  position: fixed;
+  inset: 0;
+  padding: 0;
+  background: #fff;
+  z-index: 15;
+  display: flex;
+  flex-direction: row;
+}
+
+:host-context(.viewer-full) .slide           { flex: 1 1 60%; max-height:none!important; }
+:host-context(.viewer-full) .chat-messages   { flex: 1 1 40%; max-height:none; }
+:host-context(.viewer-full) .input-area      { display:none; }
+:host-context(.viewer-full) .slide,
+:host-context(.viewer-full) .chat-messages   { overflow:auto; }
 /* Cursor for typewriter effect */
 .cursor {
   display: inline-block;
@@ -154,7 +433,7 @@ button:hover {
   border-radius: 12px;
   cursor: pointer;
   font-weight: bold;
-  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease, outline 0.25s ease, outline 0.25s ease;
   transform-origin: center;
   margin: 5px; /* <--- adds natural spacing between buttons */
 }
@@ -165,6 +444,10 @@ button:hover {
   border: 2px solid #fff;
   transform: scale(1.2);
   transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease, border 0.2s ease;
+}
+
+.bin-button.scroll-active {
+  outline: 3px solid #ffbb00;
 }
 
 .bin-button.active {
