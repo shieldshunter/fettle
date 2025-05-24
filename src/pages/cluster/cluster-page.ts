@@ -87,7 +87,7 @@ type BubbleCtx = {
   hoverPart: string | null;
   /** relation to query element */
   relationPanel: HTMLDivElement | null;
-  relationMap: Record<string, string>; 
+  relationMap: Record<string, string>;
 };
 
 
@@ -257,21 +257,21 @@ Phone (406) 652‑5867 • Toll‑Free (888) 395‑5867`;
     const isGoingFull = !bubble.classList.contains('fullscreen');
     /* 1️⃣ capture the bubble’s current viewport box */
     const rect = bubble.getBoundingClientRect();
-  
+
     /* 2️⃣ feed those numbers into CSS variables */
     bubble.style.setProperty('--start-top',    `${rect.top}px`);
     bubble.style.setProperty('--start-left',   `${rect.left}px`);
     bubble.style.setProperty('--start-width',  `${rect.width}px`);
     bubble.style.setProperty('--start-height', `${rect.height}px`);
-  
+
     /* 3️⃣ give it the “animating” helper class (position:fixed) */
     bubble.classList.add('fs-anim');
-  
+
     /* 4️⃣ in the very next frame toggle .fullscreen */
     requestAnimationFrame(() => {
       bubble.classList.toggle('fullscreen', isGoingFull);
     });
-    
+
     /* 5️⃣ when the transition ends, clean up helpers */
     const onDone = () => {
       bubble.classList.remove('fs-anim');
@@ -282,7 +282,7 @@ Phone (406) 652‑5867 • Toll‑Free (888) 395‑5867`;
       bubble.removeEventListener('transitionend', onDone);
     };
     bubble.addEventListener('transitionend', onDone);
-    
+
     /* 6️⃣ lock / unlock scrolling & swap the icon like before */
     document.body.classList.toggle('fullscreen-active', isGoingFull);
     const main = document.getElementById('mainContainer');
@@ -296,7 +296,7 @@ Phone (406) 652‑5867 • Toll‑Free (888) 395‑5867`;
         .forEach(el => el.classList.remove("in-focus"));
 }
   }
-  
+
   //
   private clearScrollHighlights(ctx: BubbleCtx) {
   ctx.iframe?.contentWindow?.postMessage(
@@ -329,6 +329,12 @@ private attachFullScreenScroller(
 ) {
   let idx = 0;
   const max = bubList.length - 1;
+
+  /* NEW → wheel-delta accumulator */
+  let wheelBuffer = 0;
+  const PIXEL_THRESHOLD = 160;          // ≈ 4 small track-pad ticks
+  const LINE_TO_PX     = 40;            // deltaMode===1 → lines → estimate px
+
 
 const activate = (newIdx: number) => {
   if (newIdx === idx) return;
@@ -395,17 +401,39 @@ const activate = (newIdx: number) => {
 };
 
   /* wheel handler */
+  /* wheel handler */
   bubble.addEventListener(
-    "wheel",
+    'wheel',
     ev => {
-      if (!bubble.classList.contains("fullscreen")) return;
-      ev.preventDefault(); // block native scroll
-      const dir = Math.sign(ev.deltaY);
-      if (dir > 0 && idx < max) activate(idx + 1);
-      else if (dir < 0 && idx > 0) activate(idx - 1);
+      if (!bubble.classList.contains('fullscreen')) return;
+      ev.preventDefault();                          // block native scroll
+
+      /* normalise to **pixels**, then accumulate */
+      const delta =
+        ev.deltaMode === 1             // 1 = lines
+          ? ev.deltaY * LINE_TO_PX
+          : ev.deltaY;                 // 0 = pixels
+
+      wheelBuffer += delta;
+
+      if (wheelBuffer >  PIXEL_THRESHOLD && idx < max) {
+        activate(idx + 1);
+        wheelBuffer = 0;               // reset after a step
+      } else if (wheelBuffer < -PIXEL_THRESHOLD && idx > 0) {
+        activate(idx - 1);
+        wheelBuffer = 0;
+      }
     },
     { passive: false }
   );
+
+  bubList.forEach((el, i) => {
+    el.style.cursor = 'pointer';                 // show it’s clickable
+    el.addEventListener('click', () => {
+      if (!bubble.classList.contains('fullscreen')) return;  // only useful in FS
+      activate(i);
+    });
+  });
 
   /* Initialise first bubble */
   bubList[0].classList.add("in-focus");
@@ -505,7 +533,7 @@ private appendOneMessage(msg: UserMsg | AssistantMsg) {
       highlightedPaths: [],
       hoverPart: null,
       relationPanel: null,
-      relationMap: relMap  
+      relationMap: relMap
     };
     ctxMap.set(bubble, ctx);
 
@@ -537,6 +565,23 @@ private appendOneMessage(msg: UserMsg | AssistantMsg) {
       fsBtn.addEventListener("click", () => this.toggleFull(bubble));
       slide.appendChild(fsBtn);
       this.fullBtn = fsBtn;
+
+      const quickBar = document.createElement('div');
+      quickBar.className = 'quick-bar';           // hidden by default – CSS does the magic
+      quickBar.innerHTML = `
+        <button class="quick-btn" data-id="a1">Action 1</button>
+        <button class="quick-btn" data-id="a2">Action 2</button>
+      `;
+      slide.appendChild(quickBar);
+
+      // (optional) stub click-handlers you can remap later
+      quickBar.addEventListener('click', e => {
+        if (!(e.target instanceof HTMLButtonElement)) return;
+        switch (e.target.dataset.id) {
+          case 'a1': console.log('temp action 1'); break;
+          case 'a2': console.log('temp action 2'); break;
+        }
+      });
 
       bubble.appendChild(makeSplitter(bubble));
       bubble.appendChild(slide);
@@ -681,7 +726,7 @@ private async callAssistantAPI(userText: string): Promise<AssistantMsg> {
     chunks: parsed.chunks ?? [parsed.raw_text ?? block.text.value],
     topLevelPart: parsed.top_level_part ?? { part_number: "", description: "" },
     subParts: parsed.sub_parts ?? [],
-    illustrationUrl: parsed.illustration_url ?? DEFAULT_IFRAME_URL 
+    illustrationUrl: parsed.illustration_url ?? DEFAULT_IFRAME_URL
   };
 }
 
@@ -714,7 +759,7 @@ private async callAssistantAPI(userText: string): Promise<AssistantMsg> {
     private autoHighlight(parts: string[], ctx: BubbleCtx): void {
       const win = ctx.iframe?.contentWindow;
       if (!win) return;                 // iframe not ready yet
-    
+
       parts.forEach(pn => {
         const paths = this.partToPaths[pn];
         if (!paths) return;
@@ -841,7 +886,7 @@ if (same) {
   });
 });
 
-      
+
     });
 
   const downloadBtn = document.createElement('button');
