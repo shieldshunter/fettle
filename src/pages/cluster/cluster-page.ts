@@ -28,50 +28,78 @@ interface AssistantMsg {
   illustrationUrl: string | null;
 }
 
-const DEFAULT_IFRAME_URL =
-  "https://app.zea.live/illustrations-viewer/UyWiDDbGReluuuZ9T6Dt";
 
-const TEST_MODE = false;
+
+const DEFAULT_IFRAME_URL =
+  "https://app-alpha.zea.live/illustrations-viewer/UFOeNJer2A2JcBFgtm5t";
+
+const TEST_MODE = true;
 const TEST_JSON = {
+  /* ── 1. chunks ────────────────────────────────────────────── */
   chunks: [
-    "**1. Check the blade pitch and roller alignment**  \nImproper blade pitch can lead to inconsistent cutting or unclean cuts. If the cutter blade is pitched incorrectly, it can pinch or tear the turf instead of cutting smoothly. Verify that the blade is parallel to the roller and that the roller-to-blade distance meets your soil conditions. Softer soils may need less distance, while rocky soils might require a greater gap. Retighten any loosened fasteners after making adjustments. :contentReference[oaicite:0]{index=0}",
-    "**2. Inspect the cutterhead drive belt**  \nA worn or loose belt can cause slippage and reduce cutting performance. Make sure the pulleys remain parallel and in line, and confirm the belt tension is tight enough to avoid slippage without being overtightened. Replace any belt that shows visible wear such as cracks or fraying. :contentReference[oaicite:2]{index=2}",
-    "**3. Examine the ground roller**  \nIf the ground roller is bent or dirty, it can affect cutting length and turf quality. Clean off debris that builds up on the roller surface, since this can effectively enlarge the roller diameter and result in unwanted length changes of the cut turf. :contentReference[oaicite:4]{index=4}",
-    "**4. Confirm the roller scraper is properly adjusted**  \nThe scraper should make even contact with the roller. Any accumulation of debris on the roller can cause inaccurate cut lengths. Adjust the scraper and re-tighten its fasteners so it consistently cleans the roller. :contentReference[oaicite:6]{index=6}",
-    "**5. Validate overall lubrication and tightening**  \nCheck for lubrication points on bearings, pivot pins, and other moving parts. Ensure all fasteners are tight. Loose hardware or poor lubrication can produce excessive vibration, noise, or poor cut quality in the cutterhead."
+    // 0  → references part 2021
+    `### 1. Inspect Side-Frame Bracket **2021**  
+    Look for cracks around the bolt bosses and check that the corner
+    welds are intact.`,
+
+    // 1  → references part 2031
+    `### 2. Check Gear-Housing **2031**  
+    Remove the cover and verify that the bearing seats show no signs of
+    galling or fretting.`,
+
+    // 2  → references part 2039
+    `### 3. Examine Support Plate **2039**  
+    Ensure the plate is free of corrosion and that all mounting holes
+    are round and within tolerance.`,
+
+    // 3  → generic step, no CAD mapping
+    `### 4. Re-torque all fasteners to specification.`
   ],
+
+  /* ── 2. assembly root ─────────────────────────────────────── */
   top_level_part: {
-    part_number: "TS01100-A",
-    description: "Cutterhead Frame, TSR"
+    part_number : "2034",
+    description : "Complete Assembly - Demo Model"
   },
+
+  /* ── 3. sub-parts mapped to the three chunks above ────────── */
   sub_parts: [
-    {
-      part_number: "46061",
-      description: "24-inch cutting blade",
-      relation_to_query: "Adjusting pitch and alignment is essential for a clean cut",
-      relation_to_chunk: 0
-    },
-    {
-      part_number: "20503",
-      description: "Cutterhead Belt",
-      relation_to_query: "Ensuring correct belt tension prevents slippage",
-      relation_to_chunk: 1
-    },
-    {
-      part_number: "TS03076-W",
-      description: "Ground cutterhead roller",
-      relation_to_query: "The roller can affect cut length when dirty or damaged",
-      relation_to_chunk: 2
-    },
-    {
-      part_number: "TS03093",
-      description: "Scraper, cutterhead ground roll",
-      relation_to_query: "Keeps roller free from debris for proper cutting length",
-      relation_to_chunk: 3
-    }
+  {
+    part_number       : "2021",
+    description       : "Side-Frame Bracket",
+    relation_to_query : "Structural integrity check",
+    relation_to_chunk : 0          // ← chunk-0
+  },
+  {
+    part_number       : "2012",         // 🆕  extra part
+    description       : "Bracket Gusset",
+    relation_to_query : "Check gusset for cracks ( shares the inspection step )",
+    relation_to_chunk : 1               // ← points to the same chunk-0
+  },
+  {
+    part_number       : "2031",
+    description       : "Gear Housing",
+    relation_to_query : "Wear inspection of bearing seats",
+    relation_to_chunk : 1
+  },
+  {
+    part_number       : "2039",
+    description       : "Support Plate",
+    relation_to_query : "Corrosion-free mounting surface",
+    relation_to_chunk : 2
+  }
   ],
-   illustration_url : 'https://app.zea.live/illustrations-viewer/UyWiDDbGReluuuZ9T6Dt'
+
+  /* ── 4. demo illustration that contains those parts ───────── */
+  illustration_url:
+    "https://app-alpha.zea.live/illustrations-viewer/UFOeNJer2A2JcBFgtm5t"
 };
+
+/* =========================================================
+   STATIC fallback map (only needed until you switch to the
+   dynamic ctx.partPaths you’re implementing)
+   ========================================================= */
+
 
 type BubbleCtx = {
   iframe: HTMLIFrameElement | null;
@@ -83,17 +111,22 @@ type BubbleCtx = {
   highlightedPart: string | null;
   /** geometry paths we coloured last */
   highlightedPaths: string[][];
+  lastFocusPaths: string[][];   
   /** which part is currently hovered by the model */
   hoverPart: string | null;
   /** relation to query element */
   relationPanel: HTMLDivElement | null;
   relationMap: Record<string, string>;
+  bottomDock: HTMLDivElement | null;   // 🆕
+  partPaths: Record<string, string[][]>;
+  hasFramed      : boolean;
+  mouseClickHighlighted: string[];
+  chunkLookup : Record<number,string[]>;
 };
 
 
 const stripCitations = (md: string) =>
   md.replace(/:contentReference\[.*?\]\{.*?\}|:contentReference[oaicite:1]{index=1}|【\d+:\d+†source】/g, "");
-
 
 function makeSplitter(bubble: HTMLElement) {
   const splitter = document.createElement('div');
@@ -234,7 +267,13 @@ Phone (406) 652‑5867 • Toll‑Free (888) 395‑5867`;
       highlightedPaths: [],
       hoverPart: null,
       relationPanel: null,
-      relationMap: {}
+      relationMap: {},
+      bottomDock: null,
+      partPaths: {},    
+      lastFocusPaths: [],
+      hasFramed     : false,
+      mouseClickHighlighted: [],
+      chunkLookup: {},
     };
     ctxMap.set(bubble, ctx);   // link DOM ➞ context
 
@@ -248,7 +287,6 @@ Phone (406) 652‑5867 • Toll‑Free (888) 395‑5867`;
     chat.scrollTop = chat.scrollHeight;
     return wrapper;
   }
-  private iframeReady = false;
   private fullBtn: HTMLButtonElement | null = null;
   private highlightQueue: {path:string[];fill:number}[] = [];
 
@@ -291,35 +329,78 @@ Phone (406) 652‑5867 • Toll‑Free (888) 395‑5867`;
       this.fullBtn.textContent = isGoingFull ? '⤡' : '⤢';
     }
     if (!isGoingFull) {                // exiting full
-  // existing clear code …
-    bubble.querySelectorAll(".mini-bubble.in-focus")
-        .forEach(el => el.classList.remove("in-focus"));
-}
+    // existing clear code …
+      bubble.querySelectorAll(".mini-bubble.in-focus")
+          .forEach(el => el.classList.remove("in-focus"));
+      }
+    if (isGoingFull){
+      /* grab the context */
+      const ctx = ctxMap.get(bubble)!;
+
+      /* Which mini-bubble is currently marked in-focus?       */
+      const cur = bubble.querySelector<HTMLElement>(
+                    '.mini-bubble.in-focus');
+      const idx   = Number(cur?.dataset.chunk ?? 0);
+      const parts = ctx.chunkLookup?.[idx] ?? [];   // filled in attachFullScreenScroller
+
+      if (parts.length){
+        /* orange faces + camera */
+        this.addFocusHighlights(parts, ctx);
+        this.frameByPart(parts[0], ctx);
+        ctx.hasFramed = true;
+
+        /* dock, relation cards, pill outline */
+        this.updateRelationCards(ctx, parts);
+        this.showDock(ctx);
+        parts.forEach(pn=>{
+          ctx.partButtons[pn]?.classList.add('scroll-active');
+        });
+      }
+    }
   }
 
   //
-  private clearScrollHighlights(ctx: BubbleCtx) {
+
+
+/* ---------------- helper: add & clear orange “focus” highlights ---------- */
+private addFocusHighlights(pns: string[], ctx: BubbleCtx) {
+  const win = ctx.iframe?.contentWindow;
+  if (!win) return;
+
+  /* remove previous orange focus */
+  ctx.lastFocusPaths?.forEach(p =>
+    win.postMessage({ type:'removeHighlight', key:'focus', path:p }, '*')
+  );
+
+  /* paint new focus and remember the paths so we can remove next time */
+  ctx.lastFocusPaths = [];
+
+  pns.forEach(pn => {
+    (ctx.partPaths[pn] || []).forEach(path => {
+      win.postMessage(
+        { type:'addHighlight', key:'focus', path, color:'#ffbb00', fill:0.10 },
+        '*'
+      );
+      ctx.lastFocusPaths!.push(path);
+    });
+  });
+}
+
+
+
+
+private frameByPart(pn: string, ctx: BubbleCtx) {
+  const path = ctx.partPaths[pn]?.[0];
+  if (!path) return;
+
   ctx.iframe?.contentWindow?.postMessage(
-    { type: "clearHighlights", keyPrefix: "scroll" },
-    "*"
+    { type:'frameView', paths:[path], duration:1500, frameBorder:0.6 },
+    '*'
   );
 }
 
-private highlightByPart(pn: string, ctx: BubbleCtx) {
-  const paths = this.partToPaths[pn] ?? [];
-  paths.forEach(path =>
-    ctx.iframe?.contentWindow?.postMessage(
-      {
-        type: "addHighlight",
-        key: `scroll-${pn}`,
-        path,
-        color: "#ffbb00",
-        fill: 0.10
-      },
-      "*"
-    )
-  );
-}
+private isFull(bubble: HTMLElement){ return bubble.classList.contains('fullscreen'); }
+
 /* ────────────────────────── helper: wheel-controlled focus ── */
 private attachFullScreenScroller(
   bubble: HTMLElement,
@@ -340,9 +421,10 @@ const activate = (newIdx: number) => {
   if (newIdx === idx) return;
 
   bubList[idx].classList.remove('in-focus');
-  this.clearScrollHighlights(ctx);
+  this.clearFocus(ctx);
+  this.updateRelationCards(ctx, []);                             // ← NEW
   Object.values(ctx.partButtons).forEach(btn =>
-    btn.classList.remove('scroll-active')
+    btn.classList.remove('scroll-active'),
   );
 
   idx = newIdx;
@@ -369,35 +451,22 @@ const activate = (newIdx: number) => {
   };
   requestAnimationFrame(step);
 
-  const parts = chunkLookup[idx] ?? [];
-  parts.forEach(pn => {
-    this.highlightByPart(pn, ctx);
-    ctx.partButtons[pn]?.classList.add('scroll-active');
+  const parts = chunkLookup[newIdx] ?? [];
 
-    // 🔥 Add this scrolling behavior for bin buttons container
-    const btn = ctx.partButtons[pn];
-    if (btn) {
-      const container = btn.closest('.bin-buttons-container');
-      if (container instanceof HTMLElement) {
-        btn.scrollIntoView({
-          behavior: 'smooth',
-          block: 'center',
-          inline: 'nearest'
-        });
-      }
-    }
-  });
-
-  if (parts.length === 1) {
-    this.showRelation(
-      ctx,
-      `<button class="bin-button static">${parts[0]}</button>&nbsp;—&nbsp;${
-        ctx.relationMap[parts[0]] ?? '(no relation text found)'
-      }`
-    );
-  } else {
-    this.showRelation(ctx, null);
+  /* ⬇︎ run these only when FULLSCREEN */
+  if (this.isFull(bubble) && parts.length){
+    this.addFocusHighlights(parts, ctx);            // orange paint
+    this.frameByPart(parts[0], ctx);                // camera
+    this.updateRelationCards(ctx, parts);           // cards
+    this.showDock(ctx);                             // slide dock in
+    ctx.hasFramed = true;
   }
+
+  ctx.chunkLookup = chunkLookup
+
+  /* still keep the pill-button feedback */
+  parts.forEach(pn => ctx.partButtons[pn]?.classList.add('scroll-active'));
+
 };
 
   /* wheel handler */
@@ -436,11 +505,33 @@ const activate = (newIdx: number) => {
   });
 
   /* Initialise first bubble */
-  bubList[0].classList.add("in-focus");
-  (chunkLookup[0] ?? []).forEach(pn => {
-    this.highlightByPart(pn, ctx);
-    ctx.partButtons[pn]?.classList.add("scroll-active");
+  bubList[0].classList.add('in-focus');
+
+  const firstParts = chunkLookup[0] ?? [];
+  const parts = chunkLookup[idx] ?? [];
+
+  /* ONE-OFF work for the new chunk ----------------------------- */
+  this.addFocusHighlights(parts, ctx);       // orange fill
+  if (parts.length) this.frameByPart(parts[0], ctx);
+  ctx.hasFramed = true;
+  this.showDock(ctx);                        // make dock visible
+
+  /* Per-part UI sync ------------------------------------------- */
+  parts.forEach(pn => {
+    ctx.partButtons[pn]?.classList.add('scroll-active');
+
+    /* auto-scroll the pill into view */
+    const btn = ctx.partButtons[pn];
+    if (btn) {
+      btn.scrollIntoView({ behavior:'smooth', block:'center' });
+    }
   });
+
+  /* Relation card logic (unchanged) ---------------------------- */
+
+  firstParts.forEach(pn =>
+    ctx.partButtons[pn]?.classList.add('scroll-active')
+  );
 }
 
 
@@ -456,6 +547,30 @@ private clearHighlight(ctx: BubbleCtx) {
   }
   this.highlightedPaths = [];
 }
+
+private focusPart(pn: string, ctx: BubbleCtx) {
+  const win = ctx.iframe?.contentWindow;
+  if (!win) return;
+
+  /* a ─ clear previous focus */
+  this.clearFocus(ctx);
+
+  /* b ─ colour the faces of the new part */
+  this.addFocusHighlights([pn], ctx);
+  this.showDock(ctx);
+
+  /* c ─ move the camera */
+  this.frameByPart(pn, ctx);          // <- already defined elsewhere
+  ctx.hasFramed = true;
+
+  /* d ─ light up the matching pill-button */
+  ctx.partButtons[pn]?.classList.add('scroll-active');
+}
+
+private showDock(ctx: BubbleCtx) {
+  ctx.bottomDock?.classList.add('dock-active');
+}
+
 
 private appendOneMessage(msg: UserMsg | AssistantMsg) {
   const chat = this.shadow.getElementById("chatMessages") as HTMLElement;
@@ -518,6 +633,10 @@ private appendOneMessage(msg: UserMsg | AssistantMsg) {
     (msg as AssistantMsg).subParts.forEach(sp => {
       (chunkLookup[sp.relation_to_chunk] ||= []).push(sp.part_number);
     });
+    const pnToChunk: Record<string, number> = {};
+    (msg as AssistantMsg).subParts.forEach(sp => {
+      pnToChunk[sp.part_number] = sp.relation_to_chunk;
+    });
 
     const relMap: Record<string, string> = {};
     (msg as AssistantMsg).subParts.forEach(sp => {
@@ -533,7 +652,13 @@ private appendOneMessage(msg: UserMsg | AssistantMsg) {
       highlightedPaths: [],
       hoverPart: null,
       relationPanel: null,
-      relationMap: relMap
+      relationMap: relMap,
+      bottomDock: null,
+      partPaths: {}, 
+      lastFocusPaths: [],  
+      hasFramed     : false, 
+      mouseClickHighlighted: [],
+      chunkLookup: chunkLookup,
     };
     ctxMap.set(bubble, ctx);
 
@@ -552,13 +677,17 @@ private appendOneMessage(msg: UserMsg | AssistantMsg) {
       iframe.setAttribute("allow", "xr-spatial-tracking");
       iframe.style.cssText = "width:100%;min-height:480px;border:none";
       slide.appendChild(iframe);
-
+      window.addEventListener('message', (e) => {
+        if (!e.data?.type?.startsWith('pointer')) return;
+        console.log('[host] got', e.data.type, e.data.path);
+      });
+/*
       const relPanel = document.createElement('div');
       relPanel.className = 'relation-panel';   // closed by default
       relPanel.textContent = '…';              // placeholder
       slide.appendChild(relPanel);
       ctx.relationPanel = relPanel;            // store in the context
-
+*/
       const fsBtn = document.createElement("button");
       fsBtn.className = "fullscreen-btn";
       fsBtn.textContent = "⤢";
@@ -566,6 +695,36 @@ private appendOneMessage(msg: UserMsg | AssistantMsg) {
       slide.appendChild(fsBtn);
       this.fullBtn = fsBtn;
 
+      const bottomDock = document.createElement('div');
+      bottomDock.className = 'bottom-dock';   // ⬅ absolute grid container
+
+      /* quick-action bar (flex inside col-1) */
+      const quickBar = document.createElement('div');
+      quickBar.className = 'quick-bar';
+      quickBar.innerHTML = `
+        <button class="quick-btn" data-id="a1">Action 1</button>
+        <button class="quick-btn" data-id="a2">Action 2</button>
+      `;
+      bottomDock.appendChild(quickBar);
+      ctx.bottomDock = bottomDock;
+      slide.appendChild(bottomDock);
+
+      /* relation panel (lives in col-2) */
+      const relPanel = document.createElement('div');
+      relPanel.className = 'relation-panel';  // closed by default
+      relPanel.textContent = '…';
+      bottomDock.appendChild(relPanel);
+      ctx.relationPanel = relPanel;           // save in context
+
+      /* hook up temp actions (unchanged) */
+      quickBar.addEventListener('click', e => {
+        if (!(e.target instanceof HTMLButtonElement)) return;
+        console.log('Clicked', e.target.dataset.id);
+      });
+
+      slide.appendChild(bottomDock);  
+
+      /*
       const quickBar = document.createElement('div');
       quickBar.className = 'quick-bar';           // hidden by default – CSS does the magic
       quickBar.innerHTML = `
@@ -573,7 +732,7 @@ private appendOneMessage(msg: UserMsg | AssistantMsg) {
         <button class="quick-btn" data-id="a2">Action 2</button>
       `;
       slide.appendChild(quickBar);
-
+*/
       // (optional) stub click-handlers you can remap later
       quickBar.addEventListener('click', e => {
         if (!(e.target instanceof HTMLButtonElement)) return;
@@ -587,37 +746,98 @@ private appendOneMessage(msg: UserMsg | AssistantMsg) {
       bubble.appendChild(slide);
       requestAnimationFrame(() => slide.classList.add("show"));
 
-      window.addEventListener("message", e => {
-        if (e.data?.type === "illustrationLoaded") {
-          this.iframeReady = true;
+/* helper: "2031-2" ⇒ "2031" */
+      const getPN = (raw: string) => raw.split('-')[0];
 
-          this.highlightQueue.forEach(h =>
-            iframe.contentWindow?.postMessage(
-              {
-                type: "addHighlight",
-                key: "selection",
-                path: h.path,
-                color: "#ffbb00",
-                fill: h.fill
-              },
-              "*"
-            )
-          );
-          this.highlightQueue.length = 0;
+      /* helper: open the dock only if it isn’t already */
+      const showDock = (ctx: BubbleCtx) =>
+        ctx.bottomDock?.classList.add('dock-active');
 
-          this.autoHighlight(
-            (msg as AssistantMsg).subParts.map(p => p.part_number),
-            ctx
-          );
+      window.addEventListener('message', e => {
+        const t = (e.data?.type ?? '') as string;
+
+        switch (t) {
+          /* ───────────────────────── illustration finished loading ─── */
+          case 'illustrationLoaded': {
+            /* 1. build PN → paths[] */
+            const map: Record<string, string[][]> = {};
+            for (const full of e.data.paths as string[][]) {
+              /* keep only every second node & strip dash-suffixes */
+              for (let i = 0; i < full.length; i += 2) {
+                const pn = getPN(full[full.length - 1 - i]);
+                (map[pn] ||= []).push(full);
+              }
+            }
+            ctx.partPaths = map;
+
+            /* 2. permanent blue outline for *all* referenced sub-parts */
+            const allPNs = (msg as AssistantMsg).subParts.map(sp => sp.part_number);
+            this.autoHighlight(allPNs, ctx);
+
+            /* 3. focus & frame the very first chunk */
+            const firstParts = chunkLookup[0] ?? [];
+            if (this.isFull(bubble) && firstParts.length){
+              this.addFocusHighlights(firstParts, ctx);
+              this.frameByPart(firstParts[0], ctx);
+              ctx.hasFramed = true;
+              this.showDock(ctx);
+            }
+
+            /* 4. replay anything that was queued pre-load */
+            this.highlightQueue.forEach(h =>
+              ctx.iframe?.contentWindow?.postMessage(
+                { type:'addHighlight', key:'selection', path:h.path, color:'#ffbb00', fill:h.fill },
+                '*',
+              )
+            );
+            this.highlightQueue.length = 0;
+            return;                          // <-- case handled
+          }
+
+          /* ───────────────────────── click directly on geometry ────── */
+          case 'pointerClickedOnGeom': {
+            const path = e.data.path as string[];
+            const pn   = getPN(path[path.length - 2] ?? '');
+
+            /* ignore clicks on parts the assistant didn’t mention */
+            if (!ctx.partPaths[pn]) return;
+
+            /* a) focus + camera */
+            this.focusPart(pn, ctx);
+            showDock(ctx);
+
+            /* b) highlight / scroll the pill button */
+            const btn = ctx.partButtons[pn];
+            if (btn) {
+              btn.classList.add('scroll-active');
+              btn.scrollIntoView({ behavior:'smooth', block:'center' });
+            }
+
+            /* c) scroll prose to the matching chunk */
+            const tk = (msg as AssistantMsg).subParts
+                        .find(sp => sp.part_number === pn)?.relation_to_chunk;
+            if (typeof tk === 'number') {
+              bubble.querySelector<HTMLElement>(
+                `.mini-bubble[data-chunk="${tk}"]`
+              )?.click();
+            }
+            return;
+          }
+
+          /* ───────────────────────── ignore everything else ─────────── */
+          default:
+            return;
         }
       });
+      
     }
 
     /* Buttons for part numbers */
     this.injectBinButtons(
       bubble,
       (msg as AssistantMsg).subParts.map(p => p.part_number),
-      ctx
+      ctx,
+      pnToChunk
     );
 
     /* Support footer */
@@ -744,55 +964,52 @@ private async callAssistantAPI(userText: string): Promise<AssistantMsg> {
       })
     );
   }
-  private partToPaths: Record<string, string[][]> = {
-    'TS03053-W': [['root','Assets','TS03083-W.iam','TS03083-W.iam','TS03053:1']],
-    'TS03056-W': [
-      ['root','Assets','TS03083-W.iam','TS03083-W.iam','TS03056:1']   // ← add
-    ]
-    // keep any earlier mappings here
-  };
     /*
     private highlightedPart: string | null = null;
     */
     private highlightedPaths: string[][] = [];
-    private viewerIframe: HTMLIFrameElement | null = null;
-    private autoHighlight(parts: string[], ctx: BubbleCtx): void {
+    private autoHighlight(subParts: string[], ctx: BubbleCtx) {
       const win = ctx.iframe?.contentWindow;
-      if (!win) return;                 // iframe not ready yet
+      if (!win) return;
 
-      parts.forEach(pn => {
-        const paths = this.partToPaths[pn];
-        if (!paths) return;
-        paths.forEach(path =>
+      subParts.forEach(pn => {
+        (ctx.partPaths[pn] || []).forEach(path =>
           win.postMessage(
             {
-              type:  'addHighlight',
-              key:   `auto-${pn}`,
+              type   : 'addHighlight',
+              key    : `auto-${pn}`,          // never removed
               path,
-              color: '#0078d4',
-              fill:  0.05,
-              outline: 2
+              color  : '#0078d4',
+              fill   : 0.05,
+              outline: 2,
             },
-            '*'
-          )
+            '*',
+          ),
         );
       });
     }
-    private showRelation(ctx: BubbleCtx, html: string | null) {
-      const panel = ctx.relationPanel;
-      if (!panel) return;
+    private clearFocus(ctx: BubbleCtx) {
+      const win = ctx.iframe?.contentWindow;
+      if (!win) return;
 
-      if (html) {
-        panel.innerHTML = html;           // ⬅️ was textContent
-        panel.classList.remove('open');
-        void panel.offsetWidth;           // reflow → restart animation
-        panel.classList.add('open');
-      } else {
-        panel.classList.remove('open');
+      // ① remove the coloured faces
+      ctx.lastFocusPaths.forEach(p =>
+        win.postMessage({ type:'removeHighlight', key:'focus', path:p }, '*'),
+      );
+      ctx.lastFocusPaths = [];
+      this.updateRelationCards(ctx, []);
+
+      // ② only fly back if we previously framed in
+      if (ctx.hasFramed) {
+        win.postMessage(
+          { type:'selectView', name:'Initial View', duration:800 },
+          '*',
+        );
+        ctx.hasFramed = false;
       }
     }
   // Inject action buttons for bin locations.
-  private injectBinButtons(bubble: HTMLElement, partNumbers: string[] , ctx: BubbleCtx
+  private injectBinButtons(bubble: HTMLElement, partNumbers: string[] , ctx: BubbleCtx, pnToChunk: Record<string, number>
   ) {
     // use ctx.partButtons instead of this.partButtons
     if (!partNumbers.length) return;
@@ -830,61 +1047,64 @@ private async callAssistantAPI(userText: string): Promise<AssistantMsg> {
       }
 
     btn.addEventListener('click', () => {
-const same = pn === activePart;
+      const dock = ctx.bottomDock!; 
+
+      const same = pn === activePart;
 
 
-if (same) {
-  this.clearHighlight(ctx);
-  if (activeButton) activeButton.classList.remove('active');
-  activeButton = null;
-  activePart = null;
-  if (detailsContainer) collapseDetailsContainer(detailsContainer);
-  this.showRelation(ctx, null);
-  return;
-}
+      if (same) {
+        this.clearHighlight(ctx);
+        this.clearFocus(ctx);          // 🔸 remove orange + reset camera
 
-  if (activeButton) activeButton.classList.remove('active');
-  btn.classList.add('active');
-  activeButton = btn;
-  activePart = pn;
+        if (activeButton) activeButton.classList.remove('active');
+        activeButton = null;
+        activePart = null;
+        dock.classList.remove('dock-active');
+        if (detailsContainer) collapseDetailsContainer(detailsContainer);
+        this.updateRelationCards(ctx, []);
+        return;
+      }
 
-  this.clearHighlight(ctx);
-  const paths = this.partToPaths[pn] || [];
-  if (this.viewerIframe && this.iframeReady && paths.length) {
-    paths.forEach(p =>
-      ctx.iframe?.contentWindow?.postMessage(
-        { type: 'addHighlight', key: 'selection', path: p, color: '#ffbb00', fill: 0.25 },
-        '*'
-      )
-    );
-  } else if (!this.iframeReady) {
-    paths.forEach(p => this.highlightQueue.push({ path: p, fill: 0.08 }));
-  }
-  /*
-  this.highlightedPart = pn;
-  */
-  this.highlightedPaths = paths;
+        if (activeButton) activeButton.classList.remove('active');
+        btn.classList.add('active');
+        activeButton = btn;
+        activePart = pn;
 
-  this.showRelation(
-    ctx,
-    `<button class="bin-button static">${pn}</button>&nbsp;—&nbsp;${
-      ctx.relationMap[pn] ?? '(no relation text found)'
-    }`
-  );
+        this.clearHighlight(ctx);
 
-  if (detailsContainer) {
-    const html =
-      data && data.length ? binLocationHtml(data[0]) : '<i>No bin location found</i>';
-    this.updateDetailsContainer(detailsContainer, html);
-  }
+        this.clearFocus(ctx);            // ← NEW
+        this.focusPart(pn, ctx);
+        this.updateRelationCards(ctx, [pn]);  
+        /* 🔸 apply orange focus on the newly-clicked part */
+        /*
+        this.addFocusHighlights([pn], ctx); // ← NEW
+        this.frameByPart(pn, ctx);          // ← NEW
+        ctx.hasFramed = true;  
+        */
 
-  // 🔥 Add smooth scrolling here
-  btn.scrollIntoView({
-    behavior: 'smooth',
-    block: 'center',
-    inline: 'nearest'
-  });
-});
+        const targetChunk = pnToChunk[pn];
+        bubble.querySelector<HTMLElement>(
+          `.mini-bubble[data-chunk="${targetChunk}"]`
+        )?.click();
+        /*
+        this.highlightedPart = pn;
+        */
+        this.highlightedPaths = ctx.partPaths[pn] || [];
+
+        if (detailsContainer) {
+          const html =
+            data && data.length ? binLocationHtml(data[0]) : '<i>No bin location found</i>';
+          this.updateDetailsContainer(detailsContainer, html);
+        }
+
+        // 🔥 Add smooth scrolling here
+        btn.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+          inline: 'nearest'
+        });
+        dock.classList.add('dock-active'); 
+      });
 
 
     });
@@ -906,6 +1126,28 @@ if (same) {
     bubble.appendChild(downloadBtn);
   }
 
+  private updateRelationCards(ctx: BubbleCtx, partNumbers: string[]){
+    const panel = ctx.relationPanel;
+    if (!panel) return;
+
+    panel.textContent = '';                     // clear
+
+    if (!partNumbers.length){
+      ctx.bottomDock?.classList.remove('dock-active');
+      return;
+    }
+
+    partNumbers.forEach(pn=>{
+      const card = document.createElement('div');
+      card.className = 'rel-card';
+      card.innerHTML =
+        `<button class="bin-button static">${pn}</button>
+        &nbsp;—&nbsp;${ctx.relationMap[pn] ?? '(no description)'}`;
+      panel.appendChild(card);
+    });
+
+    ctx.bottomDock?.classList.add('dock-active');
+  }
   // Animate update of bin details.
   private updateDetailsContainer(container: HTMLElement, newContent: string) {
     const oldHeight = container.offsetHeight;

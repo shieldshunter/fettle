@@ -83,51 +83,46 @@ button:hover {
 
 /* ─────────  slide becomes a mini-layout  ───────── */
 .fullscreen .slide{
+  display:block;                /* no extra rows/cols needed now   */
+  position:relative;
+}
+
+.fullscreen .bottom-dock{
+  /* same visual rules …                                     */
+  position:absolute;
+  inset-inline:12px;          /* left & right = 12px */
+  bottom:12px;
   display:grid;
-  grid-template-columns: 1fr 260px;   /* grow │ fixed-width panel */
-  grid-template-rows: 1fr auto;       /* viewer │ bottom strip   */
-  column-gap:24px;
-  row-gap:12px;
-  /* height is already 100 % via earlier rule */
-}
+  grid-template-columns: minmax(0,1fr) 260px;  /* quick-bar | cards */
+  gap:20px;
+  align-items:end;
 
-/* viewer iframe occupies the entire top row, both columns */
-.fullscreen .slide iframe{
-  grid-column: 1 / 3;   /* span two columns */
-  grid-row:    1;
-}
-
-/* quick-action bar lives in bottom-left (col-1) */
-.fullscreen .quick-bar{
-  grid-column:1;
-  grid-row:2;
-
-  display:flex;
-  justify-content: center;        /* push buttons toward panel edge */
-  gap:12px;
-
-  backdrop-filter:blur(4px);
-  background: transparent;
-  padding:6px 12px;
-  border-radius:8px;
-
+  transform:translateY(100%); /* hidden by default */
   opacity:0;
-  transform:translateY(100%);
   pointer-events:none;
   transition:transform .32s cubic-bezier(.25,.8,.4,1),
              opacity   .25s ease;
 }
 
-/* relation panel in bottom-right (col-2) – grid replaces absolute */
-.fullscreen .relation-panel{
-  grid-column:2;
-  grid-row:2;
+/* viewer iframe occupies the entire top row, both columns */
 
-  position:static;        /* drop the old absolute positioning */
-  width:100%;
-  max-width:none;         /* grid already constrains width */
-  bottom:auto; right:auto; /* safety */
+/* quick-action bar lives in bottom-left (col-1) */
+.fullscreen .quick-bar{
+  display:inline-flex;      /* shrink-wraps width to content */
+  justify-content:center;
+  gap:12px;
+
+  width:max-content;        /* explicit “only as wide as I need” */
+  max-width:100%;           /* safety when buttons wrap          */
+  justify-self:start;       /* stay against the left gutter      */
+
+  backdrop-filter:blur(4px);
+  background:rgba(0,0,0,.25);
+  padding:6px 12px;
+  border-radius:8px;
 }
+
+/* relation panel in bottom-right (col-2) – grid replaces absolute */
 
 /* ---------- open / hover triggers ---------- */
 .fullscreen .relation-panel.open ~ .quick-bar,
@@ -138,13 +133,7 @@ button:hover {
 }
 
 /* keep the horizontal slide-in animation for the panel */
-.fullscreen .relation-panel{
-  transform:translateX(100%);
-  opacity:0;
-  pointer-events:none;
-  transition:transform .32s cubic-bezier(.25,.8,.4,1),
-              opacity   .25s ease;
-}
+
 .fullscreen .relation-panel.open{
   transform:translateX(0);
   opacity:1;
@@ -183,7 +172,7 @@ button:hover {
 }
 .slide.show {
   max-height: 500px;
-  padding: 8px 4px;
+  padding: 4px 4px;
 }
 
 /* add anywhere after the .bin-button rules */
@@ -234,11 +223,23 @@ button:hover {
 
 
 /* the bar slides up whenever the panel is open  _or_ you hover the slide */
-.fullscreen .relation-panel.open ~ .quick-bar,
-.fullscreen .slide:hover         >  .quick-bar{
+.fullscreen .relation-panel.open{
+  transform:translateX(0);
+  opacity:1;
+  pointer-events:auto;
+}
+
+/* when panel is open OR viewer hovered, raise the dock */
+.fullscreen .relation-panel.open ~ .bottom-dock,
+.fullscreen .bottom-dock.dock-active{
   transform:translateY(0);
   opacity:1;
   pointer-events:auto;
+}
+
+@keyframes flash-outline{ from{outline-offset:-6px; outline-width:4px} to{outline-offset:0; outline-width:0} }
+.fullscreen .mini-bubble.in-focus{
+  animation:flash-outline .8s ease-out;
 }
 
 /* generic pill styling – transparent glassy look */
@@ -258,29 +259,24 @@ button:hover {
   transform:scale(1.05);
 }
 
-.fullscreen .relation-panel {
-  position: absolute;
-  bottom: 24px;
-  right: 24px;
-  width: 260px;                /* final width */
-  max-width: calc(100% - 48px);
-  background: var(--container-bg);
-  color: var(--color-text);
-  max-height: none;
-  font-size: 14px;
-  line-height: 1.35;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,.25);
-  padding: 12px 16px;
-  overflow: auto;
-
-  /* transition from hidden to shown */
-  transform: translateX(100%); /* hidden = push fully off-screen */
-  opacity: 0;
-  pointer-events: none;        /* ignore clicks while closed    */
-  transition: transform .32s cubic-bezier(.25,.8,.4,1),
-              opacity   .25s ease;
+.fullscreen .relation-panel{
+  max-height:none;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  padding-right:4px;          /* room for the scroll bar */
 }
+
+.rel-card{
+  background:#fff;
+  border:1px solid #ddd;
+  border-radius:6px;
+  padding:4px 6px;
+  font-size:13px;
+  line-height:1.35;
+  animation:fade-in .25s ease;
+}
+@keyframes fade-in{from{opacity:0;transform:translateY(4px)}}
 
 .assistant-message:not(.fullscreen) .relation-panel {
   display: none !important; /* hide the panel */
@@ -380,7 +376,6 @@ button:hover {
     grid-column: 3;
     grid-row:    1 / -1;
     height: stretch;
-    padding-bottom: 12px;
     max-height: none !important;   /* override the animated cap */
 }
 
