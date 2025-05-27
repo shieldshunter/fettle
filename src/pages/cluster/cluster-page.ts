@@ -356,6 +356,18 @@ Phone (406) 652‑5867 • Toll‑Free (888) 395‑5867`;
           ctx.partButtons[pn]?.classList.add('scroll-active');
         });
       }
+      requestAnimationFrame(()=>{
+        bubble.classList.toggle('fullscreen', isGoingFull);
+
+        /* ── NEW: whenever we *enter* FS, jump back to chunk-0 ── */
+        if (isGoingFull){
+          const ctx          = ctxMap.get(bubble)!;
+          const scrollerApi  = (ctx as any).activateFirst as (()=>void)|undefined;
+
+          /* attachFullScreenScroller stores a reset callback */
+          scrollerApi?.();            // ← ❶ resets idx & does all the focus work
+        }
+      });
     }
   }
 
@@ -532,6 +544,11 @@ const activate = (newIdx: number) => {
   firstParts.forEach(pn =>
     ctx.partButtons[pn]?.classList.add('scroll-active')
   );
+  /* ── expose “activate(0)” so toggleFull can call it ── */
+  (ctx as any).activateFirst = ()=>activate(0);
+
+  /* initialise first bubble (unchanged) */
+  activate(0);              // ← instead of the manual block you had
 }
 
 
