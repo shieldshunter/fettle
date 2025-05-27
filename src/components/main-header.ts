@@ -158,7 +158,7 @@ class MainHeader extends HTMLElement {
           <div class="header-buttons">
             <button class="header-btn" id="homeButton">Home</button>
             <button class="header-btn" id="goCluster">Bluegrass</button>
-            <!-- <button class="header-btn" id="goCustomizer">Customizer</button> -->
+            <button class="header-btn" id="goCustomizer">Customizer</button>
             <button class="header-btn" id="featuresButton">Features</button>
             <button class="header-btn" id="logoutButton">Logout</button>
           </div>
