@@ -1,0 +1,114 @@
+@import url('../cluster/cluster-page-styles.css');
+
+.scan-container { display:flex; flex-direction:column; gap:12px; padding:16px; }
+.log           { font-family:monospace; max-height:25vh; overflow:auto; }
+.dupe-group    { border:1px solid #e36a1e; border-radius:8px; padding:8px; margin-bottom:8px; }
+.actions       { display:flex; gap:12px; }
+
+.type-selector details { margin-bottom:6px; }
+.type-selector summary { cursor:pointer; font-weight:600; }
+.type-selector label   { font-family:monospace; }
+
+/* ───────── container ───────── */
+.type-selector{
+  display:flex;
+  flex-wrap:wrap;         /* lets pills flow on to new lines */
+  gap:8px;                /* uniform spacing */
+  margin-bottom:12px;
+}
+
+.dupe-group-step{
+  border:1px solid #e36a1e; border-radius:12px; padding:8px;
+  background-color: #e36a1e; color:#fff;
+  margin-top:12px; display:flex; flex-direction:column; gap:6px;
+}
+.dupe-group-step .bin-button{ width:auto; text-align: left;  }
+.dupe-group-step .bin-button:hover{
+    transform: scale(1);
+}
+
+
+.select-controls{
+  display:flex;
+  gap:12px;
+  margin-bottom:8px;
+}
+
+.helper-banner{
+  border:1px solid #e36a1e;
+  border-radius:12px;
+  padding:18px 24px;
+  text-align:center;
+  background:var(--container-bg);
+  max-width:460px;
+  margin:32px auto;
+}
+.helper-banner .bin-button{
+  display:inline-block;
+  margin-top:8px;
+}
+
+.cad-bubble.selected-bubble{
+  background:#0078ff;       /* same blue you used for ext buttons */
+  color:#fff;
+  border-color:#0078ff;
+}
+
+/* each ext button */
+.ext-btn{
+  background: var(--container-bg);
+  color: var(--color-text);
+  border: 1px solid #e36a1e;
+  border-radius: 8px;
+  padding: 2px 10px;
+  margin: 2px;
+  font-family: monospace;
+  font-size: 14px;
+  cursor:pointer;
+  transition: background-color .2s ease, color .2s ease;
+}
+.ext-btn.active{
+  background: #0078ff;          /* or your preferred blue */
+  color:#fff;
+}
+.ext-btn:hover:not(.active){
+  background:#211ee3;
+  color:#fff;
+}
+
+/* ───────── “bubble” pill ───────── */
+.cad-bubble{
+  /* same rounded look as .bin-button on cluster page */
+  background-color: var(--container-bg);
+  border: 1px solid #e36a1e;
+  border-radius: 18px;
+  padding: 4px 14px;
+  cursor:pointer;
+  user-select:none;
+  transition: background-color .25s ease, transform .15s ease;
+  min-width: 110px;       /* enough room so the ▼ arrow doesn’t wrap */
+  overflow:hidden;
+}
+
+/* open (expanded) state gets the orange fill */
+.cad-bubble[open]{
+  background-color:#e36a1e;
+  color:#fff;
+}
+
+/* hover: same highlight you use elsewhere */
+.cad-bubble:not([open]):hover{
+  background-color:#e36a1e;
+  color:#fff;
+  transform:scale(1.05);
+}
+
+/* summary tweaks – hide default marker & keep text centred */
+.cad-bubble summary{
+  list-style:none;        /* removes rtl/ltr arrow */
+  outline:none;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.cad-bubble summary::-webkit-details-marker{ display:none; }

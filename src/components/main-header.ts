@@ -159,7 +159,7 @@ class MainHeader extends HTMLElement {
             <button class="header-btn" id="homeButton">Home</button>
             <button class="header-btn" id="goCluster">Bluegrass</button>
             <!-- <button class="header-btn" id="goCustomizer">Customizer</button> -->
-            <button class="header-btn" id="featuresButton">Features</button>
+            <button class="header-btn" id="goFileScan">File Scan</button>
             <button class="header-btn" id="logoutButton">Logout</button>
           </div>
         </header>
@@ -184,21 +184,22 @@ class MainHeader extends HTMLElement {
       shadow.getElementById('homeButton')!.onclick = () =>
         document.dispatchEvent(new CustomEvent('navigate', { detail: 'home' }));
 
-      shadow.getElementById('featuresButton')!.onclick = () =>
-        document.dispatchEvent(new CustomEvent('navigate', { detail: 'features' }));
-
       shadow.getElementById('goCluster')!.onclick = () =>
         document.dispatchEvent(new CustomEvent('navigate', { detail: 'cluster' }));
 
+      /*
       shadow.getElementById('goCustomizer')!.onclick = () =>
         document.dispatchEvent(new CustomEvent('navigate', { detail: 'customizer' }));
-
+      */
+      shadow.getElementById('goFileScan')!.onclick = () =>
+        document.dispatchEvent(new CustomEvent('navigate', { detail: 'filescan' }));
+      /*
       shadow.getElementById('goTreeBOM')!.onclick = () =>
         document.dispatchEvent(new CustomEvent('navigate', { detail: 'treebom' }));
 
       shadow.getElementById('goLogo')!.onclick = () =>
         document.dispatchEvent(new CustomEvent('navigate', { detail: 'logo' }));
-
+      */
       shadow.getElementById('logoutButton')!.onclick = () =>
         document.dispatchEvent(new CustomEvent('navigate', { detail: 'logout' }));
     }
