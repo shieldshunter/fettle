@@ -74,6 +74,7 @@ connectedCallback() {
                     `dropped_${Date.now()}.csv`));
 
 
+
   /* ----------------------------------------------------------------
      1.  Skip whole page if running in browser (download banner) …
   ---------------------------------------------------------------- */
@@ -86,34 +87,7 @@ connectedCallback() {
   /* ----------------------------------------------------------------
      2.  Try to resume saved progress
   ---------------------------------------------------------------- */
-  const saved = loadProgress();
-  if (saved) {
-    Object.assign(this, {
-      roots:          saved.roots ?? [],
-      allFiles:       saved.allFiles ?? [],
-      dupeQueue:      saved.dupeQueue ?? [],
-      keptSet:        new Set(saved.kept ?? []),
-      droppedSet:     new Set(saved.dropped ?? []),
-      preferredRoots: new Set(saved.preferredRoots ?? []),
-      history:        saved.history ?? []
-    });
 
-    /* ► add RESET button right here */
-    this.addResetButton();
-
-    /* Show whatever UI is appropriate */
-    this.refreshRootList();
-    if (this.dupeQueue.length) {
-      this.renderNextDup();
-    } else {
-      // nothing left; enable download buttons
-      ['dlKept','dlDrop','dlAll'].forEach(id =>
-        this.shadow.getElementById(id)?.removeAttribute('disabled'));
-      this.shadow.getElementById('dupeArea')!.innerHTML =
-        '<p>All duplicates processed 🎉</p>';
-    }
-    return;                                // done with resume path
-  }
 
   /* ----------------------------------------------------------------
      3.  Fresh-scan path: hook up the remaining buttons & UI
@@ -168,19 +142,6 @@ public history: {
   dropped: string[];            // paths dropped during that step
   newPreferred?: string;        // folder added to preferredRoots
 }[] = [];
-
-private addResetButton() {
-  const resetBtn = document.createElement('button');
-  resetBtn.textContent = '⟲ Start new scan';
-  resetBtn.className   = 'bin-button';
-  resetBtn.style.marginBottom = '12px';
-  resetBtn.onclick = () => {
-    localStorage.removeItem(STORAGE_KEY);
-    location.reload();
-  };
-  // prepend so it’s always visible at the top
-  this.shadow.querySelector('.scan-container')?.prepend(resetBtn);
-}
 
 private updateScanBtn() {
   const scanBtn = this.shadow.getElementById('scanBtn') as HTMLButtonElement;
@@ -366,7 +327,6 @@ const autoCommit = (winner: FileInfo) => {
                         newPreferred: newPref });
 
     this.renderNextDup();
-    saveProgress(this);
   };
 
   /* -- decide if auto-keep applies -- */
@@ -428,7 +388,6 @@ const autoCommit = (winner: FileInfo) => {
     this.history.push({ group, kept, dropped, newPreferred: added });
 
     this.renderNextDup();
-    saveProgress(this);
   };
 
   const undoLast = () => {
@@ -447,7 +406,6 @@ const autoCommit = (winner: FileInfo) => {
     this.dupeQueue.unshift(last.group);
 
     this.renderNextDup();
-    saveProgress(this);
   };
 }
 
@@ -462,23 +420,4 @@ function basename(fullPath: string): string {
     return parts.pop() || '';
 }
 
-const STORAGE_KEY = 'trebroFileScanProgress-v1';
 
-function saveProgress(page: FileScanPage) {
-  const data = {
-    roots:           page.roots,
-    allFiles:        page.allFiles,
-    dupeQueue:       page.dupeQueue,
-    kept:            Array.from(page.keptSet),
-    dropped:         Array.from(page.droppedSet),
-    preferredRoots:  Array.from(page.preferredRoots),
-    history:         page.history
-  };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-}
-
-function loadProgress(): null | ReturnType<typeof JSON.parse> {
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if (!raw) return null;
-  try { return JSON.parse(raw); } catch { return null; }
-}
