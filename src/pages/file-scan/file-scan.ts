@@ -9,6 +9,8 @@ function dirname(fullPath: string): string {
   return fullPath.replace(/\\/g, '/').replace(/\/[^/]*$/, '');
 }
 
+
+
 function isInRoot(full: string, roots: Set<string>): boolean {
   const lower = full.toLowerCase();
   for (const r of roots) {
@@ -20,11 +22,11 @@ function isInRoot(full: string, roots: Set<string>): boolean {
 type FileInfo = { fullPath: string; size: number; mtime: number };
 
 class FileScanPage extends HTMLElement {
-  private shadow: ShadowRoot;
-  private roots: string[] = [];
-  private allFiles: FileInfo[] = [];
-  private keptSet = new Set<string>();        // absolute paths
-  private droppedSet = new Set<string>();
+  public shadow: ShadowRoot;
+  public roots: string[] = [];
+  public allFiles: FileInfo[] = [];
+  public keptSet = new Set<string>();        // absolute paths
+  public droppedSet = new Set<string>();
 
   constructor() {
     super();
@@ -67,6 +69,37 @@ class FileScanPage extends HTMLElement {
         return;                                   // skip the rest of the setup
     }
 
+    const saved = loadProgress();
+    if (saved) {
+    Object.assign(this, {
+        roots:          saved.roots ?? [],
+        allFiles:       saved.allFiles ?? [],
+        dupeQueue:      saved.dupeQueue ?? [],
+        keptSet:        new Set(saved.kept ?? []),
+        droppedSet:     new Set(saved.dropped ?? []),
+        preferredRoots: new Set(saved.preferredRoots ?? []),
+        history:        saved.history ?? []
+    });
+
+    // if we still have duplicates left, jump straight into the wizard
+    if (this.dupeQueue.length) {
+        this.refreshRootList();          // show roots that were scanned
+        this.renderNextDup();            // resume wizard
+        return;                          // skip normal init
+    }
+    }
+
+    if (saved) {
+        const resetBtn = document.createElement('button');
+        resetBtn.textContent = 'Start new scan';
+        resetBtn.className = 'bin-button';
+        resetBtn.onclick = () => {
+            localStorage.removeItem(STORAGE_KEY);
+            location.reload();          // full reset
+        };
+        this.shadow.prepend(resetBtn);
+        }
+
 
     this.shadow.getElementById('addRootBtn')!.addEventListener('click', () => this.pickFolder());
     this.shadow.getElementById('scanBtn')!.addEventListener('click', () => this.runScan());
@@ -94,6 +127,8 @@ class FileScanPage extends HTMLElement {
     
 
   }
+
+  
 
   private renderDownloadBanner() {
     this.shadow.innerHTML = `
@@ -129,7 +164,7 @@ class FileScanPage extends HTMLElement {
         bubble.classList.toggle('selected-bubble', hasActive);
       });
 }
-private history: {
+public history: {
   group: { key: string; files: FileInfo[] };
   kept:  string[];              // paths kept during that step
   dropped: string[];            // paths dropped during that step
@@ -150,10 +185,10 @@ private buildRegexFromSelector(): string {
   return String.raw`^(?!~\$).*(\.(${extPart}))(\.[[:digit:]]+)?$`;
 }
 /** all dup groups after scan:  [ {key, files[]}, … ] */
-private dupeQueue: { key: string; files: FileInfo[] }[] = [];
+public dupeQueue: { key: string; files: FileInfo[] }[] = [];
 
 /** folders the user has already kept – informs future auto-picks */
-private preferredRoots = new Set<string>();
+public preferredRoots = new Set<string>();
 
 private renderTypeSelector() {
   const host = this.shadow.getElementById('typeSelector') as HTMLDivElement;
@@ -399,6 +434,7 @@ const autoCommit = (winner: FileInfo) => {
     this.dupeQueue.unshift(last.group);
 
     this.renderNextDup();
+    saveProgress(this);
   };
 }
 
@@ -413,3 +449,23 @@ function basename(fullPath: string): string {
     return parts.pop() || '';
 }
 
+const STORAGE_KEY = 'trebroFileScanProgress-v1';
+
+function saveProgress(page: FileScanPage) {
+  const data = {
+    roots:           page.roots,
+    allFiles:        page.allFiles,
+    dupeQueue:       page.dupeQueue,
+    kept:            Array.from(page.keptSet),
+    dropped:         Array.from(page.droppedSet),
+    preferredRoots:  Array.from(page.preferredRoots),
+    history:         page.history
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+function loadProgress(): null | ReturnType<typeof JSON.parse> {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return null;
+  try { return JSON.parse(raw); } catch { return null; }
+}
