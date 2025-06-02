@@ -60,73 +60,71 @@ class FileScanPage extends HTMLElement {
       </div>`;
   }
 
-  connectedCallback() {
+connectedCallback() {
+  /* ----------------------------------------------------------------
+     0.  Wire *every* permanent listener first – these must exist
+         no matter whether we’re resuming or doing a fresh scan.
+  ---------------------------------------------------------------- */
+  this.shadow.getElementById('dlKept')?.addEventListener('click', () =>
+    exportSimpleCSV(this.rowsForCSV('kept'),
+                    `kept_${Date.now()}.csv`));
 
-    const isElectron = !!(window as any).electronAPI?.selectFolder;
+  this.shadow.getElementById('dlDrop')?.addEventListener('click', () =>
+    exportSimpleCSV(this.rowsForCSV('dropped'),
+                    `dropped_${Date.now()}.csv`));
 
-    if (!isElectron) {
-        this.renderDownloadBanner();
-        return;                                   // skip the rest of the setup
-    }
 
-    const saved = loadProgress();
-    if (saved) {
+  /* ----------------------------------------------------------------
+     1.  Skip whole page if running in browser (download banner) …
+  ---------------------------------------------------------------- */
+  const isElectron = !!(window as any).electronAPI?.selectFolder;
+  if (!isElectron) {
+    this.renderDownloadBanner();
+    return;
+  }
+
+  /* ----------------------------------------------------------------
+     2.  Try to resume saved progress
+  ---------------------------------------------------------------- */
+  const saved = loadProgress();
+  if (saved) {
     Object.assign(this, {
-        roots:          saved.roots ?? [],
-        allFiles:       saved.allFiles ?? [],
-        dupeQueue:      saved.dupeQueue ?? [],
-        keptSet:        new Set(saved.kept ?? []),
-        droppedSet:     new Set(saved.dropped ?? []),
-        preferredRoots: new Set(saved.preferredRoots ?? []),
-        history:        saved.history ?? []
+      roots:          saved.roots ?? [],
+      allFiles:       saved.allFiles ?? [],
+      dupeQueue:      saved.dupeQueue ?? [],
+      keptSet:        new Set(saved.kept ?? []),
+      droppedSet:     new Set(saved.dropped ?? []),
+      preferredRoots: new Set(saved.preferredRoots ?? []),
+      history:        saved.history ?? []
     });
 
-    // if we still have duplicates left, jump straight into the wizard
+    /* ► add RESET button right here */
+    this.addResetButton();
+
+    /* Show whatever UI is appropriate */
+    this.refreshRootList();
     if (this.dupeQueue.length) {
-        this.refreshRootList();          // show roots that were scanned
-        this.renderNextDup();            // resume wizard
-        return;                          // skip normal init
+      this.renderNextDup();
+    } else {
+      // nothing left; enable download buttons
+      ['dlKept','dlDrop','dlAll'].forEach(id =>
+        this.shadow.getElementById(id)?.removeAttribute('disabled'));
+      this.shadow.getElementById('dupeArea')!.innerHTML =
+        '<p>All duplicates processed 🎉</p>';
     }
-    }
-
-    if (saved) {
-        const resetBtn = document.createElement('button');
-        resetBtn.textContent = 'Start new scan';
-        resetBtn.className = 'bin-button';
-        resetBtn.onclick = () => {
-            localStorage.removeItem(STORAGE_KEY);
-            location.reload();          // full reset
-        };
-        this.shadow.prepend(resetBtn);
-        }
-
-
-    this.shadow.getElementById('addRootBtn')!.addEventListener('click', () => this.pickFolder());
-    this.shadow.getElementById('scanBtn')!.addEventListener('click', () => this.runScan());
-    const dlKeptBtn = this.shadow.getElementById('dlKept') as HTMLButtonElement | null;
-    const dlDropBtn = this.shadow.getElementById('dlDrop') as HTMLButtonElement | null;
-
-        if (dlKeptBtn) dlKeptBtn.addEventListener('click', () =>
-        exportSimpleCSV(this.rowsForCSV('kept'),
-                        `kept_${Date.now()}.csv`)
-        );
-
-        // ── Download Dropped ─────────────────────────────
-        if (dlDropBtn) dlDropBtn.addEventListener('click', () =>
-        exportSimpleCSV(this.rowsForCSV('dropped'),
-                        `dropped_${Date.now()}.csv`)
-        );
-
-      this.renderTypeSelector();
-      this.updateScanBtn();      // initial state
-
-        /* re-run every time a pill toggles */
-        this.shadow.querySelectorAll('.ext-btn')
-            .forEach(btn => btn.addEventListener('click', () => this.updateScanBtn()));
-
-    
-
+    return;                                // done with resume path
   }
+
+  /* ----------------------------------------------------------------
+     3.  Fresh-scan path: hook up the remaining buttons & UI
+  ---------------------------------------------------------------- */
+  this.shadow.getElementById('addRootBtn')!
+      .addEventListener('click', () => this.pickFolder());
+  this.shadow.getElementById('scanBtn')!
+      .addEventListener('click', () => this.runScan());
+
+  this.renderTypeSelector();               // original setup continues here
+}
 
   
 
@@ -170,6 +168,19 @@ public history: {
   dropped: string[];            // paths dropped during that step
   newPreferred?: string;        // folder added to preferredRoots
 }[] = [];
+
+private addResetButton() {
+  const resetBtn = document.createElement('button');
+  resetBtn.textContent = '⟲ Start new scan';
+  resetBtn.className   = 'bin-button';
+  resetBtn.style.marginBottom = '12px';
+  resetBtn.onclick = () => {
+    localStorage.removeItem(STORAGE_KEY);
+    location.reload();
+  };
+  // prepend so it’s always visible at the top
+  this.shadow.querySelector('.scan-container')?.prepend(resetBtn);
+}
 
 private updateScanBtn() {
   const scanBtn = this.shadow.getElementById('scanBtn') as HTMLButtonElement;
@@ -355,6 +366,7 @@ const autoCommit = (winner: FileInfo) => {
                         newPreferred: newPref });
 
     this.renderNextDup();
+    saveProgress(this);
   };
 
   /* -- decide if auto-keep applies -- */
@@ -416,6 +428,7 @@ const autoCommit = (winner: FileInfo) => {
     this.history.push({ group, kept, dropped, newPreferred: added });
 
     this.renderNextDup();
+    saveProgress(this);
   };
 
   const undoLast = () => {
