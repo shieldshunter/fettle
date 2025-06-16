@@ -93,7 +93,63 @@ export default class Jobboss2AIAgentPage extends HTMLElement {
 
     return wrapper;                         // so we can remove it later
   }
+private smoothScroll(el: HTMLElement) {
+  el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+}
 
+private appendAssistantAnimated(raw: string) {
+  const chat = this.querySelector('.chat-messages') as HTMLElement;
+  if (!chat) return;  
+
+  /* container + bubble */
+  const wrap   = document.createElement('div');
+  wrap.className = 'message-container enter';
+  const bubble = document.createElement('div');
+  bubble.className = 'message assistant-message';
+
+  /* live type-writer span */
+  const span  = document.createElement('span');
+  span.className = 'typed-text-span';
+  bubble.appendChild(span);
+
+  /* TSR cursor */
+  const cursor = document.createElement('img');
+  cursor.src   = 'data/TSRIcon.png';
+  cursor.alt   = 'TSR';
+  cursor.className = 'tsr-inline-cursor';
+  span.appendChild(cursor);
+
+  wrap.appendChild(bubble);
+  chat.appendChild(wrap);
+  requestAnimationFrame(() => wrap.classList.remove('enter'));
+  this.smoothScroll(chat);
+
+  /* ── typing ── */
+  let i = 0;
+  const step = () => {
+    if (i < raw.length) {
+      const ch = raw[i++];
+      if (ch === '\n') span.insertBefore(document.createElement('br'), cursor);
+      else             span.insertBefore(document.createTextNode(ch), cursor);
+
+      this.smoothScroll(chat);
+      setTimeout(step, 10);                     // 20 ms per char
+    } else {
+      cursor.remove();
+
+      /* swap typed text → formatted HTML */
+      bubble.innerHTML = raw
+        .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+        .replace(/^## (.*$)/gim,  '<h2>$1</h2>')
+        .replace(/^# (.*$)/gim,   '<h1>$1</h1>')
+        .replace(/\*\*(.*?)\*\*/gim, '<b>$1</b>')
+        .replace(/\*(.*?)\*/gim,     '<i>$1</i>')
+        .replace(/\n/g, '<br>');
+      this.smoothScroll(chat);
+    }
+  };
+  step();
+}
   /* ─────────── chat loop ─────────── */
 private async send(userText: string) {
   const text = this.quickTemplate
@@ -119,12 +175,8 @@ private async send(userText: string) {
 
     loader.remove();                                       // ★ NEW
 
-    this.thread = res.history;
-    this.messages.push({
-      role: 'assistant',
-      content: String(res.finalOutput ?? ''),
-    });
-    this.render();
+  this.thread = res.history;
+  this.appendAssistantAnimated(String(res.finalOutput ?? ''));
   } catch (err) {
     loader.remove();                                       // ★ NEW
     console.error(err);
