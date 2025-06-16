@@ -1,0 +1,72 @@
+@import '../cluster/cluster-page-styles.css';
+
+/* overrides / extras  */
+:root {
+  --container-bg: #f7f9fc;
+  --color-text:   #222;
+}
+
+/* make the assistant orange a bit lighter so forms stand out */
+.assistant-message {
+  background:#f58b3c;
+}
+
+/* form wrapper */
+.jb2-form {
+  display:grid;
+  gap:12px;
+  padding:16px;
+  border:2px solid #e36a1e;
+  border-radius:12px;
+  background:#fff;
+}
+
+/* two-column label/input on desktop */
+@media(min-width:640px){
+  .jb2-form .field {display:grid;grid-template-columns:160px 1fr;align-items:center;}
+}
+
+/* buttons */
+.jb2-form button {
+  background:#1b63b6;
+  color:#fff;
+  border:none;
+}
+
+.quick-btn.active {
+  background: var(--accent, #047ffb);
+  color: #fff;
+  filter: brightness(1.1);
+}
+
+
+.quick-actions {
+  display:flex; gap:6px; margin:8px 0 2px 0; flex-wrap:wrap;
+}
+.qa-btn {
+  background:#F4F6F8; border:1px solid #E0E3E7;
+  padding:4px 10px; font-size:12px; border-radius:14px;
+  cursor:pointer; transition:background .15s;
+  color: #222;
+}
+.qa-btn:hover { background:#1381ca; color: #E0E3E7;}
+
+.input-bar {
+  display:flex; align-items:flex-end; gap:8px;
+  border:1px solid #E0E3E7; border-radius:8px;
+  padding:6px 8px; margin-top:6px;
+  background:#fff;
+}
+.input-bar textarea {
+  flex:1; resize:none; border:none; outline:none;
+  font:14px/1.4 var(--font-family, sans-serif);
+  max-height:160px; overflow-y:auto;
+  color: var(--color-background, #222);
+}
+
+.send-btn:hover { background:#084ED8; }
+.send-btn svg { pointer-events:none; }
+
+.input-bar.template-mode     { background:#2b67b6; }
+.input-bar.template-mode textarea { color:#fff; }
+button.send-btn.template-mode { background:#fff; color:#006; }

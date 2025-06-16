@@ -20,6 +20,7 @@ import {
 import cssText from './cluster-page-styles.css?inline'; // Import the CSS text
 
 
+
 const sheet = new CSSStyleSheet();
 sheet.replaceSync(cssText);
 
@@ -390,41 +391,60 @@ function updateDetailsContainer(container: HTMLElement, newContent: string): voi
   }
 
   /* ───────── Assistant API ───────── */
-  private async callAssistantAPI(userText: string): Promise<AssistantMsg> {
-    let threadId = sessionStorage.getItem('tsrThread');
-    if (!threadId) {
-      const thread = await openai.beta.threads.create();
-      threadId = thread.id;
-      sessionStorage.setItem('tsrThread', threadId);
-    }
-
-    await openai.beta.threads.messages.create(threadId, { role: 'user', content: userText });
-    const run = await openai.beta.threads.runs.create(threadId, { assistant_id: ASSISTANT_ID });
-
-    while (true) {
-      const r = await openai.beta.threads.runs.retrieve(threadId, run.id);
-      if (r.status === 'completed') break;
-      if (['failed','expired'].includes(r.status)) throw new Error(`Run ${r.status}`);
-      await new Promise(r => setTimeout(r, 800));
-    }
-
-    const { data } = await openai.beta.threads.messages.list(threadId, { limit: 1 });
-    const block = data[0].content[0];
-    if (block.type !== 'text') throw new Error('Assistant returned non‑text block');
-
-    const raw = block.text.value;
-    let parsed: { raw_text?: string; part_numbers?: string[] } = {};
-    try { parsed = JSON.parse(raw); } catch {}
-
-    const partNumbers = Array.isArray(parsed.part_numbers) ? parsed.part_numbers : [];
-    await this.prefetchBinLocations(partNumbers); // ✅ move before return
-
-    return {
-      role:        'assistant',
-      rawText:     parsed.raw_text ?? raw,
-      partNumbers: partNumbers
-    };
+/* ───────── Assistant API ───────── */
+private async callAssistantAPI(userText: string): Promise<AssistantMsg> {
+  /* ---------- a) thread ---------- */
+  let threadId = sessionStorage.getItem('tsrThread');
+  if (!threadId) {
+    threadId = (await openai.beta.threads.create()).id;               // ✔ create v2 thread
+    sessionStorage.setItem('tsrThread', threadId);
   }
+
+  /* ---------- b) user message ---------- */
+  await openai.beta.threads.messages.create(threadId, {
+    role   : 'user',
+    content: userText,
+  });
+
+  /* ---------- c) start a run ---------- */
+  const run = await openai.beta.threads.runs.create(threadId, {       // ← returns **Run**
+    assistant_id: ASSISTANT_ID,
+  });
+  const runId = run.id;                                               // ← keep its id!
+
+  /* ---------- d) wait for completion (poll) ---------- */
+  while (true) {
+    const updated = await openai.beta.threads.runs.retrieve(runId, { thread_id: threadId });
+    if (updated.status === 'completed') break;
+    if (['failed', 'expired'].includes(updated.status)) {
+      throw new Error(`Run ${updated.status}`);
+    }
+    await new Promise(r => setTimeout(r, 800));                      // 0.8 s poll
+  }
+
+  /* ---------- e) newest assistant message ---------- */
+  const { data } = await openai.beta.threads.messages.list(threadId, {
+    limit: 1,
+    order: 'desc',   // newest first
+  });
+
+  const firstBlock = data[0].content[0];
+  if (firstBlock.type !== 'text') throw new Error('Assistant returned non-text');
+
+  const raw    = firstBlock.text.value;
+  let parsed: { raw_text?: string; part_numbers?: string[] } = {};
+  try { parsed = JSON.parse(raw); } catch {/* plain text */}
+  const partNumbers = Array.isArray(parsed.part_numbers) ? parsed.part_numbers : [];
+
+  await this.prefetchBinLocations(partNumbers);
+
+  return {
+    role       : 'assistant',
+    rawText    : parsed.raw_text ?? raw,
+    partNumbers,
+  };
+}
+
 
 }
 

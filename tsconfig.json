@@ -4,6 +4,7 @@
     "module": "ESNext",
     /* ① add DOM.Iterable so HeadersIterator / MapIterator exist */
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "skipLibCheck": true,
 
     /* ② tell TS about Vite’s globals */
     "types": ["vite/client"],

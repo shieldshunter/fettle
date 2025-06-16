@@ -9,6 +9,7 @@ import './pages/cluster/cluster-page'; // Import the cluster page
 import './pages/logo/logo-page'; // Import the logo page
 import './pages/chat-customizer/customizer-page'; // Import the customizer page
 import './pages/file-scan/file-scan'; // Import the file scan page
+import './pages/JobBoss2-ai/jobboss2-ai-page'; // Import the JobBoss2 AI page
 
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -125,6 +126,8 @@ function setupHeaderNav() {
         slideTransition(document.createElement('cluster-page'));
       } else if (pageId === 'customizer') {
         slideTransition(document.createElement('customizer-page'));
+      } else if (pageId === 'jb2ai') {
+        slideTransition(document.createElement('jobboss2-ai-page'));
       } else if (pageId === 'filescan') {
         slideTransition(document.createElement('file-scan'));
       } else if (pageId === 'logo') {

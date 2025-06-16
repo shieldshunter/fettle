@@ -12,7 +12,6 @@
   flex-grow: 1;
   margin-bottom: 12px;
   overflow-y: auto;
-  max-height: 60vh;
 }
 
 .message-container {
