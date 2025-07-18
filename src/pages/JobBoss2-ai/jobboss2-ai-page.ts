@@ -150,6 +150,8 @@ private appendAssistantAnimated(raw: string) {
   };
   step();
 }
+
+
   /* ─────────── chat loop ─────────── */
 private async send(userText: string) {
   const text = this.quickTemplate

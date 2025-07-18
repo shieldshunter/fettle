@@ -10,6 +10,7 @@
 import { tool, Tool } from '@openai/agents';
 import { jb2Fetch }   from './jb2tools.generated';   // auth‑aware fetch
 import { z }          from 'zod';
+import toolDocs from './jb2-tool-descriptions.json'
 
 /* --------------------------------------------------
  * Reusable utility
@@ -343,7 +344,7 @@ export const issuePOsForShortages = tool({
 /* --- primitives that were already stand‑alone (no changes) ---- */
 export const findOrders = tool({
   name: 'findOrders',
-  description: 'Retrieve a single order header by its orderNumber.',
+  description: toolDocs.findOrders,
   parameters: z.object({
     orderNumber: z.string(),
     fields: z.string().nullable().default('dueDate,customerCode,status'),
@@ -353,49 +354,49 @@ export const findOrders = tool({
 
 export const getOrderLines = tool({
   name:'getOrderLines',
-  description:'Return every line‑item for an order.',
+  description: toolDocs.getOrderLines,
   parameters:z.object({orderNumber:z.string()}),
   execute: ({orderNumber})=>fetchOrderLines(orderNumber)
 });
 
 export const getBinLocations = tool({
   name:'getBinLocations',
-  description:'List every bin that holds a part.',
+  description: toolDocs.getBinLocations,
   parameters:z.object({partNumber:z.string()}),
   execute: ({partNumber})=>fetchBinLocations(partNumber)
 });
 
 export const getOnHandQty = tool({
   name:'getOnHandQty',
-  description:'Return total on‑hand qty for a part.',
+  description: toolDocs.getOnHandQty,
   parameters:z.object({partNumber:z.string()}),
   execute: ({partNumber})=>fetchOnHandQty(partNumber)
 });
 
 export const createPurchaseOrder = tool({
   name:'createPurchaseOrder',
-  description:'Create purchase order header',
+  description: toolDocs.createPurchaseOrder,
   parameters:z.object({supplier:z.string(),requiredDate:z.string()}),
   execute: ({supplier,requiredDate})=>createPOHeader(supplier,requiredDate)
 });
 
 export const addPOLine = tool({
   name:'addPOLine',
-  description:'Add line to PO',
+  description: toolDocs.addPOLine,
   parameters:z.object({poNumber:z.string(),partNumber:z.string(),quantity:z.number(),dueDate:z.string()}),
   execute: ({poNumber,partNumber,quantity,dueDate})=>addPOLineItem(poNumber,partNumber,quantity,dueDate)
 });
 
 export const finalizePO = tool({
   name:'finalizePO',
-  description:'Finalize PO',
+  description: toolDocs.finalizePO,
   parameters:z.object({poNumber:z.string(),status:z.string().default('Approved'),promisedDate:z.string()}),
   execute: ({poNumber,status,promisedDate})=>finalizePOHeader(poNumber,status,promisedDate)
 });
 
 export const checkOrderOnHandQty = tool({
   name: 'checkOrderOnHandQty',
-  description: 'For every order line, compare qty ordered vs on-hand total.',
+  description: toolDocs.checkOrderOnHandQty,
   parameters: z.object({ orderNumber: z.string() }),
   execute: async ({ orderNumber }) => {
     const lines = await fetchOrderLines(orderNumber);        // 200 OK
