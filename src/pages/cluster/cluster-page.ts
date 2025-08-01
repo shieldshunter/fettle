@@ -138,7 +138,7 @@ function makeSplitter(bubble: HTMLElement) {
     const startX   = ev.clientX;
     const bubbleBB = bubble.getBoundingClientRect();
     const startW   = parseFloat(getComputedStyle(bubble)
-                      .getPropertyValue('--left-col')) || 280;
+                      .getPropertyValue('--left-col')) || 350;
 
     const onMove = (e: PointerEvent) => {
       const dx   = e.clientX - startX;
@@ -207,7 +207,11 @@ Phone (406) 652‑5867 • Toll‑Free (888) 395‑5867`;
         <div class="chat-messages" id="chatMessages"></div>
         <div class="input-area">
           <textarea id="userInput" placeholder="Type your message..."></textarea>
-          <button id="sendBtn">Send</button>
+          <button id="sendBtn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="currentColor"/>
+            </svg>
+          </button>
         </div>
       </div>`;
   }
@@ -595,7 +599,7 @@ private appendOneMessage(msg: UserMsg | AssistantMsg) {
   wrap.className =
     "message-container enter" + (msg.role === "user" ? " user" : "");
   const bubble = document.createElement("div");
-  bubble.style.setProperty("--left-col", "280px");
+  bubble.style.setProperty("--left-col", "350px");
   bubble.className =
     "message " + (msg.role === "user" ? "user-message" : "assistant-message");
 
@@ -938,7 +942,7 @@ private async callAssistantAPI(userText: string): Promise<AssistantMsg> {
 
   // Poll until finished
   while (true) {
-    const r = await openai.beta.threads.runs.retrieve(threadId, run.id);
+    const r = await openai.beta.threads.runs.retrieve(run.id, threadId);
     if (r.status === "completed") break;
     if (r.status === "failed" || r.status === "expired")
       throw new Error("Run " + r.status);
