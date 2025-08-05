@@ -160,7 +160,9 @@ class MainHeader extends HTMLElement {
             <button class="header-btn" id="goCluster">Bluegrass</button>
             <!-- <button class="header-btn" id="goCustomizer">Customizer</button> -->
             <button class="header-btn" id="goJB2AI">JobBoss<sup>2</sup> AI</button>
-            <button class="header-btn" id="goFileScan">File Scan</button>
+
+            <button class="header-btn" id="goFileDeduplication">File Scan</button>
+            <button class="header-btn" id="goProjectView">File Project View</button>
             <button class="header-btn" id="logoutButton">Logout</button>
           </div>
         </header>
@@ -192,8 +194,13 @@ class MainHeader extends HTMLElement {
       shadow.getElementById('goCustomizer')!.onclick = () =>
         document.dispatchEvent(new CustomEvent('navigate', { detail: 'customizer' }));
       */
-      shadow.getElementById('goFileScan')!.onclick = () =>
-        document.dispatchEvent(new CustomEvent('navigate', { detail: 'filescan' }));
+
+
+      shadow.getElementById('goFileDeduplication')!.onclick = () =>
+        document.dispatchEvent(new CustomEvent('navigate', { detail: 'filededuplication' }));
+
+      shadow.getElementById('goProjectView')!.onclick = () =>
+        document.dispatchEvent(new CustomEvent('navigate', { detail: 'projectview' }));
 
       shadow.getElementById('goJB2AI')!.onclick = () =>
         document.dispatchEvent(new CustomEvent('navigate', { detail: 'jb2ai' }));

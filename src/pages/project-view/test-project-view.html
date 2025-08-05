@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project View Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+        }
+        
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .test-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .test-header h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .test-header p {
+            color: #666;
+            font-size: 16px;
+        }
+        
+        .demo-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .demo-section h2 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .feature-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .feature-item h3 {
+            margin: 0 0 8px 0;
+            color: #2c3e50;
+            font-size: 16px;
+        }
+        
+        .feature-item p {
+            margin: 0;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .status-legend {
+            display: flex;
+            gap: 20px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 4px;
+            background: white;
+            border: 1px solid #ddd;
+            font-size: 14px;
+        }
+        
+        .legend-item.unresolved {
+            border-color: #f39c12;
+            color: #f39c12;
+        }
+        
+        .legend-item.primary {
+            border-color: #3498db;
+            color: #3498db;
+        }
+        
+        .legend-item.deleted {
+            border-color: #e74c3c;
+            color: #e74c3c;
+        }
+        
+        .legend-item.resolved {
+            border-color: #27ae60;
+            color: #27ae60;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="test-header">
+            <h1>🌲 Project File Tree View</h1>
+            <p>A comprehensive file tree interface with duplicate highlighting and resolution states</p>
+        </div>
+        
+        <div class="demo-section">
+            <h2>🎨 Color-Coded File Status System</h2>
+            <p>The file tree uses a sophisticated color-coding system to help you quickly identify file states:</p>
+            
+            <div class="status-legend">
+                <div class="legend-item unresolved">
+                    <span>🟡</span>
+                    <span>Unresolved</span>
+                </div>
+                <div class="legend-item primary">
+                    <span>🔵</span>
+                    <span>Primary (Keep)</span>
+                </div>
+                <div class="legend-item deleted">
+                    <span>🟥</span>
+                    <span>Deleted</span>
+                </div>
+                <div class="legend-item resolved">
+                    <span>✅</span>
+                    <span>Resolved Folder</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>✨ Key Features</h2>
+            <div class="feature-list">
+                <div class="feature-item">
+                    <h3>📂 Interactive Tree View</h3>
+                    <p>Expand/collapse folders with smooth animations and visual hierarchy</p>
+                </div>
+                
+                <div class="feature-item">
+                    <h3>🎯 Duplicate Detection</h3>
+                    <p>Files with duplicates show a red badge with the count of copies</p>
+                </div>
+                
+                <div class="feature-item">
+                    <h3>🔍 Smart Resolution</h3>
+                    <p>Click any file to see all duplicates and resolve them inline</p>
+                </div>
+                
+                <div class="feature-item">
+                    <h3>📊 Progress Tracking</h3>
+                    <p>Folders turn green when all duplicates are resolved</p>
+                </div>
+                
+                <div class="feature-item">
+                    <h3>⚡ Bulk Operations</h3>
+                    <p>Expand all, collapse all, and filter unresolved files</p>
+                </div>
+                
+                <div class="feature-item">
+                    <h3>📱 Responsive Design</h3>
+                    <p>Works seamlessly on desktop and mobile devices</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>🧠 How It Works</h2>
+            <ol>
+                <li><strong>Project Selection:</strong> Choose from your existing deduplication projects</li>
+                <li><strong>Tree Loading:</strong> The system builds a hierarchical tree from your file data</li>
+                <li><strong>Duplicate Grouping:</strong> Files with the same hash are grouped together</li>
+                <li><strong>Status Visualization:</strong> Each file is color-coded based on its resolution status</li>
+                <li><strong>Interactive Resolution:</strong> Click files to see duplicates and mark as primary/deleted</li>
+                <li><strong>Progress Tracking:</strong> Folders automatically show resolved status when all duplicates are handled</li>
+            </ol>
+        </div>
+        
+        <div class="demo-section">
+            <h2>🔧 Technical Architecture</h2>
+            <ul>
+                <li><strong>Frontend:</strong> Web Components with Shadow DOM for encapsulation</li>
+                <li><strong>Backend:</strong> Node.js/Express API with PostgreSQL database</li>
+                <li><strong>State Management:</strong> Real-time updates with optimistic UI</li>
+                <li><strong>File Processing:</strong> SHA-256 hashing for accurate duplicate detection</li>
+                <li><strong>Tree Building:</strong> Efficient algorithm to convert flat file lists to hierarchical trees</li>
+                <li><strong>Responsive Design:</strong> CSS Grid and Flexbox for adaptive layouts</li>
+            </ul>
+        </div>
+        
+        <!-- The actual project view component -->
+        <project-view-page></project-view-page>
+    </div>
+    
+    <script type="module">
+        // Import the project view component
+        import './project-view-page.js';
+        
+        // Add some sample data for testing (if needed)
+        console.log('Project View Test Page Loaded');
+        console.log('Features:');
+        console.log('- Interactive file tree with color-coded status');
+        console.log('- Duplicate detection and resolution');
+        console.log('- Expand/collapse folder functionality');
+        console.log('- Real-time status updates');
+        console.log('- Responsive design for all devices');
+    </script>
+</body>
+</html> 

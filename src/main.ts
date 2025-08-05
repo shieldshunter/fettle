@@ -8,8 +8,10 @@ import { initWaves } from './utils/wave';
 import './pages/cluster/cluster-page'; // Import the cluster page
 import './pages/logo/logo-page'; // Import the logo page
 import './pages/chat-customizer/customizer-page'; // Import the customizer page
-import './pages/file-scan/file-scan'; // Import the file scan page
+
 import './pages/JobBoss2-ai/jobboss2-ai-page'; // Import the JobBoss2 AI page
+import './pages/file-deduplication/file-deduplication-page'; // Import the file deduplication page
+import './pages/project-view/project-view-page'; // Import the project view page
 
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -128,10 +130,12 @@ function setupHeaderNav() {
         slideTransition(document.createElement('customizer-page'));
       } else if (pageId === 'jb2ai') {
         slideTransition(document.createElement('jobboss2-ai-page'));
-      } else if (pageId === 'filescan') {
-        slideTransition(document.createElement('file-scan'));
       } else if (pageId === 'logo') {
         slideTransition(document.createElement('logo-page'));
+      } else if (pageId === 'filededuplication') {
+        slideTransition(document.createElement('file-deduplication-page'));
+      } else if (pageId === 'projectview') {
+        slideTransition(document.createElement('project-view-page'));
       }
     });
   // Repeat or generalize as needed for other nav buttons…

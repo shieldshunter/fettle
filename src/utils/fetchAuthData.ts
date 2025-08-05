@@ -1,8 +1,7 @@
 export async function fetchAuthData(): Promise<Set<string>> {
   const AZURE_BUCKET_URL =
   'https://partsmanual.blob.core.windows.net/authenticationhash/credentials.json'
-+ '?sp=racwdli&st=2025-03-10T16:47:55Z&se=2025-08-01T00:47:55Z'
-+ '&sv=2022-11-02&sr=c&sig=4BjCw6SBZmI606wTM3GEQUYRcuhRQMlgKrj0Wy%2B4Y8g%3D';
++ '?sv=2024-11-04&ss=bfqt&srt=sco&sp=rwdlacupiytfx&se=2026-12-13T00:40:19Z&st=2025-08-04T15:25:19Z&spr=https,http&sig=7LSdsX4SkTUHUfRuVEKC0MPln0K0G1kAhOY1v9bJUKs%3D';
 
   try {
     const response = await fetch(AZURE_BUCKET_URL, { cache: 'no-cache' });
