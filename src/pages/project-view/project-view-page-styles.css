@@ -1,9 +1,11 @@
 
 .project-view-container {
-  max-width: 1200px;
-  margin: 0 auto;
+  width: 100%;
+  height: 100vh;
+  margin: 0;
   padding: 20px;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  box-sizing: border-box;
 }
 
 .header {
@@ -239,7 +241,7 @@
 
 /* File Tree */
 .tree-container {
-  max-height: 600px;
+  height: calc(100vh - 300px);
   overflow-y: auto;
   border: 1px solid #e0e0e0;
   border-radius: 6px;

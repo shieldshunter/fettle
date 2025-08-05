@@ -87,6 +87,7 @@ class ProjectViewPage extends HTMLElement {
             <button id="expandAllBtn" class="bin-button">📂 Expand All</button>
             <button id="collapseAllBtn" class="bin-button">📁 Collapse All</button>
             <button id="showUnresolvedBtn" class="bin-button">🔍 Show Unresolved Only</button>
+            <button id="openTreeViewBtn" class="bin-button tree-view-btn">🌳 Full Tree View (WAY BETTER VIEW)</button>
           </div>
           <div class="controls-right">
             <div class="legend">
@@ -143,6 +144,7 @@ class ProjectViewPage extends HTMLElement {
     this.shadow.getElementById('expandAllBtn')?.addEventListener('click', () => this.expandAll());
     this.shadow.getElementById('collapseAllBtn')?.addEventListener('click', () => this.collapseAll());
     this.shadow.getElementById('showUnresolvedBtn')?.addEventListener('click', () => this.toggleUnresolvedOnly());
+    this.shadow.getElementById('openTreeViewBtn')?.addEventListener('click', () => this.openTreeView());
     this.shadow.getElementById('downloadReportBtn')?.addEventListener('click', () => this.downloadResolutionReport());
     this.shadow.getElementById('downloadScriptableBtn')?.addEventListener('click', () => this.downloadScriptableReport());
 
@@ -1270,6 +1272,20 @@ ${unresolvedFiles.map(file => `  ⏳ ${file.relativePath}`).join('\n')}
       statusElement.textContent = '';
       statusElement.className = 'status-message';
     }, 5000);
+  }
+
+  private openTreeView() {
+    if (!this.currentProject) {
+      this.showStatus('No project selected', 'error');
+      return;
+    }
+    
+    // Store the current project ID in sessionStorage for the tree view page
+    sessionStorage.setItem('currentProjectId', this.currentProject.id.toString());
+    
+    // Navigate to the tree view page using the main app's navigation
+    const event = new CustomEvent('navigate', { detail: 'treeview' });
+    document.dispatchEvent(event);
   }
 }
 

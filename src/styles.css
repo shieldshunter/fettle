@@ -101,6 +101,24 @@ main-header.visible {
   border-radius: 15px;
 }
 
+/* Special styling for tree view page - full screen without constraints */
+#mainContainer.tree-view-active {
+  width: 100%;
+  height: calc(100% - 20px);
+  margin: 0;
+  margin-top: 40px;
+  padding-bottom: 20px;
+  border-radius: 0;
+  overflow: hidden;
+  transform: none;
+  opacity: 1;
+}
+
+/* When tree view page is active, hide the header */
+#mainContainer.tree-view-active ~ main-header {
+  display: none !important;
+}
+
 #mainContainer {
   scrollbar-width: none;    /* Firefox */
   -ms-overflow-style: none; /* IE 10+ */

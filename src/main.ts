@@ -12,6 +12,7 @@ import './pages/chat-customizer/customizer-page'; // Import the customizer page
 import './pages/JobBoss2-ai/jobboss2-ai-page'; // Import the JobBoss2 AI page
 import './pages/file-deduplication/file-deduplication-page'; // Import the file deduplication page
 import './pages/project-view/project-view-page'; // Import the project view page
+import './pages/project-view/tree-view-page'; // Import the tree view page
 
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -93,6 +94,11 @@ async function init() {
 function slideTransition(newPageEl: HTMLElement) {
   const container = document.getElementById('mainContainer')!;
 
+  // Remove tree view active class for all transitions except tree view
+  if (!(newPageEl instanceof HTMLElement) || newPageEl.tagName.toLowerCase() !== 'tree-view-page') {
+    container.classList.remove('tree-view-active');
+  }
+
   // Clear the container's content by setting innerHTML
   container.innerHTML = '';
 
@@ -136,6 +142,15 @@ function setupHeaderNav() {
         slideTransition(document.createElement('file-deduplication-page'));
       } else if (pageId === 'projectview') {
         slideTransition(document.createElement('project-view-page'));
+      } else if (pageId === 'treeview') {
+        const treeViewPage = document.createElement('tree-view-page');
+        slideTransition(treeViewPage);
+        
+        // Add special class to main container for tree view styling
+        const mainContainer = document.getElementById('mainContainer');
+        if (mainContainer) {
+          mainContainer.classList.add('tree-view-active');
+        }
       }
     });
   // Repeat or generalize as needed for other nav buttons…
