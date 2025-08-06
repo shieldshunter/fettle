@@ -285,11 +285,14 @@ class TreeViewPage extends HTMLElement {
             
             if (hasPrimary || allDeleted) {
               child.status = file.status;
+              console.log(`✅ File ${file.relative_path}: resolved group (${group.count} duplicates), status: ${file.status}`);
             } else {
               child.status = 'unresolved';
+              console.log(`🟡 File ${file.relative_path}: unresolved group (${group.count} duplicates), status: unresolved`);
             }
           } else {
             child.status = 'normal';
+            console.log(`⚪ File ${file.relative_path}: no duplicates, status: normal`);
           }
         }
 
@@ -321,8 +324,12 @@ class TreeViewPage extends HTMLElement {
       
       if (hasUnresolved) {
         nodeElement.className += ' status-unresolved';
+        console.log(`🟠 Folder ${node.name}: marked as unresolved (has unresolved duplicates)`);
       } else if (this.isFolderResolved(node)) {
         nodeElement.className += ' resolved';
+        console.log(`🟢 Folder ${node.name}: marked as resolved`);
+      } else {
+        console.log(`⚫ Folder ${node.name}: normal (no special status)`);
       }
       
       const expandIcon = node.isExpanded ? '📂' : '📁';
@@ -396,6 +403,7 @@ class TreeViewPage extends HTMLElement {
       if (child.isFolder) {
         return this.hasUnresolvedDuplicates(child);
       }
+      // Only mark as unresolved if the file has duplicates AND is actually unresolved
       const hasUnresolvedDuplicates = child.status === 'unresolved' && child.duplicateCount && child.duplicateCount > 1;
       return hasUnresolvedDuplicates;
     });

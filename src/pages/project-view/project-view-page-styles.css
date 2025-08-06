@@ -350,7 +350,8 @@
   opacity: 0.8 !important;
   background-color: transparent !important;
   padding: 0 !important;
-  border-radius: 0 !important;
+  border-radius: 4 !important;
+  border: none !important;
 }
 
 .file-node.status-normal {
@@ -367,17 +368,17 @@
 }
 
 .folder-node.status-unresolved .node-name {
-  color: var(--status-unresolved) !important;
-  font-weight: 600 !important;
-  background-color: rgba(243, 156, 18, 0.1) !important;
-  padding: 2px 6px !important;
-  border-radius: 4px !important;
-  border: 1px solid rgba(243, 156, 18, 0.3) !important;
+  color: var(--status-unresolved);
+  font-weight: bold;
+  background-color: var(--status-unresolved-bg);
+  padding: 4px 8px;
+  border-radius: 4px;
 }
 
 .folder-node:not(.status-unresolved) .node-name {
   color: var(--file-text) !important;
   font-weight: 500 !important;
+  border: none !important;
 }
 
 .folder-node .node-content {
@@ -385,16 +386,10 @@
   border: 1px solid rgba(52, 73, 94, 0.1);
 }
 
-.tree-node.file-node .node-name {
-  color: var(--file-text) !important;
-  font-weight: 400 !important;
-  background-color: transparent !important;
-  padding: 0 !important;
-  border-radius: 0 !important;
-  border: none !important;
-  opacity: 1 !important;
-  text-decoration: none !important;
-}
+
+
+
+
 
 .duplicate-badge {
   background: var(--badge-bg);
@@ -413,6 +408,34 @@
   display: flex;
   gap: 8px;
   margin-left: auto;
+}
+
+.tree-node.file-node .node-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.tree-node.folder-node .node-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.node-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.node-info:hover {
+  background-color: var(--file-selected);
 }
 
 .tree-node.file-node .node-content {
@@ -1301,5 +1324,63 @@
   
   .loading-content p {
     font-size: 14px;
+  }
+}
+
+/* Popup Navigation Styles */
+.popup-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: var(--nav-bg);
+  border-top: 1px solid var(--nav-border);
+  gap: 16px;
+}
+
+.nav-btn {
+  background: var(--nav-btn);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+  min-width: 80px;
+}
+
+.nav-btn:hover {
+  background: var(--nav-btn-hover);
+}
+
+.nav-btn:disabled {
+  background: var(--nav-btn-disabled);
+  cursor: not-allowed;
+}
+
+.nav-counter {
+  font-size: 14px;
+  color: var(--nav-text);
+  font-weight: 500;
+  flex: 1;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .popup-navigation {
+    padding: 12px 16px;
+    gap: 12px;
+  }
+  
+  .nav-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+    min-width: 60px;
+  }
+  
+  .nav-counter {
+    font-size: 12px;
   }
 } 

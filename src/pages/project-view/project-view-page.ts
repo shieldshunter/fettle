@@ -353,17 +353,17 @@ class ProjectViewPage extends HTMLElement {
             if (hasPrimary || allDeleted) {
               // Group is resolved, use the file's actual status
               child.status = file.status;
+              console.log(`✅ File ${file.relative_path}: resolved group (${group.count} duplicates), status: ${file.status}`);
             } else {
               // Group is unresolved, mark as unresolved
               child.status = 'unresolved';
+              console.log(`🟡 File ${file.relative_path}: unresolved group (${group.count} duplicates), status: unresolved`);
             }
-            
-            console.log(`🔴 File ${file.relative_path}: HAS duplicates (${group.count}), final status: ${child.status}`);
             
           } else {
             // This file has no duplicates, mark as normal - REGARDLESS OF BACKEND STATUS
             child.status = 'normal';
-            console.log(`✅ File ${file.relative_path}: NO duplicates found, setting status to NORMAL`);
+            console.log(`⚪ File ${file.relative_path}: no duplicates, status: normal`);
           }
         }
 
@@ -393,16 +393,11 @@ class ProjectViewPage extends HTMLElement {
       
       // Check if folder contains unresolved duplicates
       const hasUnresolved = this.hasUnresolvedDuplicates(node);
-      console.log(`🔍 Checking folder ${node.name}: hasUnresolved=${hasUnresolved}`);
       
       if (hasUnresolved) {
         nodeElement.className += ' status-unresolved';
-        console.log(`🟠 Folder ${node.name}: contains unresolved duplicates`);
       } else if (this.isFolderResolved(node)) {
         nodeElement.className += ' resolved';
-        console.log(`🟢 Folder ${node.name}: resolved`);
-      } else {
-        console.log(`⚫ Folder ${node.name}: normal (no special status)`);
       }
       
       const expandIcon = node.isExpanded ? '📂' : '📁';
@@ -492,11 +487,8 @@ class ProjectViewPage extends HTMLElement {
       if (child.isFolder) {
         return this.hasUnresolvedDuplicates(child);
       }
-      // Check if this file has unresolved duplicates (status is unresolved AND has duplicates)
+      // Only mark as unresolved if the file has duplicates AND is actually unresolved
       const hasUnresolvedDuplicates = child.status === 'unresolved' && child.duplicateCount && child.duplicateCount > 1;
-      if (hasUnresolvedDuplicates) {
-        console.log(`🔍 Found unresolved duplicate in folder: ${child.name} (${child.duplicateCount} duplicates)`);
-      }
       return hasUnresolvedDuplicates;
     });
   }
