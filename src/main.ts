@@ -3,6 +3,7 @@ import { LoginDialog } from './pages/login/login-dialog';
 import './pages/login/login-dialog'; // define custom element
 import './pages/treeBOM/drop-zone';
 import './components/main-header';
+import './components/wave-spinner';
 import auth from './utils/auth';
 import { initWaves } from './utils/wave';
 import './pages/cluster/cluster-page'; // Import the cluster page
@@ -157,11 +158,15 @@ function setupHeaderNav() {
 }
 
 // Toggle dark mode example
-let isDarkMode = false;
+let isDarkMode = localStorage.getItem('darkMode') === 'true';
 document.addEventListener('toggleDarkMode', () => {
   isDarkMode = !isDarkMode;
+  localStorage.setItem('darkMode', isDarkMode.toString());
   document.body.classList.toggle('dark-mode', isDarkMode);
 });
+
+// Initialize dark mode on page load
+document.body.classList.toggle('dark-mode', isDarkMode);
 
 /**
  * Listen for a custom 'login-success' event from the login dialog

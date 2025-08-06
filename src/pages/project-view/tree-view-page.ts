@@ -108,6 +108,9 @@ class TreeViewPage extends HTMLElement {
           </div>
         </div>
 
+        <!-- Loading Container -->
+        <div id="loadingContainer" class="loading-container" style="display: none;"></div>
+
         <!-- Status Messages -->
         <div id="statusMessage" class="status-message"></div>
       </div>
@@ -160,6 +163,9 @@ class TreeViewPage extends HTMLElement {
 
   private async loadProjectTree(projectId: number) {
     try {
+      // Show loading state
+      this.showLoadingState('Loading project files...');
+      
       // Load project details
       const projectResponse = await fetch(`${this.apiBaseUrl}/projects/${projectId}`);
       if (!projectResponse.ok) throw new Error('Failed to load project details');
@@ -193,6 +199,8 @@ class TreeViewPage extends HTMLElement {
       this.showStatus(`Loaded project: ${this.currentProject?.name || 'Unknown'}`, 'success');
     } catch (error) {
       this.showStatus('Error loading project tree: ' + error, 'error');
+    } finally {
+      this.hideLoadingState();
     }
   }
 
@@ -712,6 +720,9 @@ class TreeViewPage extends HTMLElement {
         return;
       }
 
+      // Show loading state for the specific button
+      this.showButtonLoadingState('primary', relativePath);
+
       const response = await fetch(`${this.apiBaseUrl}/resolve/${this.currentProject.id}/mark-primary`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -727,14 +738,17 @@ class TreeViewPage extends HTMLElement {
       
       if (result.success) {
         this.showStatus('File marked as primary', 'success');
+        // Reload the project tree to get updated statuses
         await this.loadProjectTree(this.currentProject.id);
+        // Refresh the popup if it's currently open
         this.refreshPopupIfOpen();
       } else {
         throw new Error(result.error || 'Failed to mark file as primary');
       }
     } catch (error) {
-      console.error(`Error in markAsPrimary:`, error);
       this.showStatus('Error marking file as primary: ' + error, 'error');
+    } finally {
+      this.hideButtonLoadingState('primary', relativePath);
     }
   }
 
@@ -744,6 +758,9 @@ class TreeViewPage extends HTMLElement {
         this.showStatus('No project selected', 'error');
         return;
       }
+
+      // Show loading state for the specific button
+      this.showButtonLoadingState('deleted', relativePath);
 
       const response = await fetch(`${this.apiBaseUrl}/resolve/${this.currentProject.id}/mark-deleted`, {
         method: 'POST',
@@ -760,14 +777,17 @@ class TreeViewPage extends HTMLElement {
       
       if (result.success) {
         this.showStatus('File marked as deleted', 'success');
+        // Reload the project tree to get updated statuses
         await this.loadProjectTree(this.currentProject.id);
+        // Refresh the popup if it's currently open
         this.refreshPopupIfOpen();
       } else {
         throw new Error(result.error || 'Failed to mark file as deleted');
       }
     } catch (error) {
-      console.error(`Error in markAsDeleted:`, error);
       this.showStatus('Error marking file as deleted: ' + error, 'error');
+    } finally {
+      this.hideButtonLoadingState('deleted', relativePath);
     }
   }
 
@@ -863,6 +883,51 @@ class TreeViewPage extends HTMLElement {
     // Navigate back to project view page using the main app's navigation
     const event = new CustomEvent('navigate', { detail: 'projectview' });
     document.dispatchEvent(event);
+  }
+
+  // Add loading state methods
+  private showLoadingState(message: string = 'Loading...') {
+    const loadingContainer = this.shadow.getElementById('loadingContainer');
+    if (loadingContainer) {
+      loadingContainer.innerHTML = `
+        <div class="loading-overlay">
+          <div class="loading-content">
+            <wave-spinner></wave-spinner>
+            <p>${message}</p>
+          </div>
+        </div>
+      `;
+      loadingContainer.style.display = 'block';
+    }
+  }
+
+  private hideLoadingState() {
+    const loadingContainer = this.shadow.getElementById('loadingContainer');
+    if (loadingContainer) {
+      loadingContainer.style.display = 'none';
+    }
+  }
+
+  private showButtonLoadingState(action: 'primary' | 'deleted', _relativePath: string) {
+    // Find the button in the popup or tree and show loading state
+    const buttons = this.shadow.querySelectorAll(`.${action}-btn`) as NodeListOf<HTMLButtonElement>;
+    buttons.forEach(button => {
+      const originalText = button.textContent;
+      button.innerHTML = '<wave-spinner></wave-spinner>';
+      button.disabled = true;
+      (button as any).originalText = originalText;
+    });
+  }
+
+  private hideButtonLoadingState(action: 'primary' | 'deleted', _relativePath: string) {
+    // Restore button state
+    const buttons = this.shadow.querySelectorAll(`.${action}-btn`) as NodeListOf<HTMLButtonElement>;
+    buttons.forEach(button => {
+      if ((button as any).originalText) {
+        button.innerHTML = (button as any).originalText;
+        button.disabled = false;
+      }
+    });
   }
 }
 

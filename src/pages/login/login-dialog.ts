@@ -40,18 +40,12 @@ class LoginDialog extends HTMLElement {
             <i class="fas fa-paper-plane"></i>
             <span class="text">Send Magic Link</span>
           </span>
-          <span class="wave-spinner">
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-            <div></div>
-          </span>
+          <wave-spinner class="loading-spinner"></wave-spinner>
         </button>
 
         <!-- Microsoft Form container (unchanged) -->
         <div id="msFormContainer" style="display: none; margin-top: 1rem;">
-          <p>If you don’t have an account, please fill out the form below:</p>
+          <p>If you don't have an account, please fill out the form below:</p>
           <iframe id="msForm"
             width="640px"
             height="480px"
@@ -72,41 +66,6 @@ class LoginDialog extends HTMLElement {
     const sendLinkBtn = this.shadowRoot!.getElementById('sendLinkBtn') as HTMLButtonElement;
     const msFormContainer = this.shadowRoot!.getElementById('msFormContainer') as HTMLDivElement;
     //const msForm = this.shadowRoot!.getElementById('msForm') as HTMLIFrameElement;
-
-
-    const waveColorSets = [
-      {
-        step0: 'var(--container-bg:)',  // Fallback white
-        step40: 'rgb(255, 160, 105)', // Example wave color
-        step50: '#f36f21'            // Orange tone, for instance
-      },
-      {
-        step0: 'var(--container-bg:)',  // Fallback white
-        step40: 'rgb(255, 160, 105)', // Example wave color
-        step50: '#f36f21'            // Orange tone, for instance
-      },
-      {
-        step0: 'var(--container-bg:)',  // Fallback white
-        step40: 'rgb(255, 160, 105)', // Example wave color
-        step50: '#f36f21'            // Orange tone, for instance
-      },
-      {
-        step0: 'var(--container-bg:)',  // Fallback white
-        step40: 'rgb(255, 160, 105)', // Example wave color
-        step50: '#f36f21'            // Orange tone, for instance
-      }
-      // Add more sets as needed
-    ];
-    // Pick a random color set
-    const waveDots = sendLinkBtn.querySelectorAll<HTMLDivElement>('.wave-spinner > div');
-
-    waveDots.forEach(dot => {
-      const randomColors = waveColorSets[Math.floor(Math.random() * waveColorSets.length)];
-
-      dot.style.setProperty('--wave-color-0', randomColors.step0);
-      dot.style.setProperty('--wave-color-40', randomColors.step40);
-      dot.style.setProperty('--wave-color-50', randomColors.step50);
-    });
 
     sendLinkBtn.style.display = 'none'
     /*
@@ -428,8 +387,8 @@ class LoginDialog extends HTMLElement {
       margin-right: 8px;
       }
 
-      /* Wave Spinner Container (hidden by default) */
-      .btn .wave-spinner {
+      /* Loading Spinner Container (hidden by default) */
+      .btn .loading-spinner {
       display: none;
       }
 
@@ -449,58 +408,10 @@ class LoginDialog extends HTMLElement {
       display: none;
       }
 
-      .btn.loading .wave-spinner {
+      .btn.loading .loading-spinner {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      }
-
-      /* Wave Spinner Dot Styles */
-      .wave-spinner {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      }
-
-      .wave-spinner > div {
-      width: 6px;
-      height: 8px;
-      margin: 0 6px;
-      border-radius: 20%; /* Rotate to form diamond shape */
-      background:var(--container-bg);
-      animation: scaling 1.2s ease-in-out infinite;
-      }
-
-      /* Set staggered animation delays for a wave effect */
-      .wave-spinner > div:nth-child(1) {
-      animation-delay: -0.6s;
-      }
-      .wave-spinner > div:nth-child(2) {
-      animation-delay: -0.4s;
-      }
-      .wave-spinner > div:nth-child(3) {
-      animation-delay: -0.2s;
-      }
-      .wave-spinner > div:nth-child(4) {
-      animation-delay: 0s;
-      }
-      .wave-spinner > div:nth-child(5) {
-      animation-delay: 0.2s;
-      }
-
-      @keyframes scaling {
-        0%, 100% {
-          transform: scaleY(0.5);
-          background-color: var( --container-bg);
-        }
-        40% {
-          transform: scaleY(1.5);
-          background-color: var(--wave-color-40, rgb(255, 160, 105));
-        }
-        50% {
-          transform: scaleY(3);
-          background-color: var(--wave-color-50, #f36f21);
-        }
       }
 
       /* Color Transition Animation */

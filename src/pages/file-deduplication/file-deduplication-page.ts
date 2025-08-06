@@ -101,6 +101,9 @@ class FileDeduplicationPage extends HTMLElement {
           </div>
         </div>
 
+        <!-- Loading Container -->
+        <div id="loadingContainer" class="loading-container" style="display: none;"></div>
+
         <!-- Status Messages -->
         <div id="statusMessage" class="status-message"></div>
       </div>
@@ -140,6 +143,9 @@ class FileDeduplicationPage extends HTMLElement {
 
   private async loadProjects() {
     try {
+      // Show loading state
+      this.showLoadingState('Loading projects...');
+      
       const response = await fetch(`${this.apiBaseUrl}/projects`);
       if (!response.ok) {
         if (response.status === 400 || response.status === 404) {
@@ -165,6 +171,8 @@ class FileDeduplicationPage extends HTMLElement {
       } else {
         this.showStatus('Error loading projects: ' + error, 'error');
       }
+    } finally {
+      this.hideLoadingState();
     }
   }
 
@@ -244,51 +252,41 @@ class FileDeduplicationPage extends HTMLElement {
     const basePath = pathInput.value.trim();
     
     if (!name || !basePath) {
-      this.showStatus('Please enter both project name and base path', 'error');
+      this.showStatus('Please provide both project name and base path', 'error');
       return;
     }
 
     try {
+      // Show loading state
+      this.showLoadingState('Creating project...');
+      
       const response = await fetch(`${this.apiBaseUrl}/projects`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, basePath })
+        body: JSON.stringify({ name, base_path: basePath })
       });
 
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to create project');
       }
-      
+
       const result = await response.json();
       if (result.success) {
-        console.log('Created project data:', result.data);
-        const newProject = result.data;
-        this.projects.push(newProject);
-        this.newlyCreatedProject = newProject; // Track the newly created project
-        this.renderProjectsList();
-        
-        nameInput.value = '';
-        pathInput.value = '';
-        this.showStatus(`Project "${newProject.name}" created successfully!`, 'success');
-        
-        // Auto-select the newly created project
-        this.selectProject(newProject.id);
-        
-        // Clear the newly created status after 10 seconds
-        setTimeout(() => {
-          this.newlyCreatedProject = null;
-          this.renderProjectsList();
-        }, 10000);
+        this.newlyCreatedProject = result.data;
+        this.showStatus('Project created successfully!', 'success');
+        await this.loadProjects(); // Refresh the projects list
       } else {
         throw new Error(result.error || 'Failed to create project');
       }
     } catch (error) {
       this.showStatus('Error creating project: ' + error, 'error');
+    } finally {
+      this.hideLoadingState();
     }
   }
 
-  private async selectProject(projectId: number) {
+  async selectProject(projectId: number) {
     console.log('selectProject called with projectId:', projectId);
     this.currentProject = this.projects.find(p => p.id === projectId) || null;
     console.log('Found current project:', this.currentProject);
@@ -318,35 +316,27 @@ class FileDeduplicationPage extends HTMLElement {
 
   private async loadProjectFiles(projectId: number) {
     try {
-      console.log('Loading project files for project ID:', projectId);
+      // Show loading state
+      this.showLoadingState('Loading project files...');
       
-      // Load project files with duplicate information
       const response = await fetch(`${this.apiBaseUrl}/projects/${projectId}/files`);
-      console.log('Response status:', response.status);
-      console.log('Response URL:', response.url);
-      
       if (!response.ok) {
         const errorData = await response.json();
-        console.log('Error data:', errorData);
         throw new Error(errorData.error || 'Failed to load project files');
       }
-      
+
       const result = await response.json();
-      console.log('API response:', result);
-      
       if (result.success) {
         const files = result.data;
-        console.log('Loaded files:', files);
-        
-        // Update project status
         this.updateProjectStatus(files);
-        this.shadow.getElementById('projectStatusSection')!.style.display = 'block';
+        this.showStatus(`Loaded ${files.length} files from project`, 'success');
       } else {
         throw new Error(result.error || 'Failed to load project files');
       }
     } catch (error) {
-      console.error('Error in loadProjectFiles:', error);
       this.showStatus('Error loading project files: ' + error, 'error');
+    } finally {
+      this.hideLoadingState();
     }
   }
 
@@ -430,6 +420,9 @@ class FileDeduplicationPage extends HTMLElement {
       scanBtn.disabled = true;
       statusElement.textContent = 'Scanning files...';
       statusElement.className = 'scan-status scanning';
+      
+      // Show loading state
+      this.showLoadingState('Scanning files and generating hashes...');
 
       console.log('Calling Electron API with path:', basePath);
       const result = await api.runScan(basePath, regex);
@@ -486,6 +479,7 @@ class FileDeduplicationPage extends HTMLElement {
       this.showStatus('Error running file scan: ' + error, 'error');
     } finally {
       scanBtn.disabled = false;
+      this.hideLoadingState();
     }
   }
 
@@ -537,80 +531,48 @@ class FileDeduplicationPage extends HTMLElement {
       return;
     }
 
-    const scanResultsText = (this.shadow.getElementById('scanResults') as HTMLTextAreaElement).value;
-    if (!scanResultsText.trim()) {
-      this.showStatus('Please enter scan results', 'error');
+    const textarea = this.shadow.getElementById('scanResults') as HTMLTextAreaElement;
+    const scanData = textarea.value.trim();
+    
+    if (!scanData) {
+      this.showStatus('Please run a file scan first', 'error');
       return;
     }
 
     try {
+      // Show loading state
+      this.showLoadingState('Uploading scan results...');
+      
       let scanResults;
       try {
-        scanResults = JSON.parse(scanResultsText);
-      } catch {
-        this.showStatus('Invalid JSON format', 'error');
-        return;
+        scanResults = JSON.parse(scanData);
+      } catch (parseError) {
+        throw new Error('Invalid scan data format. Please run a new scan.');
       }
 
-      // Validate the scan results format
-      if (!Array.isArray(scanResults)) {
-        this.showStatus('Scan results must be an array of file objects', 'error');
-        return;
-      }
-
-      // Convert the scan results to the correct API format
-      const files = scanResults.map((file: any) => {
-        // Handle both old format (relative_path) and new format (path)
-        const filePath = file.path || file.relative_path;
-        if (!filePath) {
-          throw new Error('Each file must have a path property');
-        }
-
-        return {
-          path: filePath.startsWith('/') ? filePath : `${this.currentProject!.base_path}/${filePath}`,
-          hash: file.hash || '',
-          size: typeof file.size === 'number' ? file.size : 0,
-          lastModified: typeof file.lastModified === 'number' ? file.lastModified : 
-                       typeof file.last_modified === 'string' ? new Date(file.last_modified).getTime() : 
-                       Date.now()
-        };
-      });
-
-      const basePath = this.currentProject.base_path || this.currentProject.basePath;
-      const requestBody = {
-        basePath: basePath,
-        files: files
-      };
-
-      const url = `${this.apiBaseUrl}/scan/${this.currentProject.id}/scan-result`;
-      console.log('Uploading scan results to:', url);
-      console.log('Request body:', requestBody);
-      
+      const url = `${this.apiBaseUrl}/projects/${this.currentProject.id}/files`;
       const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestBody)
+        body: JSON.stringify({ files: scanResults })
       });
 
       if (!response.ok) {
-        console.log('Response status:', response.status);
-        console.log('Response status text:', response.statusText);
-        console.log('Response URL:', response.url);
-        
         const errorData = await response.json();
-        console.log('Error data:', errorData);
         throw new Error(errorData.error || 'Failed to upload scan results');
       }
 
       const result = await response.json();
       if (result.success) {
-        this.showStatus(`Scan results uploaded successfully! Processed ${result.data.filesProcessed} files.`, 'success');
+        this.showStatus('Scan results uploaded successfully!', 'success');
         await this.loadProjectFiles(this.currentProject.id);
       } else {
         throw new Error(result.error || 'Failed to upload scan results');
       }
     } catch (error) {
       this.showStatus('Error uploading scan results: ' + error, 'error');
+    } finally {
+      this.hideLoadingState();
     }
   }
 
@@ -731,6 +693,29 @@ class FileDeduplicationPage extends HTMLElement {
       statusElement.textContent = '';
       statusElement.className = 'status-message';
     }, 5000);
+  }
+
+  // Add loading state methods
+  private showLoadingState(message: string = 'Loading...') {
+    const loadingContainer = this.shadow.getElementById('loadingContainer');
+    if (loadingContainer) {
+      loadingContainer.innerHTML = `
+        <div class="loading-overlay">
+          <div class="loading-content">
+            <wave-spinner></wave-spinner>
+            <p>${message}</p>
+          </div>
+        </div>
+      `;
+      loadingContainer.style.display = 'block';
+    }
+  }
+
+  private hideLoadingState() {
+    const loadingContainer = this.shadow.getElementById('loadingContainer');
+    if (loadingContainer) {
+      loadingContainer.style.display = 'none';
+    }
   }
 
   // Test function to verify hash generation

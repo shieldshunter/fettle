@@ -9,15 +9,165 @@
   --wave-color-3: #F36F21;
   --wave-color-4: #ffffff;
 
+  /* Light Mode Colors */
   --color-bg: #dddddd;
-  --color-text: black;
-  --container-bg: white;
+  --color-text: #2c3e50;
+  --container-bg: #ffffff;
+  
+  /* File System Colors - Light Mode */
+  --file-bg: #ffffff;
+  --file-border: #e0e0e0;
+  --file-hover: #f8f9fa;
+  --file-selected: #e3f2fd;
+  --file-text: #2c3e50;
+  --file-text-secondary: #6c757d;
+  --file-text-muted: #888888;
+  
+  /* Status Colors - Light Mode */
+  --status-unresolved: #f39c12;
+  --status-primary: #3498db;
+  --status-deleted: #e74c3c;
+  --status-normal: #666666;
+  --status-resolved: #27ae60;
+  
+  /* Button Colors - Light Mode */
+  --btn-primary: #3498db;
+  --btn-primary-hover: #2980b9;
+  --btn-danger: #e74c3c;
+  --btn-danger-hover: #c0392b;
+  --btn-warning: #f39c12;
+  --btn-warning-hover: #e67e22;
+  --btn-success: #27ae60;
+  --btn-success-hover: #229954;
+  --btn-secondary: #6c757d;
+  --btn-secondary-hover: #5a6268;
+  
+  /* Popup Colors - Light Mode */
+  --popup-bg: #ffffff;
+  --popup-header-bg: #f8f9fa;
+  --popup-border: #e0e0e0;
+  --popup-shadow: rgba(0, 0, 0, 0.3);
+  
+  /* Tree Colors - Light Mode */
+  --tree-bg: #ffffff;
+  --tree-border: #e0e0e0;
+  --tree-hover: #f0f0f0;
+  --tree-selected: rgba(52, 152, 219, 0.1);
+  --tree-selected-border: rgba(52, 152, 219, 0.3);
+  
+  /* Header Colors - Light Mode */
+  --header-bg: #f8f9fa;
+  --header-border: #e0e0e0;
+  --header-text: #333333;
+  
+  /* Legend Colors - Light Mode */
+  --legend-bg: #ffffff;
+  --legend-border: #e0e0e0;
+  --legend-text: #666666;
+  
+  /* Navigation Colors - Light Mode */
+  --nav-bg: #f8f9fa;
+  --nav-border: #e0e0e0;
+  --nav-btn: #007bff;
+  --nav-btn-hover: #0056b3;
+  --nav-btn-disabled: #6c757d;
+  --nav-text: #6c757d;
+  
+  /* Badge Colors - Light Mode */
+  --badge-bg: #e74c3c;
+  --badge-text: #ffffff;
+  
+  /* Status Message Colors - Light Mode */
+  --status-success-bg: #d4edda;
+  --status-success-text: #155724;
+  --status-success-border: #c3e6cb;
+  --status-error-bg: #f8d7da;
+  --status-error-text: #721c24;
+  --status-error-border: #f5c6cb;
+  --status-info-bg: #d1ecf1;
+  --status-info-text: #0c5460;
+  --status-info-border: #bee5eb;
 }
 
 body.dark-mode {
-  --color-bg: #4c535c; /* Steel dark gray */
+  /* Dark Mode Colors */
+  --color-bg: #1a1a1a;
   --color-text: #e0e0e0;
-  --container-bg: #353d46;
+  --container-bg: #2d2d2d;
+  
+  /* File System Colors - Dark Mode */
+  --file-bg: #2d2d2d;
+  --file-border: #404040;
+  --file-hover: #3a3a3a;
+  --file-selected: rgba(52, 152, 219, 0.2);
+  --file-text: #e0e0e0;
+  --file-text-secondary: #b0b0b0;
+  --file-text-muted: #888888;
+  
+  /* Status Colors - Dark Mode */
+  --status-unresolved: #f39c12;
+  --status-primary: #3498db;
+  --status-deleted: #e74c3c;
+  --status-normal: #b0b0b0;
+  --status-resolved: #27ae60;
+  
+  /* Button Colors - Dark Mode */
+  --btn-primary: #3498db;
+  --btn-primary-hover: #2980b9;
+  --btn-danger: #e74c3c;
+  --btn-danger-hover: #c0392b;
+  --btn-warning: #f39c12;
+  --btn-warning-hover: #e67e22;
+  --btn-success: #27ae60;
+  --btn-success-hover: #229954;
+  --btn-secondary: #6c757d;
+  --btn-secondary-hover: #5a6268;
+  
+  /* Popup Colors - Dark Mode */
+  --popup-bg: #2d2d2d;
+  --popup-header-bg: #3a3a3a;
+  --popup-border: #404040;
+  --popup-shadow: rgba(0, 0, 0, 0.5);
+  
+  /* Tree Colors - Dark Mode */
+  --tree-bg: #2d2d2d;
+  --tree-border: #404040;
+  --tree-hover: #3a3a3a;
+  --tree-selected: rgba(52, 152, 219, 0.2);
+  --tree-selected-border: rgba(52, 152, 219, 0.4);
+  
+  /* Header Colors - Dark Mode */
+  --header-bg: #3a3a3a;
+  --header-border: #404040;
+  --header-text: #e0e0e0;
+  
+  /* Legend Colors - Dark Mode */
+  --legend-bg: #2d2d2d;
+  --legend-border: #404040;
+  --legend-text: #b0b0b0;
+  
+  /* Navigation Colors - Dark Mode */
+  --nav-bg: #3a3a3a;
+  --nav-border: #404040;
+  --nav-btn: #007bff;
+  --nav-btn-hover: #0056b3;
+  --nav-btn-disabled: #6c757d;
+  --nav-text: #b0b0b0;
+  
+  /* Badge Colors - Dark Mode */
+  --badge-bg: #e74c3c;
+  --badge-text: #ffffff;
+  
+  /* Status Message Colors - Dark Mode */
+  --status-success-bg: rgba(39, 174, 96, 0.2);
+  --status-success-text: #27ae60;
+  --status-success-border: rgba(39, 174, 96, 0.3);
+  --status-error-bg: rgba(231, 76, 60, 0.2);
+  --status-error-text: #e74c3c;
+  --status-error-border: rgba(231, 76, 60, 0.3);
+  --status-info-bg: rgba(52, 152, 219, 0.2);
+  --status-info-text: #3498db;
+  --status-info-border: rgba(52, 152, 219, 0.3);
 }
 
 * {
