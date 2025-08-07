@@ -598,17 +598,38 @@ class TreeViewPage extends HTMLElement {
         <span class="selected-via-parent">✓ Selected via folder</span>
       ` : '';
 
+      // Add unselect button for bulk deleted files in delete mode
+      const unselectButton = this.isDeleteMode && status === FILE_STATUS.BULK_DELETED ? `
+        <button class="bin-button small warning-btn file-unselect-btn" onclick="this.getRootNode().host.unselectBulkDeletedFile('${node.relativePath || node.path}')">
+          🔄 Unselect from Bulk Delete
+        </button>
+      ` : '';
+
       nodeElement.innerHTML = `
         <div class="node-content">
-          <div class="node-info" onclick="this.getRootNode().host.handleFileNodeClick('${node.path}', '${status}', ${node.duplicateCount && node.duplicateCount > 1})">
+          <div class="node-info" data-file-path="${node.path}" data-status="${status}" data-has-duplicates="${node.duplicateCount && node.duplicateCount > 1}">
             <span class="file-icon">📄</span>
             <span class="node-name">${cleanFileName}</span>
             ${duplicateBadge}
             ${deleteModeButton}
+            ${unselectButton}
           </div>
           ${actionButtons}
         </div>
       `;
+      
+      // Add event listener for file node click
+      const nodeInfo = nodeElement.querySelector('.node-info');
+      if (nodeInfo) {
+        nodeInfo.addEventListener('click', (_event) => {
+          const filePath = nodeInfo.getAttribute('data-file-path');
+          const status = nodeInfo.getAttribute('data-status');
+          const hasDuplicates = nodeInfo.getAttribute('data-has-duplicates') === 'true';
+          if (filePath && status) {
+            this.handleFileNodeClick(filePath, status, hasDuplicates);
+          }
+        });
+      }
     }
     
     return nodeElement;
@@ -1299,7 +1320,17 @@ class TreeViewPage extends HTMLElement {
       
       if (result.success) {
         this.showStatus(`Successfully deleted folder: ${folderPath}`, 'success');
-        await this.loadProjectTree(this.currentProject.id);
+        
+        // Update local file tree immediately for files in the deleted folder
+        this.updateFilesInFolderStatus(folderPath, FILE_STATUS.BULK_DELETED);
+        
+        // Re-render the tree with updated statuses with a small delay to ensure proper sync
+        setTimeout(() => {
+          this.renderFileTree();
+        }, 10);
+        
+        // Also reload bulk delete stats
+        await this.loadBulkDeleteStats(this.currentProject.id);
       } else {
         throw new Error(result.error || 'Failed to delete folder');
       }
@@ -1349,7 +1380,18 @@ class TreeViewPage extends HTMLElement {
       const result = await response.json();
       if (result.success) {
         this.showStatus(`Successfully deleted files matching pattern: ${pattern}`, 'success');
+        
+        // For pattern deletion, we need to reload the tree since we don't know exactly which files were affected
+        // But we can still update the UI immediately by reloading the tree
         await this.loadProjectTree(this.currentProject.id);
+        
+        // Re-render the tree with updated statuses with a small delay to ensure proper sync
+        setTimeout(() => {
+          this.renderFileTree();
+        }, 10);
+        
+        // Also reload bulk delete stats
+        await this.loadBulkDeleteStats(this.currentProject.id);
       } else {
         throw new Error(result.error || 'Failed to delete by pattern');
       }
@@ -1389,16 +1431,20 @@ class TreeViewPage extends HTMLElement {
           filePaths: Array.from(this.selectedFilesForDeletion) 
         })
       }).then(async res => {
+        console.log('🔧 File deletion response:', res.status, res.statusText);
         if (!res.ok) {
           const errorData = await res.json();
+          console.error('🔧 File deletion error:', errorData);
           throw new Error(errorData.error || 'Failed to perform file deletion');
         }
         const result = await res.json();
+        console.log('🔧 File deletion result:', result);
         return result;
       }) : Promise.resolve({ success: true });
 
     // Handle selected folders - use the correct API format
     const folderPromises = Array.from(this.selectedFoldersForDeletion).map(folderPath => {
+      console.log('🔧 Deleting folder:', folderPath);
       return fetch(`${this.apiBaseUrl}/delete-mode/${this.currentProject!.id}/folder`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1406,11 +1452,14 @@ class TreeViewPage extends HTMLElement {
           folderPath: folderPath 
         })
       }).then(async res => {
+        console.log('🔧 Folder deletion response for', folderPath, ':', res.status, res.statusText);
         if (!res.ok) {
           const errorData = await res.json();
+          console.error('🔧 Folder deletion error for', folderPath, ':', errorData);
           throw new Error(errorData.error || `Failed to delete folder: ${folderPath}`);
         }
         const result = await res.json();
+        console.log('🔧 Folder deletion result for', folderPath, ':', result);
         return result;
       });
     });
@@ -1426,23 +1475,55 @@ class TreeViewPage extends HTMLElement {
     // Execute all deletions
     Promise.all([filePromises, ...folderPromises])
       .then(async results => {
-        const allSuccessful = results.every(result => result.success);
+        console.log('🔧 Bulk delete results:', results);
+        // Check if all results are successful (either have success: true or are valid response objects)
+        const allSuccessful = results.every(result => {
+          // If result has a success property, check it
+          if (result.hasOwnProperty('success')) {
+            return result.success;
+          }
+          // If result has operationType, it's a successful API response
+          if (result.hasOwnProperty('operationType')) {
+            return true;
+          }
+          // Default to false for unknown response types
+          return false;
+        });
         if (allSuccessful) {
           this.showStatus('Bulk deletion successful!', 'success');
+          
+          // Store the selected items before clearing them
+          const selectedFiles = Array.from(this.selectedFilesForDeletion);
+          const selectedFolders = Array.from(this.selectedFoldersForDeletion);
+          
+          console.log('🔧 Updating file statuses:', { selectedFiles, selectedFolders });
           
           // Clear selections first
           this.selectedFilesForDeletion.clear();
           this.selectedFoldersForDeletion.clear();
           
-          // Reload project tree to get updated file statuses
-          if (this.currentProject) {
-            await this.loadProjectTree(this.currentProject.id);
-            
-            // Also reload bulk delete stats
-            await this.loadBulkDeleteStats(this.currentProject.id);
-            
-            // Re-render the tree with updated statuses
+          // Update local file tree immediately for selected files
+          selectedFiles.forEach(filePath => {
+            console.log('🔧 Updating file status:', filePath, 'to', FILE_STATUS.BULK_DELETED);
+            this.updateFileStatusInTree(filePath, FILE_STATUS.BULK_DELETED);
+          });
+          
+          // Update local file tree immediately for files in selected folders
+          selectedFolders.forEach(folderPath => {
+            console.log('🔧 Updating folder status:', folderPath, 'to', FILE_STATUS.BULK_DELETED);
+            this.updateFilesInFolderStatus(folderPath, FILE_STATUS.BULK_DELETED);
+          });
+          
+          // Force a complete rerender of the tree with a small delay to ensure proper sync
+          console.log('🔧 Rerendering tree...');
+          setTimeout(() => {
             this.renderFileTree();
+            console.log('🔧 Tree rerendered');
+          }, 10);
+          
+          // Also reload bulk delete stats
+          if (this.currentProject) {
+            await this.loadBulkDeleteStats(this.currentProject.id);
           }
         } else {
           throw new Error('Some deletions failed');
@@ -1568,6 +1649,131 @@ class TreeViewPage extends HTMLElement {
       }
     }
     return false;
+  }
+
+  private updateFileStatusInTree(relativePath: string, newStatus: string) {
+    if (!this.fileTree) return;
+    
+    console.log('🔧 updateFileStatusInTree called for:', relativePath, 'new status:', newStatus);
+    
+    // Find the file node in the tree and update its status
+    const updateNodeStatus = (node: TreeNode): boolean => {
+      if (node.relativePath === relativePath) {
+        console.log('🔧 Found file node:', node.name, 'old status:', node.status, 'new status:', newStatus);
+        node.status = newStatus;
+        return true; // Found and updated
+      }
+      
+      if (node.children) {
+        for (const child of node.children) {
+          if (updateNodeStatus(child)) {
+            return true; // Found and updated in child
+          }
+        }
+      }
+      
+      return false; // Not found
+    };
+    
+    const updated = updateNodeStatus(this.fileTree);
+    console.log('🔧 updateFileStatusInTree result:', updated);
+  }
+
+  private updateFilesInFolderStatus(folderPath: string, newStatus: string) {
+    if (!this.fileTree) return;
+    
+    // Find the folder node and update all files within it
+    const updateFolderFiles = (node: TreeNode): boolean => {
+      if (node.path === folderPath) {
+        // Update all files in this folder
+        this.updateAllFilesInNode(node, newStatus);
+        return true; // Found and updated
+      }
+      
+      if (node.children) {
+        for (const child of node.children) {
+          if (updateFolderFiles(child)) {
+            return true; // Found and updated in child
+          }
+        }
+      }
+      
+      return false; // Not found
+    };
+    
+    updateFolderFiles(this.fileTree);
+  }
+
+  private updateAllFilesInNode(node: TreeNode, newStatus: string) {
+    if (!node.children) return;
+    
+    node.children.forEach(child => {
+      if (child.isFolder) {
+        // Recursively update files in subfolders
+        this.updateAllFilesInNode(child, newStatus);
+      } else {
+        // Update file status
+        child.status = newStatus;
+      }
+    });
+  }
+
+  async unselectBulkDeletedFile(relativePath: string) {
+    console.log('🔧 unselectBulkDeletedFile called with:', relativePath);
+    
+    if (!this.currentProject) {
+      this.showStatus('No project selected', 'error');
+      return;
+    }
+
+    try {
+      // URL encode the file path for the API endpoint
+      const encodedFilePath = encodeURIComponent(relativePath);
+      console.log('🔧 Making unselect API call to:', `${this.apiBaseUrl}/delete-mode/${this.currentProject.id}/files/${encodedFilePath}`);
+      
+      const response = await fetch(`${this.apiBaseUrl}/delete-mode/${this.currentProject.id}/files/${encodedFilePath}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      console.log('🔧 Unselect response status:', response.status, response.statusText);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('🔧 Unselect API error:', errorData);
+        throw new Error(errorData.error || 'Failed to unselect file from bulk deletion');
+      }
+
+      const result = await response.json();
+      console.log('🔧 Unselect API result:', result);
+      
+      // Check if the API call was successful (either has success property or has message indicating success)
+      const isSuccessful = result.success || (result.message && result.message.includes('removed from bulk delete status'));
+      
+      if (isSuccessful) {
+        this.showStatus('File unselected from bulk deletion', 'success');
+        
+        console.log('🔧 Updating file status to NORMAL for:', relativePath);
+        // Update the local file tree immediately
+        this.updateFileStatusInTree(relativePath, FILE_STATUS.NORMAL);
+        
+        // Re-render the tree with updated statuses with a small delay to ensure proper sync
+        console.log('🔧 Scheduling tree rerender...');
+        setTimeout(() => {
+          console.log('🔧 Executing tree rerender for unselect...');
+          this.renderFileTree();
+          console.log('🔧 Tree rerender completed for unselect');
+        }, 10);
+        
+        // Also reload bulk delete stats
+        await this.loadBulkDeleteStats(this.currentProject.id);
+      } else {
+        throw new Error(result.error || 'Failed to unselect file from bulk deletion');
+      }
+    } catch (error) {
+      console.error('🔧 Unselect error:', error);
+      this.showStatus('Error unselecting file from bulk deletion: ' + error, 'error');
+    }
   }
 }
 
