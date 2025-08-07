@@ -78,3 +78,59 @@ Fettle’s platform combines field support, mechanical design visualization, and
 - Modular pages load dynamically via `slideTransition()`
 - SSO & dark mode built with user preference persistence
 
+## 🌍 Environment Configuration
+
+This project supports different API endpoints for development and production environments:
+
+### Development (localhost)
+- API Base URL: `http://localhost:3000/api`
+- Used when running `npm run dev`
+- Environment file: `.env.development`
+
+### Production (Vercel/Render)
+- API Base URL: `https://trebro-api.onrender.com/api`
+- Used when running `npm run build`
+- Environment file: `.env.production`
+
+### Setup Instructions
+
+1. **Development Environment:**
+   ```bash
+   # Copy the development environment template
+   cp .env.development .env.local
+   
+   # Edit .env.local with your actual API keys
+   VITE_API_BASE_URL=http://localhost:3000/api
+   VITE_OPENAI_API_KEY=your_openai_api_key_here
+   VITE_JB2_CLIENT_ID=your_jb2_client_id_here
+   VITE_JB2_CLIENT_SECRET=your_jb2_client_secret_here
+   VITE_ASSISTANT_ID=your_assistant_id_here
+   ```
+
+2. **Production Environment:**
+   ```bash
+   # For Vercel deployment, set these environment variables in your Vercel dashboard:
+   VITE_API_BASE_URL=https://trebro-api.onrender.com/api
+   VITE_OPENAI_API_KEY=your_production_openai_key
+   VITE_JB2_CLIENT_ID=your_production_jb2_client_id
+   VITE_JB2_CLIENT_SECRET=your_production_jb2_client_secret
+   VITE_ASSISTANT_ID=your_production_assistant_id
+   ```
+
+3. **Running the Application:**
+   ```bash
+   # Development mode (uses localhost:3000)
+   npm run dev
+   
+   # Production build (uses trebro-api.onrender.com)
+   npm run build
+   ```
+
+### Environment Variables
+
+- `VITE_API_BASE_URL`: The base URL for API calls
+- `VITE_OPENAI_API_KEY`: OpenAI API key for AI features
+- `VITE_JB2_CLIENT_ID`: JobBoss2 client ID
+- `VITE_JB2_CLIENT_SECRET`: JobBoss2 client secret
+- `VITE_ASSISTANT_ID`: OpenAI assistant ID for cluster features
+

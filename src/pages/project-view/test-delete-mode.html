@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delete Mode API Testing & File Status Display</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .code-block {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+        .feature-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .feature-list li:before {
+            content: "✅ ";
+            margin-right: 8px;
+        }
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .api-test {
+            background: #e3f2fd;
+            border: 1px solid #bbdefb;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 5px;
+            width: 200px;
+        }
+        .status-demo {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .status-item {
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid;
+            text-align: center;
+        }
+        .status-unresolved {
+            background: #f8f9fa;
+            border-color: #6c757d;
+            color: #6c757d;
+        }
+        .status-primary {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+        .status-deleted {
+            background: #f8d7da;
+            border-color: #dc3545;
+            color: #721c24;
+        }
+        .status-normal {
+            background: #d1ecf1;
+            border-color: #007bff;
+            color: #0c5460;
+        }
+        .status-bulk-deleted {
+            background: #f3e5f5;
+            border-color: #8e44ad;
+            color: #4a148c;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-section">
+        <h1>🔧 Delete Mode API Testing & File Status Display</h1>
+        <p>This page helps test and debug the delete mode API integration and file status display system.</p>
+    </div>
+
+    <div class="test-section">
+        <h2>✅ API Usage Issues Fixed</h2>
+        <div class="success">
+            <strong>Fixed:</strong> Updated API calls to use correct formats:
+            <ul>
+                <li>Files: <code>{ filePaths: [...] }</code> for file deletion</li>
+                <li>Folders: <code>{ folderPath: "path" }</code> for folder deletion</li>
+                <li>Added comprehensive error handling</li>
+                <li>Fixed file status display system with proper constants</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>📊 File Status Display System</h2>
+        <div class="status-demo">
+            <div class="status-item status-unresolved">
+                <h3>❓ Unresolved</h3>
+                <p>File not yet processed</p>
+                <small>Color: #6c757d</small>
+            </div>
+            <div class="status-item status-primary">
+                <h3>✅ Keep</h3>
+                <p>Marked to keep (from duplicate resolution)</p>
+                <small>Color: #28a745</small>
+            </div>
+            <div class="status-item status-deleted">
+                <h3>🗑️ Delete</h3>
+                <p>Marked to delete (from duplicate resolution)</p>
+                <small>Color: #dc3545</small>
+            </div>
+            <div class="status-item status-normal">
+                <h3>📄 Normal</h3>
+                <p>Normal file (no duplicates)</p>
+                <small>Color: #007bff</small>
+            </div>
+            <div class="status-item status-bulk-deleted">
+                <h3>⚠️ Bulk Delete</h3>
+                <p>Marked to delete (from delete mode)</p>
+                <small>Color: #8e44ad</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔧 Manual API Testing</h2>
+        <p>Use these tools to test the API endpoints directly:</p>
+        
+        <div>
+            <label>Project ID:</label>
+            <input type="number" id="projectId" value="1" placeholder="Enter project ID">
+        </div>
+        
+        <div>
+            <label>Folder Path:</label>
+            <input type="text" id="folderPath" value="temp" placeholder="Enter folder path">
+            <button onclick="testFolderDeletion()">Test Folder Deletion</button>
+        </div>
+        
+        <div>
+            <label>File Paths (comma-separated):</label>
+            <input type="text" id="filePaths" value="file1.txt,file2.txt" placeholder="Enter file paths">
+            <button onclick="testFileDeletion()">Test File Deletion</button>
+        </div>
+        
+        <div>
+            <label>Pattern:</label>
+            <input type="text" id="pattern" value="*.log" placeholder="Enter pattern">
+            <button onclick="testPatternDeletion()">Test Pattern Deletion</button>
+        </div>
+        
+        <div>
+            <button onclick="testStats()">Test Stats API</button>
+            <button onclick="testReset()">Test Reset API</button>
+        </div>
+        
+        <div id="apiResults" style="margin-top: 20px; padding: 10px; background: #f8f9fa; border-radius: 4px; min-height: 100px;">
+            <strong>API Results will appear here...</strong>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000/api';
+        
+        async function testFolderDeletion() {
+            const projectId = document.getElementById('projectId').value;
+            const folderPath = document.getElementById('folderPath').value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/delete-mode/${projectId}/folder`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ folderPath: folderPath })
+                });
+                
+                const result = await response.json();
+                document.getElementById('apiResults').innerHTML = `
+                    <strong>Folder Deletion Test:</strong><br>
+                    Status: ${response.status}<br>
+                    Response: ${JSON.stringify(result, null, 2)}
+                `;
+            } catch (error) {
+                document.getElementById('apiResults').innerHTML = `
+                    <strong>Folder Deletion Error:</strong><br>
+                    ${error.message}
+                `;
+            }
+        }
+        
+        async function testFileDeletion() {
+            const projectId = document.getElementById('projectId').value;
+            const filePaths = document.getElementById('filePaths').value.split(',').map(f => f.trim());
+            
+            try {
+                const response = await fetch(`${API_BASE}/delete-mode/${projectId}/files`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ filePaths: filePaths })
+                });
+                
+                const result = await response.json();
+                document.getElementById('apiResults').innerHTML = `
+                    <strong>File Deletion Test:</strong><br>
+                    Status: ${response.status}<br>
+                    Response: ${JSON.stringify(result, null, 2)}
+                `;
+            } catch (error) {
+                document.getElementById('apiResults').innerHTML = `
+                    <strong>File Deletion Error:</strong><br>
+                    ${error.message}
+                `;
+            }
+        }
+        
+        async function testPatternDeletion() {
+            const projectId = document.getElementById('projectId').value;
+            const pattern = document.getElementById('pattern').value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/delete-mode/${projectId}/pattern`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pattern })
+                });
+                
+                const result = await response.json();
+                document.getElementById('apiResults').innerHTML = `
+                    <strong>Pattern Deletion Test:</strong><br>
+                    Status: ${response.status}<br>
+                    Response: ${JSON.stringify(result, null, 2)}
+                `;
+            } catch (error) {
+                document.getElementById('apiResults').innerHTML = `
+                    <strong>Pattern Deletion Error:</strong><br>
+                    ${error.message}
+                `;
+            }
+        }
+        
+        async function testStats() {
+            const projectId = document.getElementById('projectId').value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/delete-mode/${projectId}/stats`);
+                const result = await response.json();
+                document.getElementById('apiResults').innerHTML = `
+                    <strong>Stats Test:</strong><br>
+                    Status: ${response.status}<br>
+                    Response: ${JSON.stringify(result, null, 2)}
+                `;
+            } catch (error) {
+                document.getElementById('apiResults').innerHTML = `
+                    <strong>Stats Error:</strong><br>
+                    ${error.message}
+                `;
+            }
+        }
+        
+        async function testReset() {
+            const projectId = document.getElementById('projectId').value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/delete-mode/${projectId}/reset`, {
+                    method: 'POST'
+                });
+                const result = await response.json();
+                document.getElementById('apiResults').innerHTML = `
+                    <strong>Reset Test:</strong><br>
+                    Status: ${response.status}<br>
+                    Response: ${JSON.stringify(result, null, 2)}
+                `;
+            } catch (error) {
+                document.getElementById('apiResults').innerHTML = `
+                    <strong>Reset Error:</strong><br>
+                    ${error.message}
+                `;
+            }
+        }
+    </script>
+</body>
+</html> 

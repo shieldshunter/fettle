@@ -1,4 +1,5 @@
 import cssText from './project-view-page-styles.css?inline';
+import { API_CONFIG } from '../../config/api-config';
 
 const sheet = new CSSStyleSheet(); 
 sheet.replaceSync(cssText);
@@ -16,7 +17,7 @@ interface FileInfo {
   hash: string;
   size: number;
   last_modified: string;
-  status: 'unresolved' | 'primary' | 'deleted' | 'normal';
+  status: 'unresolved' | 'primary' | 'deleted' | 'normal' | 'bulk_deleted';
 }
 
 interface TreeNode {
@@ -39,9 +40,23 @@ interface DuplicateGroup {
   }[];
 }
 
+interface BulkDeleteStats {
+  totalFiles: number;
+  bulkDeletedFiles: number;
+  bulkDeletedFolders: number;
+  bulkDeletedPatterns: number;
+  recentOperations: Array<{
+    id: number;
+    operation_type: string;
+    target: string;
+    files_affected: number;
+    created_at: string;
+  }>;
+}
+
 class ProjectViewPage extends HTMLElement {
   public shadow: ShadowRoot;
-  private apiBaseUrl: string = 'https://trebro-api.onrender.com/api';
+  private apiBaseUrl: string = API_CONFIG.BASE_URL;
   private currentProject: Project | null = null;
   private fileTree: TreeNode | null = null;
   private duplicateGroups: { [hash: string]: DuplicateGroup } = {};
@@ -49,6 +64,7 @@ class ProjectViewPage extends HTMLElement {
 
   private showUnresolvedOnly: boolean = false;
   private currentPopupFile: string | null = null; // Track which file the popup is showing
+  private bulkDeleteStats: BulkDeleteStats | null = null;
 
   constructor() {
     super();
@@ -71,67 +87,64 @@ class ProjectViewPage extends HTMLElement {
 
         <!-- File Tree View -->
         <div class="section" id="treeSection" style="display: none;">
-                  <div class="report-section">
-          <div class="report-header">
-            <h4>📊 Resolution Reports</h4>
-            <p>Download reports for scripting and automation</p>
+          <!-- Full Tree View Button - Prominent and Centered -->
+          <div class="full-tree-view-section">
+            <button id="openTreeViewBtn" class="bin-button full-tree-view-btn">🌳 Full Tree View (WAY BETTER VIEW)</button>
+            <p class="tree-view-description">Switch to the enhanced tree view with delete mode and advanced features</p>
           </div>
-          <div class="report-buttons">
-            <button id="downloadReportBtn" class="bin-button download-btn">📥 Detailed Report</button>
-            <button id="downloadScriptableBtn" class="bin-button scriptable-btn">📜 Scriptable Report</button>
-          </div>
-        </div>
 
-        <div class="tree-controls">
-          <div class="controls-left">
-            <button id="expandAllBtn" class="bin-button">📂 Expand All</button>
-            <button id="collapseAllBtn" class="bin-button">📁 Collapse All</button>
-            <button id="showUnresolvedBtn" class="bin-button">🔍 Show Unresolved Only</button>
-            <button id="openTreeViewBtn" class="bin-button tree-view-btn">🌳 Full Tree View (WAY BETTER VIEW)</button>
-          </div>
-          <div class="controls-right">
-            <div class="legend">
-              <span class="legend-item unresolved">🟡 Unresolved</span>
-              <span class="legend-item primary">🔵 Primary</span>
-              <span class="legend-item deleted">🟥 Deleted</span>
-              <span class="legend-item normal">⚪ Normal</span>
-              <span class="legend-item resolved">✅ Resolved</span>
+          <div class="report-section">
+            <div class="report-header">
+              <h4>📊 Resolution Reports</h4>
+              <p>Download reports for scripting and automation</p>
+            </div>
+            <div class="report-buttons">
+              <button id="downloadReportBtn" class="bin-button download-btn">📥 Detailed Report</button>
+              <button id="downloadScriptableBtn" class="bin-button scriptable-btn">📜 Scriptable Report</button>
             </div>
           </div>
-        </div>
-          
-          <div class="tree-container">
-            <div id="fileTree" class="file-tree"></div>
-          </div>
-        </div>
 
-        <!-- Duplicate Resolution Panel -->
-        <div class="section" id="resolutionPanel" style="display: none;">
-          <h3>Duplicate Resolution</h3>
-          <div id="duplicateDetails"></div>
-        </div>
-
-        <!-- Duplicate Locations Popup -->
-        <div class="duplicate-popup" id="duplicatePopup" style="display: none;">
-          <div class="popup-header">
-            <div class="header-content">
-              <div class="header-title">
-                <h5>Duplicate File Locations</h5>
-                <span class="header-hash" id="headerHash"></span>
+          <div class="tree-controls">
+            <div class="controls-left">
+              <button id="expandAllBtn" class="bin-button">📂 Expand All</button>
+              <button id="collapseAllBtn" class="bin-button">📁 Collapse All</button>
+              <button id="showUnresolvedBtn" class="bin-button">🔍 Show Unresolved Only</button>
+            </div>
+            <div class="controls-right">
+              <div class="legend">
+                <span class="legend-item unresolved">🟡 Unresolved</span>
+                <span class="legend-item primary">🟢 Primary</span>
+                <span class="legend-item deleted">🔴 Deleted</span>
+                <span class="legend-item normal">⚪ Normal</span>
+                <span class="legend-item resolved">✅ Resolved</span>
+                <span class="legend-item bulk-deleted">🟣 Bulk Deleted</span>
               </div>
-              <span class="header-resolution-badge" id="headerResolutionBadge"></span>
             </div>
-            <button class="close-btn" onclick="this.getRootNode().host.hideDuplicateLocations()">×</button>
           </div>
-          <div class="popup-content" id="popupContent">
-            <!-- Popup content will be populated dynamically -->
+
+        <div id="fileTreeContainer" class="file-tree-container">
+          <!-- File tree will be rendered here -->
+        </div>
+
+        <!-- Duplicate Details Popup -->
+        <div id="duplicatePopup" class="duplicate-popup" style="display: none;">
+          <div class="popup-content">
+            <div class="popup-header">
+              <h3>Duplicate Details</h3>
+              <button id="closePopupBtn" class="close-btn">×</button>
+            </div>
+            <div id="popupContent" class="popup-body">
+              <!-- Popup content will be rendered here -->
+            </div>
           </div>
         </div>
 
-        <!-- Loading Container -->
-        <div id="loadingContainer" class="loading-container" style="display: none;"></div>
+        <!-- Loading Overlay -->
+        <div id="loadingContainer" class="loading-container" style="display: none;">
+          <!-- Loading content will be rendered here -->
+        </div>
 
-        <!-- Status Messages -->
+        <!-- Status Message -->
         <div id="statusMessage" class="status-message"></div>
       </div>
     `;
@@ -207,28 +220,33 @@ class ProjectViewPage extends HTMLElement {
 
   private async loadProjectTree(projectId: number) {
     try {
-      // Show loading state
       this.showLoadingState('Loading project files...');
       
-      // Load project details
+      // Load project details first
       const projectResponse = await fetch(`${this.apiBaseUrl}/projects/${projectId}`);
-      if (!projectResponse.ok) throw new Error('Failed to load project details');
+      if (!projectResponse.ok) {
+        throw new Error('Failed to load project details');
+      }
       
       const projectResult = await projectResponse.json();
-      if (!projectResult.success) throw new Error(projectResult.error || 'Failed to load project');
+      if (!projectResult.success) {
+        throw new Error(projectResult.error || 'Failed to load project');
+      }
       
       this.currentProject = projectResult.data;
-
+      
       // Load project files
       const filesResponse = await fetch(`${this.apiBaseUrl}/projects/${projectId}/files`);
-      if (!filesResponse.ok) throw new Error('Failed to load project files');
+      if (!filesResponse.ok) {
+        throw new Error('Failed to load project files');
+      }
       
       const filesResult = await filesResponse.json();
-      if (!filesResult.success) throw new Error(filesResult.error || 'Failed to load files');
+      if (!filesResult.success) {
+        throw new Error(filesResult.error || 'Failed to load files');
+      }
 
       const files: FileInfo[] = filesResult.data;
-      
-
       
       // Build duplicate groups
       this.buildDuplicateGroups(files);
@@ -236,26 +254,64 @@ class ProjectViewPage extends HTMLElement {
       // Build file tree
       this.fileTree = this.buildFileTree(files);
       
+      // Load bulk delete stats
+      await this.loadBulkDeleteStats(projectId);
+      
       // Show the tree view
       this.shadow.getElementById('projectSelection')!.style.display = 'none';
       this.shadow.getElementById('treeSection')!.style.display = 'block';
       
-      // Update project info
-      this.updateProjectInfo();
-      
       // Render the tree
       this.renderFileTree();
       
+      // Update project info with new stats
+      this.updateProjectInfo();
+      
       this.showStatus(`Loaded project: ${this.currentProject?.name || 'Unknown'}`, 'success');
+      
     } catch (error) {
-      this.showStatus('Error loading project tree: ' + error, 'error');
+      console.error('Error loading project tree:', error);
+      this.showStatus('Error loading project files: ' + error, 'error');
     } finally {
       this.hideLoadingState();
     }
   }
 
+  private async loadBulkDeleteStats(projectId: number) {
+    try {
+      console.log(`🔍 Loading bulk delete stats for project ${projectId}...`);
+      const response = await fetch(`${this.apiBaseUrl}/delete-mode/${projectId}/stats`);
+      
+      if (!response.ok) {
+        console.warn(`❌ Failed to load bulk delete stats: HTTP ${response.status} - ${response.statusText}`);
+        this.bulkDeleteStats = null;
+        return;
+      }
+      
+      const result = await response.json();
+      console.log('📊 Bulk delete stats response:', result);
+      
+      if (result.success) {
+        this.bulkDeleteStats = result.data;
+        console.log('✅ Bulk delete stats loaded successfully:', this.bulkDeleteStats);
+      } else {
+        console.warn('❌ Failed to load bulk delete stats:', result.error || 'Unknown error');
+        this.bulkDeleteStats = null;
+      }
+    } catch (error) {
+      console.warn('❌ Error loading bulk delete stats:', error);
+      this.bulkDeleteStats = null;
+    }
+  }
+
   private buildDuplicateGroups(files: FileInfo[]) {
     this.duplicateGroups = {};
+    
+    // Ensure files is an array
+    if (!Array.isArray(files)) {
+      console.warn('buildDuplicateGroups: files is not an array', files);
+      return;
+    }
     
     // Group files by hash - but clean the hash to match filename cleaning logic
     const hashGroups: { [hash: string]: FileInfo[] } = {};
@@ -267,8 +323,6 @@ class ProjectViewPage extends HTMLElement {
         hashGroups[cleanedHash] = [];
       }
       hashGroups[cleanedHash].push(file);
-      
-
     });
     
     // Create duplicate groups for hashes with multiple files
@@ -285,8 +339,6 @@ class ProjectViewPage extends HTMLElement {
         };
       }
     });
-    
-
   }
 
   private cleanHash(hash: string): string {
@@ -336,34 +388,39 @@ class ProjectViewPage extends HTMLElement {
           child.isFolder = false;
           child.relativePath = file.relative_path; // Store the original relative_path for API calls
           
-          // Determine status based on duplicate groups - IGNORE BACKEND STATUS
+          // Always preserve the original status from the backend first
+          child.status = file.status;
+          
           const cleanedHash = this.cleanHash(file.hash);
-          console.log(`🔍 File ${file.relative_path}: original hash="${file.hash}", cleaned hash="${cleanedHash}"`);
-          console.log(`🔍 Available duplicate groups:`, Object.keys(this.duplicateGroups));
           
           if (this.duplicateGroups[cleanedHash]) {
             // This file is part of a duplicate group
             const group = this.duplicateGroups[cleanedHash];
             child.duplicateCount = group.count;
             
-            // Check if this duplicate group is resolved (has a primary or all deleted)
-            const hasPrimary = group.files.some(f => f.status === 'primary');
-            const allDeleted = group.files.every(f => f.status === 'deleted');
-            
-            if (hasPrimary || allDeleted) {
-              // Group is resolved, use the file's actual status
-              child.status = file.status;
-              console.log(`✅ File ${file.relative_path}: resolved group (${group.count} duplicates), status: ${file.status}`);
+            // Preserve bulk_deleted status, but handle other statuses properly
+            if (file.status === 'bulk_deleted') {
+              child.status = 'bulk_deleted';
             } else {
-              // Group is unresolved, mark as unresolved
-              child.status = 'unresolved';
-              console.log(`🟡 File ${file.relative_path}: unresolved group (${group.count} duplicates), status: unresolved`);
+              // Check if this duplicate group is resolved (has a primary or all deleted)
+              const hasPrimary = group.files.some(f => f.status === 'primary');
+              const allDeleted = group.files.every(f => f.status === 'deleted');
+              
+              if (hasPrimary || allDeleted) {
+                // Group is resolved, use the file's actual status
+                child.status = file.status;
+              } else {
+                // Group is unresolved, mark as unresolved
+                child.status = 'unresolved';
+              }
             }
-            
           } else {
-            // This file has no duplicates, mark as normal - REGARDLESS OF BACKEND STATUS
-            child.status = 'normal';
-            console.log(`⚪ File ${file.relative_path}: no duplicates, status: normal`);
+            // For non-duplicate files, preserve bulk_deleted but set normal files to normal status
+            if (file.status === 'bulk_deleted') {
+              child.status = 'bulk_deleted';
+            } else {
+              child.status = 'normal';
+            }
           }
         }
 
@@ -375,13 +432,16 @@ class ProjectViewPage extends HTMLElement {
   }
 
   private renderFileTree() {
-    const treeContainer = this.shadow.getElementById('fileTree')!;
+    const treeContainer = this.shadow.getElementById('fileTreeContainer')!;
     treeContainer.innerHTML = '';
     
-    if (!this.fileTree) return;
+    if (!this.fileTree) {
+      treeContainer.innerHTML = '<p>No files to display</p>';
+      return;
+    }
     
-    const treeElement = this.createTreeNodeElement(this.fileTree);
-    treeContainer.appendChild(treeElement);
+    const treeHtml = this.createTreeNodeElement(this.fileTree);
+    treeContainer.appendChild(treeHtml);
   }
 
   private createTreeNodeElement(node: TreeNode): HTMLElement {
@@ -393,9 +453,12 @@ class ProjectViewPage extends HTMLElement {
       
       // Check if folder contains unresolved duplicates
       const hasUnresolved = this.hasUnresolvedDuplicates(node);
+      const hasBulkDeleted = this.hasAnyBulkDeletedChildren(node);
       
       if (hasUnresolved) {
         nodeElement.className += ' status-unresolved';
+      } else if (hasBulkDeleted) {
+        nodeElement.className += ' status-bulk-deleted-folder';
       } else if (this.isFolderResolved(node)) {
         nodeElement.className += ' resolved';
       }
@@ -417,19 +480,9 @@ class ProjectViewPage extends HTMLElement {
     } else {
       // File node
       const status = node.status || 'normal'; // Default to normal instead of unresolved
-      nodeElement.className += ` file-node status-${status}`;
-      
-      // Debug: Log the status being applied
-      console.log(`🎨 File ${node.name}: status=${status}, className=${nodeElement.className}`);
-      
-      // Additional debugging for normal files
-      if (status === 'normal') {
-        console.log(`✅ File ${node.name}: Should be grey (normal status applied)`);
-        console.log(`🔍 CSS classes: tree-node file-node status-normal`);
-      } else if (status === 'unresolved') {
-        console.log(`🟡 File ${node.name}: Should be yellow (unresolved status applied)`);
-        console.log(`🔍 CSS classes: tree-node file-node status-unresolved`);
-      }
+      // Map status values to correct CSS class names
+      const statusClass = status === 'bulk_deleted' ? 'status-bulk-deleted' : `status-${status}`;
+      nodeElement.className += ` file-node ${statusClass}`;
       
       const duplicateBadge = node.duplicateCount && node.duplicateCount > 1 
         ? `<span class="duplicate-badge">${node.duplicateCount}</span>` 
@@ -490,6 +543,17 @@ class ProjectViewPage extends HTMLElement {
       // Only mark as unresolved if the file has duplicates AND is actually unresolved
       const hasUnresolvedDuplicates = child.status === 'unresolved' && child.duplicateCount && child.duplicateCount > 1;
       return hasUnresolvedDuplicates;
+    });
+  }
+
+  private hasAnyBulkDeletedChildren(node: TreeNode): boolean {
+    if (!node.children) return false;
+    
+    return node.children.some(child => {
+      if (child.isFolder) {
+        return this.hasAnyBulkDeletedChildren(child);
+      }
+      return child.status === 'bulk_deleted';
     });
   }
 
@@ -934,20 +998,27 @@ class ProjectViewPage extends HTMLElement {
       // Filter files by status
       const primaryFiles = allFiles.filter(file => file.status === 'primary');
       const deletedFiles = allFiles.filter(file => file.status === 'deleted');
+      const bulkDeletedFiles = allFiles.filter(file => file.status === 'bulk_deleted');
       
       // Create report content
-      const report = this.createResolutionReport(primaryFiles, deletedFiles);
+      const report = this.createResolutionReport(primaryFiles, deletedFiles, bulkDeletedFiles);
       
       // Download the report
       this.downloadFile(report, `duplicate-resolution-report-${this.currentProject.name}-${new Date().toISOString().split('T')[0]}.txt`);
       
-      this.showStatus(`Downloaded resolution report with ${primaryFiles.length} primary and ${deletedFiles.length} deleted files`, 'success');
+      this.showStatus(`Downloaded resolution report with ${primaryFiles.length} primary, ${deletedFiles.length} deleted, and ${bulkDeletedFiles.length} bulk deleted files`, 'success');
     } catch (error) {
       this.showStatus('Error generating report: ' + error, 'error');
     }
   }
 
   private getAllProjectFiles(): { relativePath: string; status: string }[] {
+    // For reports, we want all files from the project, not just duplicates
+    if (this.fileTree) {
+      return this.getAllFilesFromTree(this.fileTree);
+    }
+    
+    // Fallback to duplicate groups if tree is not available
     const allFiles: { relativePath: string; status: string }[] = [];
     
     // Collect all files from duplicate groups
@@ -963,7 +1034,7 @@ class ProjectViewPage extends HTMLElement {
     return allFiles;
   }
 
-  private createResolutionReport(primaryFiles: { relativePath: string; status: string }[], deletedFiles: { relativePath: string; status: string }[]): string {
+  private createResolutionReport(primaryFiles: { relativePath: string; status: string }[], deletedFiles: { relativePath: string; status: string }[], bulkDeletedFiles: { relativePath: string; status: string }[]): string {
     const projectName = this.currentProject?.name || 'Unknown Project';
     const projectPath = this.currentProject?.base_path || 'Unknown Path';
     const timestamp = new Date().toLocaleString();
@@ -997,6 +1068,17 @@ ${deletedFiles.map(file => `🗑️ ${file.relativePath}`).join('\n')}
 `;
     }
 
+    if (bulkDeletedFiles.length > 0) {
+      report += `BULK DELETED FILES (${bulkDeletedFiles.length}):
+${bulkDeletedFiles.map(file => `🟣 ${file.relativePath}`).join('\n')}
+
+`;
+    } else {
+      report += `BULK DELETED FILES: None
+
+`;
+    }
+
     const totalResolved = primaryFiles.length + deletedFiles.length;
     const totalDuplicates = Object.values(this.duplicateGroups).reduce((sum, group) => sum + group.count, 0);
     const unresolvedCount = totalDuplicates - totalResolved;
@@ -1005,6 +1087,7 @@ ${deletedFiles.map(file => `🗑️ ${file.relativePath}`).join('\n')}
 - Total Duplicate Files: ${totalDuplicates}
 - Primary Files: ${primaryFiles.length}
 - Deleted Files: ${deletedFiles.length}
+- Bulk Deleted Files: ${bulkDeletedFiles.length}
 - Unresolved Files: ${unresolvedCount}
 - Resolution Progress: ${totalResolved}/${totalDuplicates} (${Math.round((totalResolved / totalDuplicates) * 100)}%)
 
@@ -1036,20 +1119,21 @@ ${unresolvedFiles.map(file => `  ⏳ ${file.relativePath}`).join('\n')}
       const allFiles = this.getAllProjectFiles();
       const primaryFiles = allFiles.filter(file => file.status === 'primary');
       const deletedFiles = allFiles.filter(file => file.status === 'deleted');
+      const bulkDeletedFiles = allFiles.filter(file => file.status === 'bulk_deleted');
       
       // Create scriptable content with just file paths
-      const scriptableContent = this.createScriptableReport(primaryFiles, deletedFiles);
+      const scriptableContent = this.createScriptableReport(primaryFiles, deletedFiles, bulkDeletedFiles);
       
       // Download the scriptable report
       this.downloadFile(scriptableContent, `scriptable-report-${this.currentProject.name}-${new Date().toISOString().split('T')[0]}.txt`);
       
-      this.showStatus(`Downloaded scriptable report with ${primaryFiles.length} primary and ${deletedFiles.length} deleted files`, 'success');
+      this.showStatus(`Downloaded scriptable report with ${primaryFiles.length} primary, ${deletedFiles.length} deleted, and ${bulkDeletedFiles.length} bulk deleted files`, 'success');
     } catch (error) {
       this.showStatus('Error generating scriptable report: ' + error, 'error');
     }
   }
 
-  private createScriptableReport(primaryFiles: { relativePath: string; status: string }[], deletedFiles: { relativePath: string; status: string }[]): string {
+  private createScriptableReport(primaryFiles: { relativePath: string; status: string }[], deletedFiles: { relativePath: string; status: string }[], bulkDeletedFiles: { relativePath: string; status: string }[]): string {
     const projectName = this.currentProject?.name || 'Unknown Project';
     const projectPath = this.currentProject?.base_path || 'Unknown Path';
     const timestamp = new Date().toISOString();
@@ -1084,6 +1168,17 @@ ${unresolvedFiles.map(file => `  ⏳ ${file.relativePath}`).join('\n')}
       report += `# DELETED FILES: None\n\n`;
     }
 
+    // Bulk deleted files - format for deletion
+    if (bulkDeletedFiles.length > 0) {
+      report += `# BULK DELETED FILES (${bulkDeletedFiles.length}) - DELETE THESE FILES\n`;
+      bulkDeletedFiles.forEach(file => {
+        report += `DELETE:${file.relativePath}\n`;
+      });
+      report += '\n';
+    } else {
+      report += `# BULK DELETED FILES: None\n\n`;
+    }
+
     // Summary for scripting
     const totalResolved = primaryFiles.length + deletedFiles.length;
     const totalDuplicates = Object.values(this.duplicateGroups).reduce((sum, group) => sum + group.count, 0);
@@ -1093,6 +1188,7 @@ ${unresolvedFiles.map(file => `  ⏳ ${file.relativePath}`).join('\n')}
 # Total Duplicate Files: ${totalDuplicates}
 # Primary Files: ${primaryFiles.length}
 # Deleted Files: ${deletedFiles.length}
+# Bulk Deleted Files: ${bulkDeletedFiles.length}
 # Unresolved Files: ${unresolvedCount}
 # Resolution Progress: ${totalResolved}/${totalDuplicates} (${Math.round((totalResolved / totalDuplicates) * 100)}%)
 
@@ -1251,21 +1347,53 @@ ${unresolvedFiles.map(file => `  ⏳ ${file.relativePath}`).join('\n')}
               <div class="stat-number">${stats.deletedFiles}</div>
               <div class="stat-label">Deleted</div>
             </div>
+            <div class="stat-item bulk-deleted">
+              <div class="stat-number">${stats.bulkDeletedFiles}</div>
+              <div class="stat-label">Bulk Deleted</div>
+            </div>
           </div>
         </div>
+        ${this.bulkDeleteStats && this.bulkDeleteStats.recentOperations.length > 0 ? `
+        <div class="bulk-delete-section">
+          <div class="bulk-delete-header">
+            <h4>🟣 Recent Bulk Delete Operations</h4>
+          </div>
+          <div class="bulk-delete-operations">
+            ${this.bulkDeleteStats.recentOperations.slice(0, 5).map(op => `
+              <div class="operation-item">
+                <div class="operation-type">${op.operation_type}</div>
+                <div class="operation-target">${op.target}</div>
+                <div class="operation-files">${op.files_affected} files affected</div>
+                <div class="operation-date">${new Date(op.created_at).toLocaleString()}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+        ` : ''}
       </div>
     `;
   }
 
   private calculateProjectStats() {
-    const allFiles = this.getAllProjectFiles();
-    const totalFiles = allFiles.length;
+    // Get all files from the project (not just duplicates)
+    const allProjectFiles = this.fileTree ? this.getAllFilesFromTree(this.fileTree) : [];
+    const totalFiles = allProjectFiles.length;
+    
+    // Get duplicate files from duplicate groups
     const duplicateFiles = Object.values(this.duplicateGroups).reduce((sum, group) => sum + group.count, 0);
-    const primaryFiles = allFiles.filter(file => file.status === 'primary').length;
-    const deletedFiles = allFiles.filter(file => file.status === 'deleted').length;
+    
+    // Get status counts from all project files
+    const primaryFiles = allProjectFiles.filter(file => file.status === 'primary').length;
+    const deletedFiles = allProjectFiles.filter(file => file.status === 'deleted').length;
+    const bulkDeletedFiles = allProjectFiles.filter(file => file.status === 'bulk_deleted').length;
+    
     const resolvedFiles = primaryFiles + deletedFiles;
     const unresolvedFiles = duplicateFiles - resolvedFiles;
     const percentage = duplicateFiles > 0 ? Math.round((resolvedFiles / duplicateFiles) * 100) : 0;
+
+    // Use API bulk delete stats if available, otherwise use local count
+    const apiBulkDeletedFiles = this.bulkDeleteStats?.bulkDeletedFiles || 0;
+    const totalBulkDeletedFiles = this.bulkDeleteStats ? apiBulkDeletedFiles : bulkDeletedFiles;
 
     return {
       totalFiles,
@@ -1274,8 +1402,30 @@ ${unresolvedFiles.map(file => `  ⏳ ${file.relativePath}`).join('\n')}
       unresolvedFiles,
       primaryFiles,
       deletedFiles,
+      bulkDeletedFiles: totalBulkDeletedFiles,
       percentage
     };
+  }
+
+  private getAllFilesFromTree(node: TreeNode): { relativePath: string; status: string }[] {
+    const files: { relativePath: string; status: string }[] = [];
+    
+    if (!node.children) return files;
+    
+    for (const child of node.children) {
+      if (child.isFolder) {
+        // Recursively get files from subfolders
+        files.push(...this.getAllFilesFromTree(child));
+      } else {
+        // This is a file
+        files.push({
+          relativePath: child.relativePath || child.path,
+          status: child.status || 'normal'
+        });
+      }
+    }
+    
+    return files;
   }
 
   private showStatus(message: string, type: 'success' | 'error' | 'info' = 'info') {

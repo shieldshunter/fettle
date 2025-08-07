@@ -148,19 +148,94 @@
   color: var(--status-deleted);
 }
 
-.section {
-  background: var(--container-bg);
-  border: 1px solid var(--file-border);
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 20px;
+.stat-item.bulk-deleted .stat-number {
+  color: var(--status-bulk-deleted);
 }
 
-.section h3 {
-  margin-top: 0;
-  margin-bottom: 16px;
+.section {
+  background: var(--file-hover);
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  border: 1px solid var(--file-border);
+}
+
+.bulk-delete-section {
+  background: var(--file-hover);
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid var(--file-border);
+  margin-top: 16px;
+}
+
+.bulk-delete-header {
+  margin-bottom: 12px;
+}
+
+.bulk-delete-header h4 {
+  margin: 0;
   color: var(--file-text);
-  font-size: 18px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.bulk-delete-operations {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.operation-item {
+  background: var(--file-bg);
+  border-radius: 6px;
+  padding: 12px;
+  border: 1px solid var(--file-border);
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr 1fr;
+  gap: 12px;
+  align-items: center;
+  font-size: 14px;
+}
+
+.operation-type {
+  font-weight: 600;
+  color: var(--status-bulk-deleted);
+  text-transform: capitalize;
+}
+
+.operation-target {
+  color: var(--file-text);
+  font-family: monospace;
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.operation-files {
+  color: var(--file-text-secondary);
+  text-align: center;
+}
+
+.operation-date {
+  color: var(--file-text-secondary);
+  font-size: 12px;
+  text-align: right;
+}
+
+@media (max-width: 768px) {
+  .operation-item {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
+  .operation-target {
+    font-size: 11px;
+  }
+  
+  .operation-date {
+    text-align: left;
+  }
 }
 
 .projects-grid {
@@ -252,6 +327,10 @@
 
 .legend-item.resolved {
   color: var(--status-resolved);
+}
+
+.legend-item.bulk-deleted {
+  color: var(--status-bulk-deleted);
 }
 
 .tree-container {
@@ -354,12 +433,34 @@
   border: none !important;
 }
 
+.tree-node.file-node.status-bulk-deleted .node-name {
+  color: var(--status-bulk-deleted) !important;
+  opacity: 0.8 !important;
+  text-decoration: line-through !important;
+  background-color: var(--delete-mode-bg) !important;
+  padding: 4px 8px !important;
+  border-radius: 4px !important;
+  border: 2px solid var(--status-bulk-deleted) !important;
+  font-weight: bold !important;
+}
+
 .file-node.status-normal {
   opacity: 0.7;
 }
 
 .file-node.status-normal * {
   opacity: 0.7;
+}
+
+.file-node.status-bulk-deleted {
+  opacity: 0.8;
+  background-color: rgba(142, 68, 173, 0.1);
+  border-radius: 4px;
+  margin: 2px 0;
+}
+
+.file-node.status-bulk-deleted * {
+  opacity: 0.8;
 }
 
 .folder-node.resolved .node-name {
@@ -1382,5 +1483,64 @@
   
   .nav-counter {
     font-size: 12px;
+  }
+} 
+
+.full-tree-view-section {
+  text-align: center;
+  margin-bottom: 30px;
+  padding: 20px;
+  background: linear-gradient(135deg, var(--file-hover) 0%, var(--file-bg) 100%);
+  border-radius: 12px;
+  border: 2px solid var(--file-border);
+}
+
+.full-tree-view-btn {
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+  padding: 16px 32px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+  margin-bottom: 12px;
+}
+
+.full-tree-view-btn:hover {
+  background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
+}
+
+.full-tree-view-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+}
+
+.tree-view-description {
+  color: var(--file-text-secondary);
+  font-size: 14px;
+  margin: 0;
+  font-style: italic;
+} 
+
+@media (max-width: 768px) {
+  .full-tree-view-section {
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+  
+  .full-tree-view-btn {
+    font-size: 16px;
+    padding: 14px 24px;
+    width: 100%;
+    max-width: 300px;
+  }
+  
+  .tree-view-description {
+    font-size: 13px;
   }
 } 

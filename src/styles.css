@@ -29,6 +29,7 @@
   --status-deleted: #e74c3c;
   --status-normal: #666666;
   --status-resolved: #27ae60;
+  --status-bulk-deleted: #8e44ad;
   
   /* Button Colors - Light Mode */
   --btn-primary: #3498db;
@@ -41,6 +42,14 @@
   --btn-success-hover: #229954;
   --btn-secondary: #6c757d;
   --btn-secondary-hover: #5a6268;
+  
+  /* Delete Mode Colors - Light Mode */
+  --delete-mode-bg: #fff5f5;
+  --delete-mode-border: #fecaca;
+  --delete-mode-text: #dc2626;
+  --delete-selection-bg: #fef2f2;
+  --delete-selection-border: #fca5a5;
+  --delete-selection-text: #dc2626;
   
   /* Popup Colors - Light Mode */
   --popup-bg: #ffffff;
@@ -110,6 +119,7 @@ body.dark-mode {
   --status-deleted: #e74c3c;
   --status-normal: #b0b0b0;
   --status-resolved: #27ae60;
+  --status-bulk-deleted: #9b59b6;
   
   /* Button Colors - Dark Mode */
   --btn-primary: #3498db;
@@ -122,6 +132,14 @@ body.dark-mode {
   --btn-success-hover: #229954;
   --btn-secondary: #6c757d;
   --btn-secondary-hover: #5a6268;
+  
+  /* Delete Mode Colors - Dark Mode */
+  --delete-mode-bg: #2d1b1b;
+  --delete-mode-border: #4a1f1f;
+  --delete-mode-text: #ff6b6b;
+  --delete-selection-bg: #3d1f1f;
+  --delete-selection-border: #5a2a2a;
+  --delete-selection-text: #ff6b6b;
   
   /* Popup Colors - Dark Mode */
   --popup-bg: #2d2d2d;

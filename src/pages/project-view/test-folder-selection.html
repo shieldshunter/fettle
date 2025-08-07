@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Folder Selection Test - Delete Mode</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+        .feature-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .feature-list li:before {
+            content: "✅ ";
+            margin-right: 8px;
+        }
+        .code-block {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+        .status-new {
+            background: #28a745;
+            color: white;
+        }
+        .status-implemented {
+            background: #007bff;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="test-header">
+            <h1>🗂️ Folder Selection in Delete Mode</h1>
+            <p>Test and demonstration of the new folder selection functionality</p>
+        </div>
+
+        <div class="test-section">
+            <h3>🆕 New Features <span class="status-badge status-new">NEW</span></h3>
+            <ul class="feature-list">
+                <li><strong>Folder Selection:</strong> Folders can now be directly selected for deletion in delete mode</li>
+                <li><strong>Visual Feedback:</strong> Selected folders show with a distinct background and border</li>
+                <li><strong>Selection Button:</strong> Each folder displays a "Select for Deletion" button when in delete mode</li>
+                <li><strong>Stats Integration:</strong> Selected folders are counted in the delete mode statistics</li>
+                <li><strong>Bulk Operations:</strong> Selected folders are processed alongside selected files during bulk deletion</li>
+                <li><strong>State Management:</strong> Folder selections are cleared when exiting delete mode</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h3>🔧 Technical Implementation</h3>
+            <div class="code-block">
+// New property for tracking selected folders
+private selectedFoldersForDeletion: Set<string> = new Set();
+
+// Folder selection toggle method
+private toggleFolderSelection(folderPath: string) {
+  if (this.selectedFoldersForDeletion.has(folderPath)) {
+    this.selectedFoldersForDeletion.delete(folderPath);
+  } else {
+    this.selectedFoldersForDeletion.add(folderPath);
+  }
+  this.renderFileTree();
+  this.updateDeleteModeStats();
+}
+
+// Updated bulk deletion to handle both files and folders
+private executeBulkDeleteSelectedFiles() {
+  const totalSelected = this.selectedFilesForDeletion.size + 
+                       this.selectedFoldersForDeletion.size;
+  
+  // Handle selected files
+  const filePromises = this.selectedFilesForDeletion.size > 0 ? 
+    fetch(`/api/delete-mode/${projectId}/files`, {
+      method: 'POST',
+      body: JSON.stringify({ filePaths: Array.from(this.selectedFilesForDeletion) })
+    }) : Promise.resolve({ success: true });
+
+  // Handle selected folders
+  const folderPromises = Array.from(this.selectedFoldersForDeletion).map(folderPath =>
+    fetch(`/api/delete-mode/${projectId}/folder`, {
+      method: 'POST',
+      body: JSON.stringify({ folderPath })
+    })
+  );
+
+  Promise.all([filePromises, ...folderPromises])
+    .then(results => {
+      // Process results and update UI
+    });
+}
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>🎨 UI Changes</h3>
+            <ul class="feature-list">
+                <li><strong>Folder Actions:</strong> Added `.folder-actions` container for folder selection buttons</li>
+                <li><strong>Selection Styling:</strong> Added `.tree-node.folder-node.selected-for-deletion` styles</li>
+                <li><strong>Button Styling:</strong> Folder selection buttons use the same danger styling as file buttons</li>
+                <li><strong>Stats Display:</strong> Updated stats to show both file and folder selection counts</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h3>🧪 Testing Instructions</h3>
+            <ol>
+                <li><strong>Enable Delete Mode:</strong> Click the "🗑️ Delete Mode" button in the tree view</li>
+                <li><strong>Select Folders:</strong> Look for "Select for Deletion" buttons next to folder names</li>
+                <li><strong>Visual Feedback:</strong> Selected folders should have a colored background and border</li>
+                <li><strong>Stats Update:</strong> Check the delete mode stats panel for updated selection counts</li>
+                <li><strong>Bulk Deletion:</strong> Use "Delete Selected Files" to process both files and folders</li>
+                <li><strong>State Reset:</strong> Exit delete mode to clear all selections</li>
+            </ol>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 API Integration</h3>
+            <p>The folder selection feature integrates with existing delete mode API endpoints:</p>
+            <ul class="feature-list">
+                <li><strong>Folder Deletion:</strong> Uses <code>POST /api/delete-mode/:projectId/folder</code></li>
+                <li><strong>File Deletion:</strong> Uses <code>POST /api/delete-mode/:projectId/files</code></li>
+                <li><strong>Stats:</strong> Uses <code>GET /api/delete-mode/:projectId/stats</code></li>
+                <li><strong>Reset:</strong> Uses <code>POST /api/delete-mode/:projectId/reset</code></li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h3>🔍 Key Differences from File Selection</h3>
+            <ul class="feature-list">
+                <li><strong>Path Handling:</strong> Folders use folder paths, files use relative paths</li>
+                <li><strong>API Endpoint:</strong> Folders use the folder endpoint, files use the files endpoint</li>
+                <li><strong>Visual Placement:</strong> Folder buttons appear below the folder name, file buttons appear inline</li>
+                <li><strong>Selection Logic:</strong> Folder selection doesn't affect child file selections</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h3>⚠️ Important Notes</h3>
+            <ul class="feature-list">
+                <li>Folder selection is independent of file selection within that folder</li>
+                <li>Selecting a folder for deletion will delete the entire folder and all its contents</li>
+                <li>Folder selections are cleared when exiting delete mode</li>
+                <li>The selection button only appears when delete mode is active</li>
+                <li>Folder selection works alongside existing file selection functionality</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html> 

@@ -159,6 +159,10 @@
 .tree-node.file-node .node-info {
   cursor: pointer;
   transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
 }
 
 .tree-node.file-node .node-info:hover {
@@ -249,7 +253,16 @@
   border: 2px solid var(--status-unresolved);
 }
 
-.folder-node:not(.status-unresolved) .node-name {
+.folder-node.status-bulk-deleted-folder .node-name {
+  color: var(--status-bulk-deleted);
+  font-weight: bold;
+  background-color: var(--delete-mode-bg);
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 2px solid var(--status-bulk-deleted);
+}
+
+.folder-node:not(.status-unresolved):not(.status-bulk-deleted-folder) .node-name {
   color: var(--file-text) !important;
   font-weight: 500 !important;
   border: none !important;
@@ -291,7 +304,15 @@
 .tree-node.folder-node .node-content {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
+}
+
+.tree-node.folder-node .node-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
 }
 
 .node-info {
@@ -1160,4 +1181,378 @@
   .nav-counter {
     font-size: 12px;
   }
+} 
+
+/* Delete Mode Styles */
+.delete-mode-btn {
+  background: var(--btn-danger);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.delete-mode-btn:hover {
+  background: var(--btn-danger-hover);
+  transform: scale(1.05);
+}
+
+.delete-mode-btn.active {
+  background: var(--btn-warning);
+  box-shadow: 0 0 0 2px var(--btn-warning-hover);
+}
+
+.delete-mode-controls {
+  background: var(--delete-mode-bg);
+  border: 2px solid var(--delete-mode-border);
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin: 20px;
+  margin-bottom: 0;
+}
+
+.delete-mode-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.delete-mode-header h4 {
+  margin: 0;
+  color: var(--delete-mode-text);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.delete-mode-stats {
+  display: flex;
+  gap: 16px;
+}
+
+.delete-mode-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.danger-btn {
+  background: var(--btn-danger);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.danger-btn:hover {
+  background: var(--btn-danger-hover);
+}
+
+.warning-btn {
+  background: var(--btn-warning);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.warning-btn:hover {
+  background: var(--btn-warning-hover);
+}
+
+.delete-mode-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 600px;
+  background: var(--popup-bg);
+  border-radius: 12px;
+  box-shadow: 0 20px 40px var(--popup-shadow);
+  z-index: 1000;
+  display: none;
+  border: 1px solid var(--popup-border);
+}
+
+.delete-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.delete-dialog p {
+  margin: 0;
+  color: var(--file-text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.delete-dialog .input-field {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--file-border);
+  border-radius: 6px;
+  font-size: 14px;
+  background: var(--file-bg);
+  color: var(--file-text);
+}
+
+.delete-dialog .input-field:focus {
+  outline: none;
+  border-color: var(--btn-primary);
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+.pattern-examples {
+  color: var(--file-text-secondary);
+  font-size: 12px;
+  font-style: italic;
+}
+
+.dialog-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+/* File selection styles for delete mode */
+.tree-node.file-node.selected-for-deletion {
+  background-color: var(--delete-selection-bg);
+  border: 2px solid var(--delete-selection-border);
+  border-radius: 6px;
+}
+
+.tree-node.file-node.selected-for-deletion .node-name {
+  color: var(--delete-selection-text) !important;
+  font-weight: bold !important;
+}
+
+/* Folder selection styles for delete mode */
+.tree-node.folder-node.selected-for-deletion {
+  background-color: var(--delete-selection-bg);
+  border: 2px solid var(--delete-selection-border);
+  border-radius: 6px;
+}
+
+.tree-node.folder-node.selected-for-deletion .node-name {
+  color: var(--delete-selection-text) !important;
+  font-weight: bold !important;
+}
+
+.folder-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  margin-left: 24px;
+}
+
+.folder-actions .bin-button {
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
+/* Folder select button positioning */
+.folder-select-btn {
+  font-size: 11px !important;
+  padding: 3px 6px !important;
+  margin-left: auto !important;
+  opacity: 1 !important;
+  transition: all 0.1s ease !important;
+  display: inline-block !important;
+  visibility: visible !important;
+}
+
+.folder-select-btn:hover {
+  transform: scale(1.05) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* File select button positioning */
+.file-select-btn {
+  font-size: 11px !important;
+  padding: 3px 6px !important;
+  margin-left: auto !important;
+  opacity: 1 !important;
+  transition: all 0.1s ease !important;
+  display: inline-block !important;
+  visibility: visible !important;
+}
+
+.file-select-btn:hover {
+  transform: scale(1.05) !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Ensure immediate button visibility */
+.folder-select-btn,
+.file-select-btn {
+  animation: fadeIn 0.1s ease-in !important;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.tree-node.file-node.status-bulk-deleted .node-name {
+  color: var(--status-bulk-deleted) !important;
+  opacity: 0.8 !important;
+  text-decoration: line-through !important;
+  background-color: var(--delete-mode-bg) !important;
+  padding: 4px 8px !important;
+  border-radius: 4px !important;
+  border: 2px solid var(--status-bulk-deleted) !important;
+  font-weight: bold !important;
+}
+
+.file-node.status-bulk-deleted {
+  opacity: 0.8;
+  background-color: rgba(142, 68, 173, 0.1);
+  border-radius: 4px;
+  margin: 2px 0;
+}
+
+.file-node.status-bulk-deleted * {
+  opacity: 0.8;
+}
+
+/* Stats grid for delete mode */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+.stat-item {
+  background: var(--file-bg);
+  border: 1px solid var(--file-border);
+  border-radius: 6px;
+  padding: 12px;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.stat-item:hover {
+  background: var(--file-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.stat-number {
+  display: block;
+  font-size: 24px;
+  font-weight: bold;
+  color: var(--delete-mode-text);
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  display: block;
+  font-size: 12px;
+  color: var(--file-text-secondary);
+  font-weight: 500;
+}
+
+/* Legend item for bulk deleted */
+.legend-item.bulk-deleted {
+  color: var(--status-bulk-deleted);
+}
+
+/* Responsive design for delete mode */
+@media (max-width: 768px) {
+  .delete-mode-controls {
+    margin: 10px;
+    padding: 12px 16px;
+  }
+  
+  .delete-mode-header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+  
+  .delete-mode-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .delete-mode-actions .bin-button {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .dialog-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .dialog-actions .bin-button {
+    width: 100%;
+  }
+} 
+
+/* Selected via parent folder indicator */
+.selected-via-parent {
+  font-size: 11px !important;
+  padding: 3px 6px !important;
+  margin-left: auto !important;
+  background-color: var(--delete-selection-bg) !important;
+  color: var(--delete-selection-text) !important;
+  border: 1px solid var(--delete-selection-border) !important;
+  border-radius: 4px !important;
+  font-style: italic !important;
+  opacity: 0.8 !important;
+}
+
+/* Enhanced selection styling for files selected via parent folder */
+.tree-node.file-node.selected-for-deletion {
+  background-color: var(--delete-selection-bg) !important;
+  border: 2px solid var(--delete-selection-border) !important;
+  border-radius: 4px !important;
+  margin: 2px 0 !important;
+}
+
+.tree-node.file-node.selected-for-deletion .node-name {
+  color: var(--delete-selection-text) !important;
+  font-weight: bold !important;
+}
+
+/* Folder selection styling */
+.tree-node.folder-node.selected-for-deletion {
+  background-color: var(--delete-selection-bg) !important;
+  border: 2px solid var(--delete-selection-border) !important;
+  border-radius: 4px !important;
+  margin: 2px 0 !important;
+}
+
+.tree-node.folder-node.selected-for-deletion .node-name {
+  color: var(--delete-selection-text) !important;
+  font-weight: bold !important;
 } 

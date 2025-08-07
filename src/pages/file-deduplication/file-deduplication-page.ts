@@ -1,4 +1,5 @@
 import cssText from './file-deduplication-page-styles.css?inline';
+import { API_CONFIG } from '../../config/api-config';
 
 const sheet = new CSSStyleSheet(); 
 sheet.replaceSync(cssText);
@@ -16,7 +17,7 @@ interface Project {
 
 class FileDeduplicationPage extends HTMLElement {
   public shadow: ShadowRoot;
-  private apiBaseUrl: string = 'https://trebro-api.onrender.com/api';
+
   private currentProject: Project | null = null;
   private projects: Project[] = [];
   private newlyCreatedProject: Project | null = null;
@@ -113,6 +114,10 @@ class FileDeduplicationPage extends HTMLElement {
   connectedCallback() {
     this.setupEventListeners();
     
+    // Debug API configuration
+    console.log('🔧 API_CONFIG.BASE_URL:', API_CONFIG.BASE_URL);
+    console.log('🔧 API_CONFIG.getApiUrl("projects"):', API_CONFIG.getApiUrl('projects'));
+    
     // Check if running in Electron
     const isElectron = !!(window as any).electronAPI?.selectFolder;
     if (!isElectron) {
@@ -146,7 +151,10 @@ class FileDeduplicationPage extends HTMLElement {
       // Show loading state
       this.showLoadingState('Loading projects...');
       
-      const response = await fetch(`${this.apiBaseUrl}/projects`);
+      const apiUrl = API_CONFIG.getApiUrl('projects');
+      console.log('🔧 Loading projects with API URL:', apiUrl);
+      
+      const response = await fetch(apiUrl);
       if (!response.ok) {
         if (response.status === 400 || response.status === 404) {
           this.showStatus('Backend API not available. Please ensure the file deduplication API is running on https://trebro-api.onrender.com', 'error');
@@ -260,10 +268,18 @@ class FileDeduplicationPage extends HTMLElement {
       // Show loading state
       this.showLoadingState('Creating project...');
       
-      const response = await fetch(`${this.apiBaseUrl}/projects`, {
+      const apiUrl = API_CONFIG.getApiUrl('projects');
+      console.log('🔧 Creating project with API URL:', apiUrl);
+      console.log('🔧 Full request details:', {
+        url: apiUrl,
+        method: 'POST',
+        body: { name, base_path: basePath }
+      });
+      
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, base_path: basePath })
+        body: JSON.stringify({ name, basePath: basePath })
       });
 
       if (!response.ok) {
@@ -319,7 +335,10 @@ class FileDeduplicationPage extends HTMLElement {
       // Show loading state
       this.showLoadingState('Loading project files...');
       
-      const response = await fetch(`${this.apiBaseUrl}/projects/${projectId}/files`);
+      const apiUrl = API_CONFIG.getApiUrl(`projects/${projectId}/files`);
+      console.log('🔧 Loading project files from URL:', apiUrl);
+      
+      const response = await fetch(apiUrl);
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to load project files');
@@ -550,14 +569,29 @@ class FileDeduplicationPage extends HTMLElement {
         throw new Error('Invalid scan data format. Please run a new scan.');
       }
 
-      const url = `${this.apiBaseUrl}/projects/${this.currentProject.id}/files`;
+      const url = API_CONFIG.getApiUrl(`scan/${this.currentProject.id}/scan-result`);
+      console.log('🔧 Uploading scan results to URL:', url);
+      console.log('🔧 Current project ID:', this.currentProject.id);
+      
+      // Prepare the scan data with basePath
+      const basePath = this.currentProject.base_path || this.currentProject.basePath || '';
+      const uploadData = {
+        basePath: basePath,
+        files: scanResults
+      };
+      
+      console.log('🔧 Scan data being uploaded:', uploadData);
+      
       const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ files: scanResults })
+        body: JSON.stringify(uploadData)
       });
 
       if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error('File upload endpoint not found. The backend API may not support file uploads yet.');
+        }
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to upload scan results');
       }
@@ -586,7 +620,7 @@ class FileDeduplicationPage extends HTMLElement {
     statusElement.textContent = 'Testing...';
     
     try {
-      const response = await fetch(`${this.apiBaseUrl}/projects`);
+      const response = await fetch(API_CONFIG.getApiUrl('projects'));
       if (response.ok) {
         const result = await response.json();
         if (result.success) {
