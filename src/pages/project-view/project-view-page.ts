@@ -163,7 +163,9 @@ class ProjectViewPage extends HTMLElement {
     this.shadow.getElementById('openTreeViewBtn')?.addEventListener('click', () => this.openTreeView());
     this.shadow.getElementById('downloadReportBtn')?.addEventListener('click', () => this.downloadResolutionReport());
     this.shadow.getElementById('downloadScriptableBtn')?.addEventListener('click', () => this.downloadScriptableReport());
-
+    
+    // Popup controls
+    this.shadow.getElementById('closePopupBtn')?.addEventListener('click', () => this.hideDuplicateLocations());
   }
 
   private async loadProjects() {
