@@ -1127,106 +1127,36 @@ ${unresolvedFiles.map(file => `  ⏳ ${file.relativePath}`).join('\n')}
       // Download the scriptable report
       this.downloadFile(scriptableContent, `scriptable-report-${this.currentProject.name}-${new Date().toISOString().split('T')[0]}.txt`);
       
-      this.showStatus(`Downloaded scriptable report with ${primaryFiles.length} primary, ${deletedFiles.length} deleted, and ${bulkDeletedFiles.length} bulk deleted files`, 'success');
+      this.showStatus(`Downloaded clean scriptable report with ${primaryFiles.length} keep actions and ${deletedFiles.length + bulkDeletedFiles.length} delete actions`, 'success');
     } catch (error) {
       this.showStatus('Error generating scriptable report: ' + error, 'error');
     }
   }
 
   private createScriptableReport(primaryFiles: { relativePath: string; status: string }[], deletedFiles: { relativePath: string; status: string }[], bulkDeletedFiles: { relativePath: string; status: string }[]): string {
-    const projectName = this.currentProject?.name || 'Unknown Project';
-    const projectPath = this.currentProject?.base_path || 'Unknown Path';
-    const timestamp = new Date().toISOString();
+    // Create a clean, scriptable report with only file paths and actions
+    let report = '';
     
-    let report = `# Scriptable Duplicate Resolution Report
-# Generated: ${timestamp}
-# Project: ${projectName}
-# Base Path: ${projectPath}
-# Format: One file path per line, prefixed with action
-
-`;
-
     // Primary files - format for keeping
     if (primaryFiles.length > 0) {
-      report += `# PRIMARY FILES (${primaryFiles.length}) - KEEP THESE FILES\n`;
       primaryFiles.forEach(file => {
         report += `KEEP:${file.relativePath}\n`;
       });
-      report += '\n';
-    } else {
-      report += `# PRIMARY FILES: None\n\n`;
     }
 
     // Deleted files - format for deletion
     if (deletedFiles.length > 0) {
-      report += `# DELETED FILES (${deletedFiles.length}) - DELETE THESE FILES\n`;
       deletedFiles.forEach(file => {
         report += `DELETE:${file.relativePath}\n`;
       });
-      report += '\n';
-    } else {
-      report += `# DELETED FILES: None\n\n`;
     }
 
     // Bulk deleted files - format for deletion
     if (bulkDeletedFiles.length > 0) {
-      report += `# BULK DELETED FILES (${bulkDeletedFiles.length}) - DELETE THESE FILES\n`;
       bulkDeletedFiles.forEach(file => {
         report += `DELETE:${file.relativePath}\n`;
       });
-      report += '\n';
-    } else {
-      report += `# BULK DELETED FILES: None\n\n`;
     }
-
-    // Summary for scripting
-    const totalResolved = primaryFiles.length + deletedFiles.length;
-    const totalDuplicates = Object.values(this.duplicateGroups).reduce((sum, group) => sum + group.count, 0);
-    const unresolvedCount = totalDuplicates - totalResolved;
-
-    report += `# SUMMARY FOR SCRIPTING
-# Total Duplicate Files: ${totalDuplicates}
-# Primary Files: ${primaryFiles.length}
-# Deleted Files: ${deletedFiles.length}
-# Bulk Deleted Files: ${bulkDeletedFiles.length}
-# Unresolved Files: ${unresolvedCount}
-# Resolution Progress: ${totalResolved}/${totalDuplicates} (${Math.round((totalResolved / totalDuplicates) * 100)}%)
-
-`;
-
-    // Example script usage
-    report += `# EXAMPLE SCRIPT USAGE (PowerShell):
-# $content = Get-Content "scriptable-report-${projectName}-${new Date().toISOString().split('T')[0]}.txt"
-# $keepFiles = $content | Where-Object { $_ -match '^KEEP:' } | ForEach-Object { $_.Replace('KEEP:', '') }
-# $deleteFiles = $content | Where-Object { $_ -match '^DELETE:' } | ForEach-Object { $_.Replace('DELETE:', '') }
-# 
-# foreach ($file in $deleteFiles) {
-#     if (Test-Path $file) { Remove-Item $file -Force }
-# }
-# 
-# foreach ($file in $keepFiles) {
-#     Write-Host "Keeping: $file"
-# }
-
-`;
-
-    // Example script usage for bash
-    report += `# EXAMPLE SCRIPT USAGE (Bash):
-# #!/bin/bash
-# while IFS= read -r line; do
-#     if [[ $line == KEEP:* ]]; then
-#         filepath="\${line#KEEP:}"
-#         echo "Keeping: $filepath"
-#     elif [[ $line == DELETE:* ]]; then
-#         filepath="\${line#DELETE:}"
-#         if [ -f "$filepath" ]; then
-#             rm "$filepath"
-#             echo "Deleted: $filepath"
-#         fi
-#     fi
-# done < "scriptable-report-${projectName}-${new Date().toISOString().split('T')[0]}.txt"
-
-`;
 
     return report;
   }
