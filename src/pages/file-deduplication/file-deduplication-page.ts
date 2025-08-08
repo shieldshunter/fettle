@@ -1,5 +1,6 @@
 import cssText from './file-deduplication-page-styles.css?inline';
 import { API_CONFIG } from '../../config/api-config';
+import { CAD_GROUPS } from '../../utils/cadExtensions';
 
 const sheet = new CSSStyleSheet(); 
 sheet.replaceSync(cssText);
@@ -69,16 +70,26 @@ class FileDeduplicationPage extends HTMLElement {
           </div>
         </div>
 
+        <!-- File Type Selection Section -->
+        <div class="section" id="fileTypeSection" style="display: none;">
+          <h3>File Type Selection</h3>
+          <div class="select-controls">
+            <button id="selectAllTypes" class="bin-button">Select All</button>
+            <button id="deselectAllTypes" class="bin-button">Deselect All</button>
+          </div>
+          <div id="typeSelector" class="type-selector"></div>
+        </div>
+
         <!-- File Upload Section -->
         <div class="section" id="uploadSection" style="display: none;">
           <h3>File Scan Results</h3>
           <div class="upload-area">
             <div class="scan-controls">
-                          <div class="scan-inputs">
-              <input type="text" id="scanRegex" placeholder="File pattern (e.g., .*\.txt)" class="input-field" value=".*">
-              <button id="runScanBtn" class="bin-button">🔍 Run File Scan</button>
-              <button id="testHashBtn" class="bin-button">🧪 Test Hash</button>
-            </div>
+              <div class="scan-inputs">
+                <input type="text" id="scanRegex" placeholder="File pattern (e.g., .*\.txt)" class="input-field" value=".*">
+                <button id="runScanBtn" class="bin-button">🔍 Run File Scan</button>
+                <button id="testHashBtn" class="bin-button">🧪 Test Hash</button>
+              </div>
               <div class="scan-status" id="scanStatus"></div>
             </div>
             <div class="scan-results">
@@ -144,6 +155,9 @@ class FileDeduplicationPage extends HTMLElement {
     
     // Test connection
     this.shadow.getElementById('testConnectionBtn')?.addEventListener('click', () => this.testApiConnection());
+    
+    // File type selector controls (these will be set up in renderTypeSelector)
+    // The select/deselect all buttons are handled in renderTypeSelector method
   }
 
   private async loadProjects() {
@@ -311,6 +325,7 @@ class FileDeduplicationPage extends HTMLElement {
       const basePath = this.currentProject.base_path || this.currentProject.basePath;
       console.log('Project base_path:', basePath);
       this.showStatus(`Selected project: ${this.currentProject.name}`, 'info');
+      this.shadow.getElementById('fileTypeSection')!.style.display = 'block';
       this.shadow.getElementById('uploadSection')!.style.display = 'block';
       
       // Clear newly created status if selecting a different project
@@ -320,6 +335,9 @@ class FileDeduplicationPage extends HTMLElement {
       
       // Re-render the project list to update selection state
       this.renderProjectsList();
+      
+      // Render the type selector
+      this.renderTypeSelector();
       
       // Load the project files and duplicate groups
       console.log('Calling loadProjectFiles...');
@@ -430,8 +448,12 @@ class FileDeduplicationPage extends HTMLElement {
       return;
     }
 
-    const regexInput = this.shadow.getElementById('scanRegex') as HTMLInputElement;
-    const regex = regexInput.value.trim() || '.*';
+    // Get regex from file type selector instead of manual input
+    const regex = this.buildRegexFromSelector();
+    if (!regex) {
+      this.showStatus('Please select at least one file type first!', 'error');
+      return;
+    }
     const statusElement = this.shadow.getElementById('scanStatus') as HTMLElement;
     const scanBtn = this.shadow.getElementById('runScanBtn') as HTMLButtonElement;
 
@@ -676,6 +698,16 @@ class FileDeduplicationPage extends HTMLElement {
           </div>
         </div>
 
+        <!-- File Type Selection Section -->
+        <div class="section" id="fileTypeSection" style="display: none;">
+          <h3>File Type Selection</h3>
+          <div class="select-controls">
+            <button id="selectAllTypes" class="bin-button">Select All</button>
+            <button id="deselectAllTypes" class="bin-button">Deselect All</button>
+          </div>
+          <div id="typeSelector" class="type-selector"></div>
+        </div>
+
         <!-- File Upload Section -->
         <div class="section" id="uploadSection" style="display: none;">
           <h3>File Scan Results</h3>
@@ -716,6 +748,11 @@ class FileDeduplicationPage extends HTMLElement {
     // Re-setup event listeners for the new elements
     this.setupEventListeners();
     this.loadProjects(); // Still load projects for browser users
+    
+    // If a project is selected, render the type selector
+    if (this.currentProject) {
+      this.renderTypeSelector();
+    }
   }
 
   private showStatus(message: string, type: 'success' | 'error' | 'info' = 'info') {
@@ -753,6 +790,65 @@ class FileDeduplicationPage extends HTMLElement {
   }
 
   // Test function to verify hash generation
+  private buildRegexFromSelector(): string {
+    const exts = Array.from(this.shadow.querySelectorAll<HTMLButtonElement>('.ext-btn.active'))
+                       .map(b => b.dataset.ext!.toLowerCase());
+    if (!exts.length) return '';                     // block scan if nothing selected
+    const extPart = exts.join('|');
+    return String.raw`^(?!~\$).*(\.(${extPart}))(\.[[:digit:]]+)?$`;
+  }
+
+  private updateScanBtn() {
+    const scanBtn = this.shadow.getElementById('runScanBtn') as HTMLButtonElement;
+    const anyChecked = !!this.shadow.querySelector('.ext-btn.active');
+    scanBtn.disabled = !anyChecked;
+  }
+
+  private renderTypeSelector() {
+    const host = this.shadow.getElementById('typeSelector') as HTMLDivElement;
+    host.innerHTML = '';                          // clear if rerendering
+
+    CAD_GROUPS.forEach(sys => {
+      const sysDiv = document.createElement('details');
+      sysDiv.classList.add('cad-bubble');
+      sysDiv.open = true;                         // 🔹 keep every pill open
+      sysDiv.innerHTML = `<summary>${sys.label}</summary>`;
+
+      sys.groups.forEach(grp => {
+        const grpDiv = document.createElement('div');
+
+        grp.exts.forEach(ext => {
+          const btn = document.createElement('button');
+          btn.className = 'ext-btn';              // new style below
+          btn.dataset.ext = ext;
+          btn.textContent = '.' + ext;
+          // OFF by default –> no 'active' class
+          btn.addEventListener('click', () => {
+            btn.classList.toggle('active');       // switch colour
+            this.updateScanBtn();                 // re-enable/disable Scan
+          });
+          grpDiv.appendChild(btn);
+        });
+
+        sysDiv.appendChild(grpDiv);
+      });
+
+      host.appendChild(sysDiv);
+    });
+
+    /* wire Select-/Deselect-All buttons once */
+    const selAll = this.shadow.getElementById('selectAllTypes')  as HTMLButtonElement;
+    const desAll = this.shadow.getElementById('deselectAllTypes') as HTMLButtonElement;
+    selAll.onclick = () => {
+      host.querySelectorAll<HTMLButtonElement>('.ext-btn').forEach(b => b.classList.add('active'));
+      this.updateScanBtn();
+    };
+    desAll.onclick = () => {
+      host.querySelectorAll<HTMLButtonElement>('.ext-btn').forEach(b => b.classList.remove('active'));
+      this.updateScanBtn();
+    };
+  }
+
   private async testHashGeneration() {
     try {
       console.log('🧪 Testing hash generation...');

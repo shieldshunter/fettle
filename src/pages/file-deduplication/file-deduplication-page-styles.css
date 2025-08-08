@@ -725,6 +725,80 @@
   margin-top: 8px;
 }
 
+/* File Type Selector Styles */
+.select-controls {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.type-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.type-selector details {
+  margin-bottom: 6px;
+}
+
+.type-selector summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.cad-bubble {
+  background-color: var(--container-bg);
+  border: 1px solid var(--status-unresolved);
+  border-radius: 18px;
+  padding: 4px 14px;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color .25s ease, transform .15s ease;
+  min-width: 110px;
+  overflow: hidden;
+}
+
+.cad-bubble[open] {
+  background-color: var(--status-unresolved);
+  color: #fff;
+}
+
+.cad-bubble:not([open]):hover {
+  background-color: rgba(227, 106, 30, 0.1);
+  transform: translateY(-1px);
+}
+
+.cad-bubble.selected-bubble {
+  background: #0078ff;
+  color: #fff;
+  border-color: #0078ff;
+}
+
+.ext-btn {
+  background: var(--container-bg);
+  color: var(--file-text);
+  border: 1px solid var(--status-unresolved);
+  border-radius: 8px;
+  padding: 2px 10px;
+  margin: 2px;
+  font-family: monospace;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color .2s ease, color .2s ease;
+}
+
+.ext-btn.active {
+  background: #0078ff;
+  color: #fff;
+}
+
+.ext-btn:hover:not(.active) {
+  background: #211ee3;
+  color: #fff;
+}
+
 /* Loading Container Styles */
 .loading-container {
   position: fixed;

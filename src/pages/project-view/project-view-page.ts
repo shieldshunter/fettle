@@ -91,6 +91,10 @@ class ProjectViewPage extends HTMLElement {
           <div class="full-tree-view-section">
             <button id="openTreeViewBtn" class="bin-button full-tree-view-btn">🌳 Full Tree View (WAY BETTER VIEW)</button>
             <p class="tree-view-description">Switch to the enhanced tree view with delete mode and advanced features</p>
+            <!-- Temporary: link to new modular v2 tree view -->
+            <button id="openTreeViewV2Btn" class="bin-button full-tree-view-btn" style="margin-top: 8px; display: none;">
+              🌲 Tree View v2 (experimental)
+            </button>
           </div>
 
           <div class="report-section">
@@ -161,6 +165,8 @@ class ProjectViewPage extends HTMLElement {
     this.shadow.getElementById('collapseAllBtn')?.addEventListener('click', () => this.collapseAll());
     this.shadow.getElementById('showUnresolvedBtn')?.addEventListener('click', () => this.toggleUnresolvedOnly());
     this.shadow.getElementById('openTreeViewBtn')?.addEventListener('click', () => this.openTreeView());
+    // Temp: v2 button
+    this.shadow.getElementById('openTreeViewV2Btn')?.addEventListener('click', () => this.openTreeViewV2());
     this.shadow.getElementById('downloadReportBtn')?.addEventListener('click', () => this.downloadResolutionReport());
     this.shadow.getElementById('downloadScriptableBtn')?.addEventListener('click', () => this.downloadScriptableReport());
     
@@ -1382,6 +1388,17 @@ ${unresolvedFiles.map(file => `  ⏳ ${file.relativePath}`).join('\n')}
     
     // Navigate to the tree view page using the main app's navigation
     const event = new CustomEvent('navigate', { detail: 'treeview' });
+    document.dispatchEvent(event);
+  }
+
+  // Temporary navigation to v2 modular tree view (does not affect existing view)
+  private openTreeViewV2() {
+    if (!this.currentProject) {
+      this.showStatus('No project selected', 'error');
+      return;
+    }
+    sessionStorage.setItem('currentProjectId', this.currentProject.id.toString());
+    const event = new CustomEvent('navigate', { detail: 'treeviewv2' });
     document.dispatchEvent(event);
   }
 

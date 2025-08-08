@@ -1,5 +1,6 @@
 import cssText from './tree-view-page-styles.css?inline';
 import { API_CONFIG } from '../../config/api-config';
+import { io, Socket } from 'socket.io-client';
 
 const sheet = new CSSStyleSheet(); 
 sheet.replaceSync(cssText);
@@ -113,6 +114,15 @@ class TreeViewPage extends HTMLElement {
   private currentPopupFile: string | null = null;
   private currentDuplicateGroupIndex: number = 0;
   private availableDuplicateGroups: string[] = [];
+  
+  // Realtime (Socket.IO)
+  private socket: Socket | null = null;
+  private joinedProjectId: number | null = null;
+  private reloadTimer: number | null = null;
+  
+  // File ID/path index for realtime updates that reference IDs only
+  private fileIdToRelativePath: Map<number, string> = new Map();
+  private relativePathToFileId: Map<string, number> = new Map();
   
   // Delete mode properties
   private isDeleteMode: boolean = false;
@@ -228,6 +238,26 @@ class TreeViewPage extends HTMLElement {
   connectedCallback() {
     this.setupEventListeners();
     this.loadProjectData();
+    // Initialize socket connection early; room join happens once project is known
+    this.connectSocket();
+  }
+
+  disconnectedCallback() {
+    // Cleanup socket and leave room
+    try {
+      if (this.socket && this.joinedProjectId != null) {
+        this.socket.emit('leave_project', this.joinedProjectId);
+      }
+      this.socket?.disconnect();
+    } catch (_e) {
+      // no-op
+    }
+    this.socket = null;
+    this.joinedProjectId = null;
+    if (this.reloadTimer) {
+      clearTimeout(this.reloadTimer);
+      this.reloadTimer = null;
+    }
   }
 
   private setupEventListeners() {
@@ -298,6 +328,15 @@ class TreeViewPage extends HTMLElement {
       if (!filesResult.success) throw new Error(filesResult.error || 'Failed to load files');
 
       const files: FileInfo[] = filesResult.data;
+      // Refresh ID/path indexes
+      this.fileIdToRelativePath.clear();
+      this.relativePathToFileId.clear();
+      files.forEach(f => {
+        this.fileIdToRelativePath.set(f.id, f.relative_path);
+        this.relativePathToFileId.set(f.relative_path, f.id);
+      });
+      console.log('🔧 Built file ID map with', this.fileIdToRelativePath.size, 'entries');
+      console.log('🔧 Sample file ID mappings:', Array.from(this.fileIdToRelativePath.entries()).slice(0, 5));
       
       // Build duplicate groups
       this.buildDuplicateGroups(files);
@@ -317,11 +356,253 @@ class TreeViewPage extends HTMLElement {
       this.renderFileTree();
       
       this.showStatus(`Loaded project: ${this.currentProject?.name || 'Unknown'}`, 'success');
+      // After successful load, ensure realtime is set up for this project
+      this.ensureRealtimeForProject(projectId);
     } catch (error) {
       this.showStatus('Error loading project tree: ' + error, 'error');
     } finally {
       this.hideLoadingState();
     }
+  }
+
+  // ============ Realtime (Socket.IO) ============
+  private getSocketBaseUrl(): string {
+    // Derive socket base from API base by stripping trailing path like /api
+    try {
+      const apiUrl = new URL(API_CONFIG.BASE_URL);
+      // Remove trailing "/api" if present
+      apiUrl.pathname = apiUrl.pathname.replace(/\/?api\/?$/, '/');
+      // Ensure no trailing slash duplication
+      const base = `${apiUrl.protocol}//${apiUrl.host}` + (apiUrl.pathname === '/' ? '' : apiUrl.pathname.replace(/\/$/, ''));
+      return base || API_CONFIG.BASE_URL;
+    } catch (_e) {
+      // If BASE_URL is not absolute, fallback heuristics
+      return API_CONFIG.BASE_URL.replace(/\/?api\/?$/, '');
+    }
+  }
+
+  private connectSocket() {
+    if (this.socket) return;
+    const baseUrl = this.getSocketBaseUrl();
+    try {
+      this.socket = io(baseUrl, { transports: ['websocket', 'polling'] });
+
+      this.socket.on('connect', () => {
+        console.log('🔌 Socket connected');
+        // Rejoin room if we had one
+        if (this.joinedProjectId != null) {
+          this.socket?.emit('join_project', this.joinedProjectId);
+        }
+      });
+
+      this.socket.on('disconnect', (reason: string) => {
+        console.log('🔌 Socket disconnected:', reason);
+      });
+
+      this.socket.on('connect_error', (error: unknown) => {
+        console.error('🔌 Socket connect_error:', error);
+      });
+
+      // Event: individual file status change
+      this.socket.on('file_status_change', (data: any) => {
+        try {
+          console.log('🔌 Socket file_status_change received:', data);
+          if (!data || !data.fileData) {
+            console.log('🔌 No fileData in event, skipping');
+            return;
+          }
+          // Ensure event belongs to the same project
+          if (this.currentProject && (data.projectId === this.currentProject.id || data.projectId === String(this.currentProject.id))) {
+            console.log('🔌 Project ID matches, processing file status change');
+            const status = this.normalizeStatus(data.fileData.status);
+            // Backend sends fileData.id and fileData.hash, not relativePath
+            const fileId = data.fileData.id;
+            const relPath: string = this.fileIdToRelativePath.get(fileId) || '';
+            console.log('🔌 File ID:', fileId, 'Status:', status, 'Relative Path:', relPath);
+            if (relPath && status) {
+              console.log('🔌 Updating file status in tree:', relPath, '->', status);
+              this.updateFileStatusInTree(relPath, status);
+              console.log('🔌 Rendering tree after file status update');
+              this.renderFileTree();
+              this.refreshPopupIfOpen();
+              if (this.isDeleteMode) {
+                this.loadBulkDeleteStats(this.currentProject.id);
+              }
+            } else {
+              console.log('🔌 Missing relative path or status, cannot update');
+            }
+          } else {
+            console.log('🔌 Project ID mismatch or no current project. Event projectId:', data.projectId, 'Current project ID:', this.currentProject?.id);
+          }
+        } catch (e) {
+          console.error('Realtime file_status_change handling error:', e);
+        }
+      });
+
+      // Event: bulk operations (folder, pattern, files)
+      this.socket.on('bulk_operation', (data: any) => {
+        try {
+          console.log('🔌 Socket bulk_operation received:', data);
+          if (!data || !data.operationData) {
+            console.log('🔌 No operationData in event, skipping');
+            return;
+          }
+          if (this.currentProject && data.projectId === this.currentProject.id) {
+            console.log('🔌 Project ID matches, processing bulk operation');
+            const op = data.operationData;
+            const opType = String(op.operationType || '').toLowerCase();
+            console.log('🔌 Operation type:', opType, 'File IDs:', op.fileIds);
+            // Backend sends fileIds array for bulk operations
+            if (Array.isArray(op.fileIds) && op.fileIds.length > 0) {
+              let updatedAny = false;
+              op.fileIds.forEach((id: number) => {
+                const path = this.fileIdToRelativePath.get(id);
+                console.log('🔌 Looking up file ID:', id, '-> Path:', path);
+                if (path) {
+                  console.log('🔌 Updating file status in tree:', path, '-> bulk_deleted');
+                  this.updateFileStatusInTree(path, FILE_STATUS.BULK_DELETED);
+                  updatedAny = true;
+                } else {
+                  console.log('🔌 No path found for file ID:', id);
+                }
+              });
+              if (updatedAny) {
+                console.log('🔌 Rendering tree after bulk operation update');
+                this.renderFileTree();
+                this.refreshPopupIfOpen();
+              } else {
+                console.log('🔌 No files were updated in bulk operation');
+              }
+            } else {
+              console.log('🔌 No fileIds array in bulk operation');
+            }
+            if (this.isDeleteMode) {
+              this.loadBulkDeleteStats(this.currentProject.id);
+            }
+          } else {
+            console.log('🔌 Project ID mismatch or no current project. Event projectId:', data.projectId, 'Current project ID:', this.currentProject?.id);
+          }
+        } catch (e) {
+          console.error('Realtime bulk_operation handling error:', e);
+        }
+      });
+
+      // Event: project-level updates (e.g., scan results)
+      this.socket.on('project_update', (data: any) => {
+        try {
+          if (this.currentProject && (data?.projectId === this.currentProject.id || data?.projectId === String(this.currentProject.id))) {
+            this.scheduleReload();
+          }
+        } catch (e) {
+          console.error('Realtime project_update handling error:', e);
+        }
+      });
+
+      // Event: resolution events (mark_primary / mark_deleted groups)
+      this.socket.on('resolution', (data: any) => {
+        try {
+          if (this.currentProject && (data?.projectId === this.currentProject.id || data?.projectId === String(this.currentProject.id))) {
+            this.scheduleReload();
+          }
+        } catch (e) {
+          console.error('Realtime resolution handling error:', e);
+        }
+      });
+
+
+    } catch (e) {
+      console.error('Failed to create socket connection:', e);
+    }
+  }
+
+  private ensureRealtimeForProject(projectId: number) {
+    this.connectSocket();
+    if (!this.socket) return;
+    if (this.joinedProjectId != null && this.joinedProjectId !== projectId) {
+      this.socket.emit('leave_project', this.joinedProjectId);
+    }
+    this.joinedProjectId = projectId;
+    this.socket.emit('join_project', projectId);
+  }
+
+  private normalizeStatus(status: string): string {
+    if (!status) return FILE_STATUS.NORMAL;
+    const s = String(status).toLowerCase();
+    if (s === 'primary') return FILE_STATUS.PRIMARY;
+    if (s === 'deleted') return FILE_STATUS.DELETED;
+    if (s === 'bulk_deleted' || s === 'bulk-deleted' || s === 'bulkdeleted') return FILE_STATUS.BULK_DELETED;
+    if (s === 'unresolved') return FILE_STATUS.UNRESOLVED;
+    if (s === 'normal') return FILE_STATUS.NORMAL;
+    return status;
+  }
+
+  private normalizeFolderPath(path: string): string {
+    if (!path) return '/';
+    let p = path;
+    try { p = decodeURIComponent(p); } catch { /* ignore */ }
+    p = p.replace(/\\/g, '/');
+    p = p.replace(/\/+$/, '');
+    if (!p.startsWith('/')) p = `/${p}`;
+    return p;
+  }
+
+  private normalizeRelativePath(path: string): string {
+    if (!path) return '';
+    let s = path;
+    try { s = decodeURIComponent(s); } catch { /* ignore */ }
+    s = s.replace(/\\/g, '/');
+    return s.replace(/^\//, '');
+  }
+
+  private findNodeByPathCaseInsensitive(root: TreeNode, path: string): TreeNode | null {
+    const normalized = this.normalizeFolderPath(path);
+    const parts = normalized.split('/').filter(Boolean);
+    let current: TreeNode | null = root;
+    if (parts.length === 0) return root;
+    for (const part of parts) {
+      if (!current || !current.children) return null;
+      const nextNode: TreeNode | undefined = current.children.find((c: TreeNode) => c.name.toLowerCase() === part.toLowerCase());
+      if (!nextNode) return null;
+      current = nextNode;
+    }
+    return current;
+  }
+
+  findNearestExistingFolderNode(targetPath: string): TreeNode | null {
+    if (!this.fileTree) return null;
+    let candidate = this.normalizeFolderPath(targetPath);
+    // Try exact path first (insensitive)
+    let node = this.findNodeByPathCaseInsensitive(this.fileTree, candidate);
+    if (node && node.isFolder) return node;
+    // If path points to a file, strip last segment and retry progressively
+    const parts = candidate.split('/').filter(Boolean);
+    while (parts.length > 0) {
+      const folderCandidate = '/' + parts.join('/');
+      node = this.findNodeByPathCaseInsensitive(this.fileTree, folderCandidate);
+      if (node && node.isFolder) return node;
+      parts.pop();
+    }
+    return null;
+  }
+
+  private scheduleReload(delayMs: number = 300) {
+    if (this.reloadTimer) {
+      clearTimeout(this.reloadTimer);
+      this.reloadTimer = null;
+    }
+    this.reloadTimer = window.setTimeout(async () => {
+      try {
+        if (this.currentProject) {
+          await this.loadProjectTree(this.currentProject.id);
+          this.renderFileTree();
+        }
+      } finally {
+        if (this.reloadTimer) {
+          clearTimeout(this.reloadTimer);
+          this.reloadTimer = null;
+        }
+      }
+    }, delayMs) as unknown as number;
   }
 
   private async loadBulkDeleteStats(projectId: number) {
@@ -497,13 +778,22 @@ class TreeViewPage extends HTMLElement {
   }
 
   private renderFileTree() {
+    console.log('🔧 renderFileTree called');
     const treeContainer = this.shadow.getElementById('fileTree')!;
     treeContainer.innerHTML = '';
     
-    if (!this.fileTree) return;
+    if (!this.fileTree) {
+      console.log('🔧 No file tree to render');
+      return;
+    }
     
+    console.log('🔧 Creating tree element');
     const treeElement = this.createTreeNodeElement(this.fileTree);
     treeContainer.appendChild(treeElement);
+    // Force style recalc to ensure status classes take effect immediately (especially in delete mode)
+    // Access offsetHeight to flush layout
+    void treeContainer.offsetHeight;
+    console.log('🔧 Tree rendered successfully');
   }
 
   private createTreeNodeElement(node: TreeNode): HTMLElement {
@@ -1472,7 +1762,7 @@ class TreeViewPage extends HTMLElement {
       return;
     }
 
-    // Execute all deletions
+    // Execute all deletions; rely on socket events for UI updates, but also optimistically update immediately
     Promise.all([filePromises, ...folderPromises])
       .then(async results => {
         console.log('🔧 Bulk delete results:', results);
@@ -1492,39 +1782,13 @@ class TreeViewPage extends HTMLElement {
         if (allSuccessful) {
           this.showStatus('Bulk deletion successful!', 'success');
           
-          // Store the selected items before clearing them
-          const selectedFiles = Array.from(this.selectedFilesForDeletion);
-          const selectedFolders = Array.from(this.selectedFoldersForDeletion);
-          
-          console.log('🔧 Updating file statuses:', { selectedFiles, selectedFolders });
-          
-          // Clear selections first
+          // Clear selections - let socket events drive the UI updates
           this.selectedFilesForDeletion.clear();
           this.selectedFoldersForDeletion.clear();
+          this.updateDeleteModeStats();
           
-          // Update local file tree immediately for selected files
-          selectedFiles.forEach(filePath => {
-            console.log('🔧 Updating file status:', filePath, 'to', FILE_STATUS.BULK_DELETED);
-            this.updateFileStatusInTree(filePath, FILE_STATUS.BULK_DELETED);
-          });
-          
-          // Update local file tree immediately for files in selected folders
-          selectedFolders.forEach(folderPath => {
-            console.log('🔧 Updating folder status:', folderPath, 'to', FILE_STATUS.BULK_DELETED);
-            this.updateFilesInFolderStatus(folderPath, FILE_STATUS.BULK_DELETED);
-          });
-          
-          // Force a complete rerender of the tree with a small delay to ensure proper sync
-          console.log('🔧 Rerendering tree...');
-          setTimeout(() => {
-            this.renderFileTree();
-            console.log('🔧 Tree rerendered');
-          }, 10);
-          
-          // Also reload bulk delete stats
-          if (this.currentProject) {
-            await this.loadBulkDeleteStats(this.currentProject.id);
-          }
+          // Socket events will handle the actual UI updates
+          // No optimistic updates - rely purely on socket events
         } else {
           throw new Error('Some deletions failed');
         }
@@ -1652,13 +1916,19 @@ class TreeViewPage extends HTMLElement {
   }
 
   private updateFileStatusInTree(relativePath: string, newStatus: string) {
-    if (!this.fileTree) return;
+    if (!this.fileTree) {
+      console.log('🔧 updateFileStatusInTree: No file tree available');
+      return;
+    }
     
     console.log('🔧 updateFileStatusInTree called for:', relativePath, 'new status:', newStatus);
     
     // Find the file node in the tree and update its status
     const updateNodeStatus = (node: TreeNode): boolean => {
-      if (node.relativePath === relativePath) {
+      const nodeRel = node.relativePath ? this.normalizeRelativePath(node.relativePath) : '';
+      const targetRel = this.normalizeRelativePath(relativePath);
+      console.log('🔧 Comparing node:', nodeRel, 'with target:', targetRel);
+      if (nodeRel && targetRel && nodeRel === targetRel) {
         console.log('🔧 Found file node:', node.name, 'old status:', node.status, 'new status:', newStatus);
         node.status = newStatus;
         return true; // Found and updated
@@ -1684,7 +1954,9 @@ class TreeViewPage extends HTMLElement {
     
     // Find the folder node and update all files within it
     const updateFolderFiles = (node: TreeNode): boolean => {
-      if (node.path === folderPath) {
+      const nodePath = node.path.replace(/\\/g, '/');
+      const targetPath = this.normalizeFolderPath(folderPath).replace(/\\/g, '/');
+      if (nodePath === targetPath) {
         // Update all files in this folder
         this.updateAllFilesInNode(node, newStatus);
         return true; // Found and updated

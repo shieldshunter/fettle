@@ -14,6 +14,7 @@ import './pages/JobBoss2-ai/jobboss2-ai-page'; // Import the JobBoss2 AI page
 import './pages/file-deduplication/file-deduplication-page'; // Import the file deduplication page
 import './pages/project-view/project-view-page'; // Import the project view page
 import './pages/project-view/tree-view-page'; // Import the tree view page
+import './pages/project-view/v2/tree-view-page-v2'; // Import the modular v2 tree view
 
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -148,6 +149,13 @@ function setupHeaderNav() {
         slideTransition(treeViewPage);
         
         // Add special class to main container for tree view styling
+        const mainContainer = document.getElementById('mainContainer');
+        if (mainContainer) {
+          mainContainer.classList.add('tree-view-active');
+        }
+      } else if (pageId === 'treeviewv2') {
+        const treeViewPageV2 = document.createElement('tree-view-page-v2');
+        slideTransition(treeViewPageV2 as HTMLElement);
         const mainContainer = document.getElementById('mainContainer');
         if (mainContainer) {
           mainContainer.classList.add('tree-view-active');
